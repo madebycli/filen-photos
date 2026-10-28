@@ -1,0 +1,23 @@
+name: filen_sdk
+description: Android-only Flutter plugin exposing Filen's official Rust SDK (filen-rs, uniffi) to Dart.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.ente.photos.filen
+        pluginClass: FilenSdkPlugin

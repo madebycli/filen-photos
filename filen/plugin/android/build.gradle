@@ -1,0 +1,70 @@
+group = "io.ente.photos.filen"
+version = "1.0"
+
+buildscript {
+    ext.kotlin_version = "2.2.20"
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+def nativeOut = layout.buildDirectory.dir("filen-native").get().asFile
+
+android {
+    namespace = "io.ente.photos.filen"
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+        // Generated from the pinned filen-rs submodule by scripts/build-android-native.sh
+        main.java.srcDirs += new File(nativeOut, "kotlin")
+        main.jniLibs.srcDirs += new File(nativeOut, "jniLibs")
+    }
+
+    defaultConfig {
+        minSdk = 26
+        consumerProguardFiles "consumer-rules.pro"
+    }
+}
+
+// The SDK is Rust: build it (cached by submodule commit + features + ABIs) before compiling Kotlin.
+def buildNative = tasks.register("buildFilenNative", Exec) {
+    def script = new File(projectDir, "../../scripts/build-android-native.sh").canonicalPath
+    commandLine "bash", script
+    environment "FILEN_NATIVE_OUT", nativeOut.absolutePath
+    inputs.property("sdkRev", providers.exec {
+        commandLine "git", "-C", new File(projectDir, "../../filen-rs").canonicalPath, "rev-parse", "HEAD"
+    }.standardOutput.asText.map { it.trim() })
+    inputs.property("features", providers.environmentVariable("FILEN_FEATURES").orElse("default"))
+    inputs.property("abis", providers.environmentVariable("FILEN_ABIS").orElse("default"))
+    inputs.file(script)
+    outputs.dir(nativeOut)
+}
+
+tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(buildNative) }
+
+dependencies {
+    // Required by the uniffi-generated Kotlin bindings.
+    implementation "net.java.dev.jna:jna:5.17.0@aar"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+}
