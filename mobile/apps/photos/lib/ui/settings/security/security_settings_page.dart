@@ -16,6 +16,7 @@ import "package:photos/core/configuration.dart";
 import "package:photos/core/error-reporting/super_logging.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/user_details_changed_event.dart";
+import 'package:photos/filen/filen_account.dart';
 import "package:photos/models/user_details.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/account/passkey_service.dart";
@@ -59,8 +60,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.strings;
+    // Filen fork: 2FA, passkeys and sessions are Ente account features; Filen manages them.
     final showAccountSecurity =
-        _config.hasConfiguredAccount() && !isLocalGalleryMode;
+        _config.hasConfiguredAccount() &&
+        !isLocalGalleryMode &&
+        !FilenAccount.isActive;
 
     return SettingsPageScaffold(
       title: l10n.security,
@@ -97,21 +101,23 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           onTap: () async => _onAppLockTap(context),
         ),
         const SizedBox(height: 8),
-        SettingsItem(
-          title: l10n.crashReporting,
-          icon: HugeIcons.strokeRoundedBug02,
-          trailing: ToggleSwitchComponent.async(
-            value: () => SuperLogging.shouldReportCrashes(),
-            onChanged: () async {
-              await SuperLogging.setShouldReportCrashes(
-                !SuperLogging.shouldReportCrashes(),
-              );
-              if (mounted) {
-                setState(() {});
-              }
-            },
+        // Filen fork: crash reporting is permanently off (no third-party telemetry).
+        if (!FilenAccount.isActive)
+          SettingsItem(
+            title: l10n.crashReporting,
+            icon: HugeIcons.strokeRoundedBug02,
+            trailing: ToggleSwitchComponent.async(
+              value: () => SuperLogging.shouldReportCrashes(),
+              onChanged: () async {
+                await SuperLogging.setShouldReportCrashes(
+                  !SuperLogging.shouldReportCrashes(),
+                );
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+            ),
           ),
-        ),
         if (showAccountSecurity) ...[
           const SizedBox(height: 8),
           SettingsItem(

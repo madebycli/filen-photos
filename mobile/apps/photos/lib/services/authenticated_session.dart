@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:photos/core/configuration.dart';
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/service_locator.dart';
 import 'package:photos/src/rust/third_party/ente_frb_lib/session.dart';
 
@@ -8,6 +9,10 @@ Session? _session;
 String? _sessionKey;
 
 Session authenticatedSession() {
+  // Filen fork: Ente's Rust session would talk to Ente's servers.
+  if (FilenAccount.isActive) {
+    throw StateError('No Ente session for Filen accounts');
+  }
   final config = Configuration.instance;
   final authToken = config.getToken();
   final userId = config.getUserID();

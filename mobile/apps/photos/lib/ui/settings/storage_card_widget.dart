@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/constants.dart';
 import "package:photos/core/errors.dart";
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/models/user_details.dart';
 import 'package:photos/service_locator.dart';
 import 'package:photos/states/user_details_state.dart';
@@ -68,6 +69,8 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () async {
+        // Filen fork: plans are managed at Filen, not through Ente's billing.
+        if (FilenAccount.isActive) return;
         final isFamilyMember =
             (userDetails?.isPartOfFamily() ?? false) &&
             !((userDetails?.currentFamilyMember()?.isAdmin) ?? false);

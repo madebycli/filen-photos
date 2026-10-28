@@ -6,6 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/filen/filen_ids.dart';
+import 'package:photos/gateways/billing/models/subscription.dart';
+import 'package:photos/models/user_details.dart';
 
 /// Filen session handling for the fork. The SDK performs the login (including all key
 /// derivation); this class only persists the resulting session in the platform keystore-backed
@@ -67,6 +69,31 @@ class FilenAccount {
     // Last: setting the token flips the app into the signed-in state.
     await config.setToken(kFilenTokenMarker);
     return info;
+  }
+
+  /// Storage figures from Filen in the shape Ente's settings screens expect. Filen has no
+  /// subscription objects here, so the plan is a placeholder that never expires.
+  Future<UserDetails> userDetails() async {
+    final info = await _sdk.userInfo();
+    return UserDetails(
+      info.email,
+      info.storageUsed,
+      0,
+      0,
+      0,
+      Subscription(
+        productID: 'filen',
+        storage: info.maxStorage,
+        originalTransactionID: '',
+        paymentProvider: 'filen',
+        expiryTime: DateTime(2100).microsecondsSinceEpoch,
+        price: '',
+        period: '',
+      ),
+      null,
+      ProfileData(),
+      null,
+    );
   }
 
   /// Drops the in-memory client. [Configuration.logout] already wiped secure storage.

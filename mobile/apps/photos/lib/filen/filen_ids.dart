@@ -1,3 +1,4 @@
+import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 
 /// Fork-specific glue between Ente's gallery model and Filen's drive.
@@ -34,3 +35,9 @@ String filenUuidOf(EnteFile file) {
   }
   return file.encryptedKey!;
 }
+
+/// The Filen folder UUID behind a collection that came from Filen, or null for other collections.
+String? filenDirUuidOf(Collection collection) =>
+    collection.keyDecryptionNonce == kFilenKeyMarker
+    ? collection.encryptedKey
+    : null;

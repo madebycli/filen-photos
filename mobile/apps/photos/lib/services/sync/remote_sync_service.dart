@@ -230,8 +230,8 @@ class RemoteSyncService {
     return _prefs.containsKey(_isFirstRemoteSyncDone);
   }
 
-  /// Filen fork: mirror the Filen photo library into the local gallery database.
-  /// Upload of device photos to Filen is not implemented yet, so nothing is queued or sent.
+  /// Filen fork: mirror the Filen photo library into the local gallery database, then back up
+  /// the device folders the user selected. Edits of already uploaded files are not re-uploaded.
   Future<void> _syncFilen({bool silently = false}) async {
     if (_existingSync != null) {
       return _existingSync?.future;
@@ -239,8 +239,18 @@ class RemoteSyncService {
     _existingSync = Completer<void>();
     _isExistingSyncSilent = silently;
     try {
+      // Pull first so files that are already on Filen are not queued again after a reinstall.
       await _pullDiff();
       await _prefs.setBool(_isFirstRemoteSyncDone, true);
+      if (!isProcessBg || await canUseHighBandwidth()) {
+        await syncDeviceCollectionFilesForUpload();
+        final hasUploadedFiles = await _uploadFiles(
+          await _getFilesToBeUploaded(),
+        );
+        if (hasUploadedFiles) {
+          await _pullDiff();
+        }
+      }
       Bus.instance.fire(SyncStatusUpdate(SyncStatus.completedBackup));
     } catch (e, s) {
       _logger.severe("Filen sync failed", e, s);

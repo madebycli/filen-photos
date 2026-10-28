@@ -86,7 +86,8 @@ EnteFile? filenFileToEnteFile(
 }
 
 /// A Filen folder as an Ente collection. The photo library root becomes the "Uncategorized"
-/// collection (files directly in it), every sub-folder an album.
+/// collection (files directly in it), every sub-folder an album. The folder's UUID is kept in
+/// [Collection.encryptedKey] and tagged with [kFilenKeyMarker], mirroring what is done for files.
 Collection filenDirToCollection({
   required String uuid,
   required String name,
@@ -97,7 +98,7 @@ Collection filenDirToCollection({
   final c = Collection(
     filenUuidToId(uuid),
     owner,
-    kFilenKeyMarker,
+    uuid,
     kFilenKeyMarker,
     name,
     null,

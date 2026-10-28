@@ -10,6 +10,8 @@ import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:photos/core/configuration.dart";
 import "package:photos/emergency/emergency_page.dart";
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/ui/filen_account_settings_page.dart';
 import "package:photos/models/user_details.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/account/user_service.dart";
@@ -65,6 +67,8 @@ class _SettingsBody extends StatelessWidget {
     final hasLoggedIn = Configuration.instance.isLoggedIn();
     final hasConfiguredAccount = Configuration.instance.hasConfiguredAccount();
     final showLoginEntry = isLocalGalleryMode && !hasConfiguredAccount;
+    // Filen fork: Ente-only account, billing, sharing and promo entries are hidden for Filen accounts.
+    final isFilen = FilenAccount.isActive;
 
     return AnimatedBuilder(
       animation: emailNotifier,
@@ -106,7 +110,12 @@ class _SettingsBody extends StatelessWidget {
                 title: context.strings.account,
                 icon: HugeIcons.strokeRoundedUser,
                 onTap: () async {
-                  await routeToPage(context, const AccountSettingsPage());
+                  await routeToPage(
+                    context,
+                    isFilen
+                        ? const FilenAccountSettingsPage()
+                        : const AccountSettingsPage(),
+                  );
                 },
               ),
               const SizedBox(height: 8),
@@ -135,26 +144,28 @@ class _SettingsBody extends StatelessWidget {
               },
             ),
             const SizedBox(height: 8),
-            if (isLocalGalleryMode) ...[
+            if (isLocalGalleryMode || (hasLoggedIn && isFilen)) ...[
               _buildOfflineFeaturesCard(context),
               const SizedBox(height: 8),
             ],
-            if (hasLoggedIn && !isLocalGalleryMode) ...[
+            if (hasLoggedIn && !isLocalGalleryMode && !isFilen) ...[
               _buildPersonalFeaturesCard(context),
               const SizedBox(height: 8),
               _buildFeaturesAndPlansCard(context),
               const SizedBox(height: 8),
             ],
-            AppEngagementSection(reviewUrl: ReviewService.url),
-            const SizedBox(height: 8),
-            _buildMenuItem(
-              title: context.strings.helpAndSupport,
-              icon: HugeIcons.strokeRoundedHelpCircle,
-              onTap: () async {
-                await routeToPage(context, const HelpSupportPage());
-              },
-            ),
-            const SizedBox(height: 8),
+            if (!isFilen) ...[
+              AppEngagementSection(reviewUrl: ReviewService.url),
+              const SizedBox(height: 8),
+              _buildMenuItem(
+                title: context.strings.helpAndSupport,
+                icon: HugeIcons.strokeRoundedHelpCircle,
+                onTap: () async {
+                  await routeToPage(context, const HelpSupportPage());
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
             _buildMenuItem(
               title: context.strings.about,
               icon: HugeIcons.strokeRoundedInformationCircle,
@@ -166,10 +177,11 @@ class _SettingsBody extends StatelessWidget {
               const SizedBox(height: 8),
               _buildLogoutCard(context),
             ],
-            MoreFromEnteFooter(
-              currentApp: ComponentApp.photos,
-              onVersionTap: () => showChangeLogSheet(context),
-            ),
+            if (!isFilen)
+              MoreFromEnteFooter(
+                currentApp: ComponentApp.photos,
+                onVersionTap: () => showChangeLogSheet(context),
+              ),
             if (hasLoggedIn &&
                 !isLocalGalleryMode &&
                 (flagService.flags.internalUser || kDebugMode)) ...[

@@ -1,6 +1,7 @@
 import 'package:filen_sdk/filen_sdk.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
+import 'package:photos/db/collections_db.dart';
 import 'package:photos/db/files_db.dart';
 import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/filen_ids.dart';
@@ -8,6 +9,7 @@ import 'package:photos/filen/filen_media_mapper.dart';
 import 'package:photos/models/api/collection/user.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
+import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/sync/diff_fetcher.dart';
 
 /// Read side of the Filen backend, plugged into Ente's collection/diff sync at two seams
@@ -40,6 +42,68 @@ class FilenSyncService {
       // Every sync must re-diff every collection: Filen folders carry no change counter.
       updationTime: DateTime.now().microsecondsSinceEpoch,
     );
+  }
+
+  /// Files directly in a Filen folder, from the most recent listing (plus this session's uploads).
+  List<FilenFile> filesInFolder(String folderUuid) {
+    final tree = _tree;
+    if (tree == null) return const [];
+    return [
+      for (final f in tree.files)
+        if (f.parentUuid == folderUuid) f,
+    ];
+  }
+
+  /// Makes an upload visible to name/size checks of later uploads in the same sync.
+  void noteUploaded(FilenFile file) {
+    final tree = _tree;
+    if (tree == null) return;
+    _tree = FilenTree(tree.dirs, [...tree.files, file]);
+  }
+
+  /// Album for a device folder (the "backup folder" concept of Ente): a sub-folder of the photo
+  /// library with the folder's name, created on Filen when missing.
+  Future<Collection> getOrCreateAlbum(String name) async {
+    final rootUuid = _rootUuid ?? await FilenAccount.instance.photosRootUuid();
+    final tree = _tree ?? await FilenSdk.instance.listTree(rootUuid);
+    _tree ??= tree;
+    _rootUuid ??= rootUuid;
+    final clean = name.replaceAll('/', '_').trim();
+    final safeName = clean.isEmpty ? 'Unknown Folder' : clean;
+    FilenDir? dir;
+    for (final d in tree.dirs) {
+      if (d.parentUuid == rootUuid && d.name == safeName) {
+        dir = d;
+        break;
+      }
+    }
+    final String uuid;
+    if (dir != null) {
+      uuid = dir.uuid;
+    } else {
+      uuid = await FilenSdk.instance.createDir(
+        parentUuid: rootUuid,
+        name: safeName,
+      );
+      _tree = FilenTree([
+        ...tree.dirs,
+        FilenDir(uuid: uuid, parentUuid: rootUuid, name: safeName),
+      ], tree.files);
+    }
+    final collection = filenDirToCollection(
+      uuid: uuid,
+      name: safeName,
+      isLibraryRoot: false,
+      owner: User(
+        id: Configuration.instance.getUserID()!,
+        email: Configuration.instance.getEmail() ?? '',
+      ),
+      updationTime: DateTime.now().microsecondsSinceEpoch,
+    );
+    await CollectionsDB.instance.insert([collection]);
+    CollectionsService.instance.collectionIDToCollections[collection.id] =
+        collection;
+    return collection;
   }
 
   /// Files of [collectionID] as seen on Filen right now, plus the ones that vanished.

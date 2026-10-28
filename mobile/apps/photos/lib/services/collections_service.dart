@@ -1992,6 +1992,10 @@ class CollectionsService {
   }
 
   Future<Collection> getOrCreateForPath(String path) async {
+    // Filen fork: device folders become sub-folders of the Filen photo library.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.getOrCreateAlbum(path);
+    }
     if (_localPathToCollectionID.containsKey(path)) {
       final Collection? cachedCollection =
           _collectionIDToCollections[_localPathToCollectionID[path]];

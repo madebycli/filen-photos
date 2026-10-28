@@ -18,6 +18,7 @@ import "package:photos/events/account_configured_event.dart";
 import 'package:photos/events/signed_in_event.dart';
 import 'package:photos/events/user_details_changed_event.dart';
 import 'package:photos/events/user_logged_out_event.dart';
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/gateways/users/models/key_attributes.dart';
 import 'package:photos/gateways/users/models/key_gen_result.dart';
 import 'package:photos/gateways/users/models/sessions.dart';
@@ -287,6 +288,14 @@ class UserService {
     bool shouldCache = true,
   }) async {
     _logger.info("Fetching user details");
+    if (FilenAccount.isActive) {
+      // Filen fork: quota comes from Filen.
+      final details = await FilenAccount.instance.userDetails();
+      if (shouldCache) {
+        await _preferences.setString(keyUserDetails, details.toJson());
+      }
+      return details;
+    }
     final bool previousEmailMFAStatus = hasEmailMFAEnabled();
     final bool previousTwoFactorStatus = hasEnabledTwoFactor();
     final userDetails = await _gateway.getUserDetails(memoryCount: memoryCount);
@@ -336,7 +345,10 @@ class UserService {
 
   Future<void> logout(BuildContext context) async {
     try {
-      await _gateway.logout();
+      // Filen fork: there is no Ente session to end.
+      if (!FilenAccount.isActive) {
+        await _gateway.logout();
+      }
       await Configuration.instance.logout();
       if (!context.mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);

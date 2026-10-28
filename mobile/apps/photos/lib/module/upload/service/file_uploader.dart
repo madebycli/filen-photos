@@ -19,6 +19,8 @@ import "package:photos/events/backup_updated_event.dart";
 import "package:photos/events/file_uploaded_event.dart";
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_upload.dart';
 import "package:photos/gateways/files/file_upload_gateway.dart";
 import "package:photos/main.dart" show isProcessBg;
 import "package:photos/models/backup/backup_item.dart";
@@ -199,6 +201,8 @@ class FileUploader {
   }
 
   Future<void> validateUploadEligibility() async {
+    // Filen fork: quota is enforced by Filen while uploading.
+    if (FilenAccount.isActive) return;
     try {
       await _gateway.validateUploadEligibility();
     } on DioException catch (e) {
@@ -445,6 +449,20 @@ class FileUploader {
     var uploadHardFailure = false;
 
     try {
+      // Filen fork: the Filen SDK encrypts and uploads; none of Ente's upload pipeline applies.
+      if (FilenAccount.isActive) {
+        final remoteFile = await filenUploadFile(
+          file,
+          collectionID,
+          mediaUploadData.sourceFile,
+        );
+        uploadCompleted = true;
+        Bus.instance.fire(
+          LocalPhotosUpdatedEvent([remoteFile], source: "uploadCompleted"),
+        );
+        Bus.instance.fire(FileUploadedEvent(remoteFile));
+        return remoteFile;
+      }
       final bool isUpdatedFile =
           file.uploadedFileID != null && file.updationTime == -1;
       _logger.info(
