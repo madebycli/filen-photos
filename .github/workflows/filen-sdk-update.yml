@@ -1,0 +1,95 @@
+name: "Filen SDK update"
+
+# Looks for a newer official Filen SDK release (filen-rs tag filen-js@X.Y.Z), pins the submodule to
+# it on a branch, builds + tests it for Android (filen-android.yml) and opens a DRAFT pull request.
+# Nothing is merged or released automatically.
+
+on:
+    schedule:
+        - cron: "17 4 * * 1"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    pull-requests: write
+    actions: write
+
+jobs:
+    update:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 0
+
+            - name: Bump submodule to the newest Filen release
+              id: bump
+              run: |
+                  set -euo pipefail
+                  old="$(tr -d '[:space:]' < filen/FILEN_VERSION)"
+                  new="$(filen/scripts/update-filen-rs.sh)"
+                  if [[ -z "$new" ]]; then
+                      echo "Already on the newest Filen release ($old)"
+                      echo "changed=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  branch="filen-update/${new#filen-js@}"
+                  if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+                      echo "Branch $branch already exists; nothing to do"
+                      echo "changed=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  old_tc="$(git -C filen/filen-rs show "$(git rev-parse HEAD:filen/filen-rs):rust-toolchain.toml" 2>/dev/null | sed -n 's/^channel *= *"\(.*\)"/\1/p' || true)"
+                  new_tc="$(sed -n 's/^channel *= *"\(.*\)"/\1/p' filen/filen-rs/rust-toolchain.toml)"
+                  {
+                      echo "changed=true"
+                      echo "old=$old"
+                      echo "new=$new"
+                      echo "branch=$branch"
+                      echo "old_toolchain=${old_tc:-unknown}"
+                      echo "new_toolchain=$new_tc"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Commit and push update branch
+              if: steps.bump.outputs.changed == 'true'
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${{ steps.bump.outputs.branch }}"
+                  git add filen/filen-rs filen/FILEN_VERSION
+                  git commit -m "Update Filen SDK to ${{ steps.bump.outputs.new }}"
+                  git push origin "${{ steps.bump.outputs.branch }}"
+
+            - name: Run the Android build and tests on the update branch
+              if: steps.bump.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  gh workflow run filen-android.yml --ref "${{ steps.bump.outputs.branch }}" \
+                      -f build_apk=true -f publish_test_release=true
+
+            - name: Open draft pull request
+              if: steps.bump.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  OLD: ${{ steps.bump.outputs.old }}
+                  NEW: ${{ steps.bump.outputs.new }}
+                  OLD_TC: ${{ steps.bump.outputs.old_toolchain }}
+                  NEW_TC: ${{ steps.bump.outputs.new_toolchain }}
+                  BRANCH: ${{ steps.bump.outputs.branch }}
+              run: |
+                  set -euo pipefail
+                  cat > body.md <<BODY
+                  Automated bump of the official Filen SDK: \`${OLD}\` -> \`${NEW}\`.
+
+                  - Compare: https://github.com/FilenCloudDienste/filen-rs/compare/${OLD}...${NEW}
+                  - Rust toolchain: \`${OLD_TC}\` -> \`${NEW_TC}\`
+                  - A run of **Filen Android** on \`${BRANCH}\` analyzes, tests and builds a signed test APK and,
+                    only if all of that passes, attaches it to a GitHub **pre-release**.
+                  - **Review the upstream diff before merging.** Nothing here is released to users automatically,
+                    and CI does not log in to a live Filen account: install the test APK and check login, browsing
+                    and downloads by hand.
+                  BODY
+                  gh pr create --draft --base main --head "$BRANCH" \
+                      --title "Update Filen SDK to ${NEW}" --body-file body.md

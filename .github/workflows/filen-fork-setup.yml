@@ -1,0 +1,26 @@
+name: "Filen fork setup"
+
+# One-time, manual: this fork only builds Android. Disables every inherited upstream (Ente)
+# workflow so iOS/web/desktop/server automation never runs here. Re-run after merging upstream if
+# new workflows appear. Workflows whose file name starts with "filen-" are left alone.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    actions: write
+
+jobs:
+    disable-upstream-workflows:
+        runs-on: ubuntu-latest
+        steps:
+            - env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  set -euo pipefail
+                  gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/workflows" \
+                      --jq '.workflows[] | select(.state=="active") | select(.path | test("^\\.github/workflows/filen-") | not) | "\(.id)\t\(.path)"' |
+                  while IFS=$'\t' read -r id path; do
+                      echo "disabling $path"
+                      gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/disable"
+                  done

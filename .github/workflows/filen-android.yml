@@ -1,0 +1,204 @@
+name: "Filen Android"
+
+# Android-only checks and test builds of the Filen-backed photos app.
+# Never publishes a production release: the optional release is a pre-release test APK.
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "filen/**"
+            - "mobile/apps/photos/**"
+            - "mobile/packages/**"
+            - ".github/workflows/filen-android.yml"
+    pull_request:
+        paths:
+            - "filen/**"
+            - "mobile/apps/photos/**"
+            - "mobile/packages/**"
+            - ".github/workflows/filen-android.yml"
+    workflow_dispatch:
+        inputs:
+            build_apk:
+                description: "Also build a signed test APK"
+                type: boolean
+                default: true
+            publish_test_release:
+                description: "Attach the APK to a GitHub pre-release (only after all checks passed)"
+                type: boolean
+                default: false
+
+permissions:
+    contents: read
+
+concurrency:
+    group: filen-android-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    NDK_VERSION: 28.2.13676358
+
+jobs:
+    checks:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+              with:
+                  distribution: temurin
+                  java-version: "17"
+
+            - name: Install Flutter
+              uses: ./.github/actions/setup-flutter
+
+            - name: Resolve dependencies
+              working-directory: mobile
+              run: flutter pub get --enforce-lockfile
+
+            - name: Generate Ente Rust bindings (flutter_rust_bridge)
+              working-directory: rust
+              run: cargo codegen frb photos
+
+            - name: Analyze Filen code
+              working-directory: mobile/apps/photos
+              run: dart analyze --fatal-infos lib/filen test/filen
+
+            - name: Unit tests
+              working-directory: mobile/apps/photos
+              run: flutter test test/filen
+
+    apk:
+        needs: checks
+        if: >-
+            github.event_name == 'push' ||
+            (github.event_name == 'workflow_dispatch' && inputs.build_apk)
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        outputs:
+            apk_name: ${{ steps.build.outputs.apk_name }}
+            sdk_version: ${{ steps.build.outputs.sdk_version }}
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Fetch pinned Filen SDK
+              run: git submodule update --init --depth 1 filen/filen-rs
+
+            - name: Free disk space
+              run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android/sdk/ndk/2[0-7].*
+
+            - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+              with:
+                  distribution: temurin
+                  java-version: "17"
+
+            - name: Install Flutter
+              uses: ./.github/actions/setup-flutter
+
+            - name: Install Android NDK
+              run: |
+                  yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+                  "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${NDK_VERSION}"
+                  echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+
+            - name: Install pinned Rust toolchain for the Filen SDK
+              run: |
+                  channel="$(sed -n 's/^channel *= *"\(.*\)"/\1/p' filen/filen-rs/rust-toolchain.toml)"
+                  echo "Filen toolchain: $channel"
+                  rustup toolchain install "$channel" --profile minimal -c rust-src -t aarch64-linux-android
+                  cargo install cargo-ndk --version '^4' --locked
+
+            - name: Cache Filen SDK build
+              uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: filen/build/cargo-target
+                  key: filen-cargo-${{ runner.os }}-${{ hashFiles('filen/FILEN_VERSION', 'filen/scripts/build-android-native.sh') }}
+
+            - name: Resolve dependencies
+              working-directory: mobile
+              run: flutter pub get --enforce-lockfile
+
+            - name: Generate Ente Rust bindings (flutter_rust_bridge)
+              working-directory: rust
+              run: cargo codegen frb photos
+
+            - name: Prepare signing key
+              id: key
+              env:
+                  KEYSTORE_B64: ${{ secrets.FILEN_PHOTOS_KEYSTORE_B64 }}
+                  KEY_ALIAS: ${{ secrets.FILEN_PHOTOS_KEY_ALIAS }}
+                  KEY_PASSWORD: ${{ secrets.FILEN_PHOTOS_KEY_PASSWORD }}
+                  STORE_PASSWORD: ${{ secrets.FILEN_PHOTOS_STORE_PASSWORD }}
+              run: |
+                  set -euo pipefail
+                  if [[ -n "${KEYSTORE_B64}" ]]; then
+                      printf '%s' "${KEYSTORE_B64}" | base64 -d > "$RUNNER_TEMP/release.jks"
+                      echo "signing=release-key" >> "$GITHUB_OUTPUT"
+                      echo "SIGNING_KEY_ALIAS=${KEY_ALIAS}" >> "$GITHUB_ENV"
+                      echo "SIGNING_KEY_PASSWORD=${KEY_PASSWORD}" >> "$GITHUB_ENV"
+                      echo "SIGNING_STORE_PASSWORD=${STORE_PASSWORD}" >> "$GITHUB_ENV"
+                  else
+                      # No secrets configured: sign with a throw-away key. Such an APK installs fine
+                      # but can not be updated in place by a later build.
+                      pw="$(openssl rand -hex 16)"
+                      keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -alias test \
+                          -keyalg RSA -keysize 2048 -validity 3650 -storepass "$pw" -keypass "$pw" \
+                          -dname "CN=filen-photos ephemeral test key"
+                      echo "signing=ephemeral-key" >> "$GITHUB_OUTPUT"
+                      echo "SIGNING_KEY_ALIAS=test" >> "$GITHUB_ENV"
+                      echo "SIGNING_KEY_PASSWORD=${pw}" >> "$GITHUB_ENV"
+                      echo "SIGNING_STORE_PASSWORD=${pw}" >> "$GITHUB_ENV"
+                  fi
+                  echo "SIGNING_KEY_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+            - name: Build test APK (arm64)
+              id: build
+              working-directory: mobile/apps/photos
+              env:
+                  FILEN_CARGO_TARGET_DIR: ${{ github.workspace }}/filen/build/cargo-target
+              run: |
+                  set -euo pipefail
+                  sdk="$(cat ../../../filen/FILEN_VERSION)"
+                  flutter build apk --release --flavor independent --target-platform android-arm64 \
+                      --dart-define=cronetHttpNoPlay=true
+                  name="filen-photos-${GITHUB_SHA::8}-${{ steps.key.outputs.signing }}.apk"
+                  mkdir -p ../../../artifacts
+                  cp build/app/outputs/flutter-apk/app-independent-release.apk "../../../artifacts/${name}"
+                  (cd ../../../artifacts && sha256sum "${name}" > SHA256SUMS)
+                  echo "apk_name=${name}" >> "$GITHUB_OUTPUT"
+                  echo "sdk_version=${sdk}" >> "$GITHUB_OUTPUT"
+
+            - name: Verify APK ships the Filen SDK for arm64
+              run: |
+                  unzip -l "artifacts/${{ steps.build.outputs.apk_name }}" | grep -q 'lib/arm64-v8a/libfilen_sdk_rs.so'
+
+            - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+              with:
+                  name: filen-photos-test-apk
+                  path: artifacts/*
+                  if-no-files-found: error
+
+    test-release:
+        needs: apk
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_test_release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+              with:
+                  name: filen-photos-test-apk
+                  path: artifacts
+
+            - name: Create pre-release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  APK_NAME: ${{ needs.apk.outputs.apk_name }}
+                  SDK_VERSION: ${{ needs.apk.outputs.sdk_version }}
+              run: |
+                  set -euo pipefail
+                  tag="test-${GITHUB_SHA::8}"
+                  gh release create "$tag" artifacts/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+                      --prerelease --latest=false \
+                      --title "Test build ${tag} (Filen SDK ${SDK_VERSION})" \
+                      --notes "Automated **test** build, not a production release. Filen SDK: \`${SDK_VERSION}\`. Checks (analyze, unit tests) and the APK build passed; the app was not exercised against a live Filen account by CI. SHA-256 in SHA256SUMS."
