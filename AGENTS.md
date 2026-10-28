@@ -36,4 +36,4 @@ Host-side Filen tooling needs `RUSTFLAGS=-Zhigher-ranked-assumptions` if the `wi
 - Seams into Ente (search `Filen fork`): `collections_service.dart` (`_fetchCollections`),
   `diff_fetcher.dart`, `module/download/{file,thumbnail}.dart`, `remote_sync_service.dart`,
   `configuration.dart` (restore/logout), `landing_page_widget.dart`.
-- Updates: `.github/workflows/filen-sdk-update.yml` (Filen), merge `ente/ente` upstream by hand.
+- Updates: `.github/workflows/filen-sdk-update.yml` = weekly verified Filen SDK bump + pre-release; merge `ente/ente` upstream by hand.

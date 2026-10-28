@@ -22,16 +22,25 @@ Ente syncs per collection (album) with a "diff". The fork keeps that machinery a
 
 ## Known gaps (honest status)
 
-- **No upload yet**: device photos are not backed up to Filen; the library is read-only in the app.
-- Videos have no thumbnails (the SDK cannot make them); videos play after download.
-- Ente-only account screens (subscription, recovery key, sessions, family...) are still present and
-  talk to Ente servers; they must be removed or mapped to Filen features.
+- Works through Filen: login (+2FA), browsing/sync of `Filen Photos`, thumbnails, originals, backup of selected
+  device folders, delete (-> Filen trash), move between albums, quota.
+- Not available for Filen accounts (hidden): shared albums/feed, links, favorites, archive/hide, metadata edits,
+  people tagging, family/legacy/cast/referrals, free-up-space, Ente trash screen.
+- Videos have no thumbnails (the SDK cannot make them); no transfer progress, no upload resume;
+  edits of already uploaded photos are not re-uploaded.
+- Ente leftovers still present: `Ente` wording in non-English strings and some screens, the other Ente apps in the
+  monorepo (kept as merge base only), model/asset downloads from Ente's CDN for the on-device ML.
 - armeabi-v7a is not supported (Filen builds arm64-v8a/x86_64 only).
 - Nothing here has been run against a live Filen account yet.
 
-## Updating
+## Updating and releasing
 
-- Filen: the *Filen SDK update* workflow opens a draft PR with a bumped submodule and a test build.
-- Ente: `git remote add upstream https://github.com/ente/ente && git merge upstream/main`;
+- **Filen SDK (automatic, weekly)**: `filen-sdk-update.yml` bumps the submodule to the newest `filen-js@X.Y.Z` release
+  on a branch, runs `filen-android.yml` (analyze, unit tests, signed arm64 APK) and, only if that passes,
+  fast-forwards `main` and publishes a GitHub **pre-release** with the APK. If anything fails nothing is merged and a
+  draft PR is left. Set the repository variable `FILEN_AUTO_MERGE=false` to always get a draft PR instead.
+- **Signing**: set the secrets `FILEN_PHOTOS_KEYSTORE_B64`, `FILEN_PHOTOS_KEY_ALIAS`, `FILEN_PHOTOS_KEY_PASSWORD`,
+  `FILEN_PHOTOS_STORE_PASSWORD`; without them CI signs with a throw-away key (APKs then cannot update each other).
+- **Ente UI (manual)**: `git remote add upstream https://github.com/ente/ente && git merge upstream/main`;
   conflicts are expected only in the few `Filen fork:` seams.
-- One-time: run the *Filen fork setup* workflow to disable inherited non-Android upstream workflows.
+- **One-time**: run the *Filen fork setup* workflow to disable inherited non-Android upstream workflows.
