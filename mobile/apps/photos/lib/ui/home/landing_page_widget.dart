@@ -88,7 +88,7 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
                                       "Filen Photos",
                                       textAlign: TextAlign.center,
                                       textScaler: TextScaler.noScaling,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w800,
                                         fontFamily: TextStyles.outfitFontFamily,
                                         package: TextStyles.fontPackage,
