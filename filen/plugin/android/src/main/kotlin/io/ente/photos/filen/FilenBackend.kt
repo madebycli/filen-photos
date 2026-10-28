@@ -108,7 +108,7 @@ class FilenBackend {
         mapOf("dirs" to dirs, "files" to files)
     }
 
-    private fun dirTarget(c: JsClient, uuid: String): AnyNormalDir =
+    private suspend fun dirTarget(c: JsClient, uuid: String): AnyNormalDir =
         if (uuid == c.root().uuid) AnyNormalDir.Root(Root(uuid)) else AnyNormalDir.Dir(c.getDir(uuid))
 
     /** Finds (or creates) a direct child folder of the drive root and returns its uuid. */

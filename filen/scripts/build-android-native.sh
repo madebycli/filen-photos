@@ -55,6 +55,7 @@ FIRST_ABI="${ABIS%% *}"
 RUSTFLAGS="-Zhigher-ranked-assumptions" cargo run --release -q -p uniffi-bindgen -- \
   generate --library "$OUT/jniLibs/$FIRST_ABI/libfilen_sdk_rs.so" \
   --language kotlin --no-format --out-dir "$OUT/kotlin"
+python3 "$ROOT/scripts/fix-uniffi-kotlin.py" "$OUT/kotlin"
 
 echo "$STAMP_ID" > "$OUT/.stamp"
 echo "filen-native: built $STAMP_ID"
