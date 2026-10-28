@@ -59,8 +59,12 @@ Future<EnteFile> filenUploadFile(
     }
   }
   if (remote != null) {
-    _logger.info('${file.tag} already on Filen as ${remote.uuid}, linking');
+    _logger.info(
+      '${file.tag} already on Filen (same name and size), linking instead of uploading',
+    );
   } else {
+    _logger.info('Uploading ${file.tag}: $size bytes into folder $parentUuid');
+    final watch = Stopwatch()..start();
     final created = file.creationTime;
     final modified = file.modificationTime;
     try {
@@ -76,6 +80,7 @@ Future<EnteFile> filenUploadFile(
       rethrow;
     }
     sync.noteUploaded(remote);
+    _logger.info('Uploaded ${file.tag} in ${watch.elapsedMilliseconds} ms');
   }
 
   final remoteFile = EnteFile.from(file)

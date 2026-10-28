@@ -33,8 +33,12 @@ class FilenSyncService {
 
   /// Albums of the library: the root (as Uncategorized) and every sub-folder.
   Future<List<Collection>> fetchCollections() async {
+    final watch = Stopwatch()..start();
     final rootUuid = await FilenAccount.instance.photosRootUuid();
     final tree = await FilenSdk.instance.listTree(rootUuid);
+    _logger.info(
+      'Filen listing: ${tree.dirs.length} folders, ${tree.files.length} files in ${watch.elapsedMilliseconds} ms',
+    );
     _tree = tree;
     _rootUuid = rootUuid;
     final owner = User(

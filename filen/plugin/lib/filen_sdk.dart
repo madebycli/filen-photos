@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
 
 /// Failure reported by the Filen SDK layer. [code] is one of:
 /// TWO_FACTOR_REQUIRED, TWO_FACTOR_WRONG, BAD_CREDENTIALS, UNAUTHENTICATED, NOT_LOGGED_IN,
@@ -107,10 +108,21 @@ class FilenSdk {
 
   final MethodChannel _channel;
 
+  static final Logger _log = Logger('FilenSdk');
+
+  /// Every call is logged with its duration and, on failure, the error code and message. Arguments
+  /// are never logged: they can hold passwords, local paths or file names.
   Future<T?> _call<T>(String method, [Map<String, Object?>? args]) async {
+    final watch = Stopwatch()..start();
     try {
-      return await _channel.invokeMethod<T>(method, args);
+      final result = await _channel.invokeMethod<T>(method, args);
+      _log.fine('$method ok in ${watch.elapsedMilliseconds} ms');
+      return result;
     } on PlatformException catch (e) {
+      _log.warning(
+        '$method failed after ${watch.elapsedMilliseconds} ms: ${e.code} ${e.message}'
+        '${e.details == null ? '' : '\n${e.details}'}',
+      );
       throw FilenException(e.code, e.message);
     }
   }
@@ -152,6 +164,48 @@ class FilenSdk {
 
   Future<String> createDir({required String parentUuid, required String name}) async =>
       (await _call<String>('createDir', {'parentUuid': parentUuid, 'name': name}))!;
+
+  /// One level of a folder (no recursion).
+  Future<FilenTree> listFolder(String uuid) async {
+    final m = (await _call<Map<Object?, Object?>>('listFolder', {'uuid': uuid}))!;
+    return FilenTree(
+      [for (final d in m['dirs']! as List<Object?>) FilenDir.fromMap(d! as Map<Object?, Object?>)],
+      [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)],
+    );
+  }
+
+  /// UUID of the child folder [name] of [parentUuid]; created when missing.
+  Future<String> ensureDir({required String parentUuid, required String name}) async =>
+      (await _call<String>('ensureDir', {'parentUuid': parentUuid, 'name': name}))!;
+
+  Future<Uint8List> readBytes(String uuid) async =>
+      (await _call<Uint8List>('readBytes', {'uuid': uuid}))!;
+
+  /// Creates a new file. Never reuses a name: Filen replaces files by name.
+  Future<FilenFile> writeBytes({
+    required String parentUuid,
+    required String name,
+    required Uint8List data,
+    int? modifiedMs,
+  }) async => FilenFile.fromMap(
+    (await _call<Map<Object?, Object?>>('writeBytes', {
+      'parentUuid': parentUuid,
+      'name': name,
+      'data': data,
+      'modifiedMs': modifiedMs,
+    }))!,
+  );
+
+  /// Permanently deletes one of the app's own state files.
+  Future<void> deleteFilePermanently(String uuid) =>
+      _call<void>('deleteFilePermanently', {'uuid': uuid});
+
+  /// Changes the capture/modification time Filen stores for the file.
+  Future<void> setFileTimes({required String uuid, int? createdMs, int? modifiedMs}) =>
+      _call<void>('setFileTimes', {'uuid': uuid, 'createdMs': createdMs, 'modifiedMs': modifiedMs});
+
+  /// Local http URL that streams the decrypted file (with range requests) for media players.
+  Future<String> streamUrl(String uuid) async => (await _call<String>('streamUrl', {'uuid': uuid}))!;
 
   /// Moves the file to Filen's trash.
   Future<void> trashFile(String uuid) => _call<void>('trashFile', {'uuid': uuid});

@@ -25,9 +25,16 @@ Future<File> filenDownloadOriginal(EnteFile file) async {
       'filen-${const Uuid().v4()}$ext',
     ),
   );
+  final watch = Stopwatch()..start();
   try {
     await FilenSdk.instance.downloadFile(uuid: uuid, destPath: dest.path);
+    _logger.info(
+      'Downloaded ${file.tag} (${file.fileSize ?? '?'} bytes) in ${watch.elapsedMilliseconds} ms',
+    );
   } catch (e) {
+    _logger.warning(
+      'Download of ${file.tag} failed after ${watch.elapsedMilliseconds} ms: $e',
+    );
     if (dest.existsSync()) {
       await dest.delete();
     }
@@ -41,8 +48,17 @@ Future<File> filenDownloadOriginal(EnteFile file) async {
 /// SDK cannot thumbnail fall back to scaling the downloaded image; videos have no fallback yet.
 Future<Uint8List> filenThumbnail(EnteFile file) async {
   final uuid = filenUuidOf(file);
+  final watch = Stopwatch()..start();
   final fromSdk = await FilenSdk.instance.thumbnail(uuid);
-  if (fromSdk != null) return fromSdk;
+  if (fromSdk != null) {
+    _logger.fine(
+      'Thumbnail ${file.tag}: ${fromSdk.length} bytes in ${watch.elapsedMilliseconds} ms',
+    );
+    return fromSdk;
+  }
+  _logger.info(
+    'Thumbnail ${file.tag}: SDK has none after ${watch.elapsedMilliseconds} ms',
+  );
 
   if (file.fileType != FileType.image) {
     throw UnsupportedError(

@@ -12,6 +12,12 @@ const String kFilenKeyMarker = 'filen-v1';
 /// Stored as Ente's "token" so Ente's own login checks pass; it is not a credential.
 const String kFilenTokenMarker = 'filen-session';
 
+/// Official Filen SDK release this build was made with (`--dart-define=FILEN_SDK_VERSION=...`).
+const String kFilenSdkVersion = String.fromEnvironment(
+  'FILEN_SDK_VERSION',
+  defaultValue: 'unknown',
+);
+
 /// Direct child of the Filen drive root that holds the photo library.
 const String kFilenPhotosRootName = 'Filen Photos';
 

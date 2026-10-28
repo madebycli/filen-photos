@@ -120,6 +120,9 @@ class LogConfig {
   }
 }
 
+/// Filen fork: print Dart logs to logcat in release builds (set false for a quiet release).
+const bool kPrintLogsInRelease = true;
+
 class SuperLogging {
   static final $ = Logger('ente_logging');
 
@@ -377,7 +380,8 @@ class SuperLogging {
 
   static String _lastExtraLines = '';
 
-  static const Level rootLoggerLevel = kDebugMode ? Level.ALL : Level.INFO;
+  // Filen fork (test builds): FINE in release too, so logcat shows what the Filen layer does.
+  static const Level rootLoggerLevel = kDebugMode ? Level.ALL : Level.FINE;
 
   static const _logLevelDefine = String.fromEnvironment('ENTE_LOG_LEVEL');
 
@@ -461,7 +465,8 @@ class SuperLogging {
   static var logChunkSize = 800;
 
   static void printLog(String text) {
-    if (kDebugMode) {
+    // Filen fork: also in release builds, so `adb logcat -s flutter` shows the app log.
+    if (kDebugMode || kPrintLogsInRelease) {
       // ignore: avoid_print
       text.chunked(logChunkSize).forEach(print);
     }

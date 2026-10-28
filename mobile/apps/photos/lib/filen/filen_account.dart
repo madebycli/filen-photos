@@ -32,6 +32,9 @@ class FilenAccount {
   /// Re-attaches the persisted session to the SDK (local only, no network access).
   /// Called on every process start, UI and background alike.
   Future<void> restoreSession() async {
+    _logger.info(
+      'Filen Photos start: Filen account active=$isActive, Filen SDK $kFilenSdkVersion',
+    );
     if (!isActive) return;
     try {
       final session = await _storage.read(key: _sessionKey);
@@ -40,6 +43,7 @@ class FilenAccount {
         return;
       }
       await _sdk.restore(session);
+      _logger.info('Filen session restored');
     } catch (e, s) {
       // Keep the account: a transient failure must not look like a logout.
       _logger.severe('Failed to restore Filen session', e, s);
@@ -59,6 +63,9 @@ class FilenAccount {
     );
     await _storage.write(key: _sessionKey, value: session);
     final info = await _sdk.userInfo();
+    _logger.info(
+      'Filen login ok: userId=${info.userId}, storage ${info.storageUsed}/${info.maxStorage} bytes',
+    );
 
     final config = Configuration.instance;
     await config.setEmail(info.email);

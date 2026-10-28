@@ -1,5 +1,6 @@
 package io.ente.photos.filen
 
+import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -35,11 +36,15 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val value = dispatch(call)
                 withContext(Dispatchers.Main) { result.success(value) }
             } catch (e: FilenException) {
+                Log.w(TAG, "${call.method} -> ${e.code}: ${e.message}")
                 withContext(Dispatchers.Main) { result.error(e.code, e.message, null) }
             } catch (e: NotImplementedError) {
                 withContext(Dispatchers.Main) { result.notImplemented() }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { result.error("PLUGIN_ERROR", e.message, null) }
+                Log.e(TAG, "${call.method} crashed", e)
+                withContext(Dispatchers.Main) {
+                    result.error("PLUGIN_ERROR", "${e.javaClass.simpleName}: ${e.message}", e.stackTraceToString().take(2000))
+                }
             }
         }
     }
@@ -56,6 +61,25 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "listTree" -> backend.listTree(str("rootUuid"))
             "findOrCreateRootChild" -> backend.findOrCreateRootChild(str("name"))
             "createDir" -> backend.createDir(str("parentUuid"), str("name"))
+            "listFolder" -> backend.listFolder(str("uuid"))
+            "ensureDir" -> backend.ensureDir(str("parentUuid"), str("name"))
+            "readBytes" -> backend.readBytes(str("uuid"))
+            "writeBytes" -> backend.writeBytes(
+                str("parentUuid"),
+                str("name"),
+                call.argument<ByteArray>("data") ?: throw FilenException("BAD_ARGS", "missing data"),
+                (call.argument<Number>("modifiedMs"))?.toLong(),
+            )
+            "deleteFilePermanently" -> { backend.deleteFilePermanently(str("uuid")); null }
+            "setFileTimes" -> {
+                backend.setFileTimes(
+                    str("uuid"),
+                    (call.argument<Number>("createdMs"))?.toLong(),
+                    (call.argument<Number>("modifiedMs"))?.toLong(),
+                )
+                null
+            }
+            "streamUrl" -> backend.streamUrl(str("uuid"))
             "trashFile" -> { backend.trashFile(str("uuid")); null }
             "moveFile" -> { backend.moveFile(str("uuid"), str("newParentUuid")); null }
             "downloadFile" -> { backend.downloadFile(str("uuid"), str("destPath")); null }
@@ -78,6 +102,7 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     companion object {
         const val CHANNEL = "io.ente.photos/filen_sdk"
+        private const val TAG = "FilenSdk"
         private val backend = FilenBackend()
     }
 }

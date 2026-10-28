@@ -1,12 +1,21 @@
 package io.ente.photos.filen
 
+import android.util.Log
 import org.json.JSONObject
+import uniffi.filen_sdk_rs.LogLevel
+import uniffi.filen_sdk_rs.init as uniffiInit
+import uniffi.filen_sdk_rs.setLogLevel as uniffiSetLogLevel
 import uniffi.filen_sdk_rs.AnyFile
 import uniffi.filen_sdk_rs.AnyNormalDir
 import uniffi.filen_sdk_rs.DirMeta
 import uniffi.filen_sdk_rs.ErrorKind
 import uniffi.filen_sdk_rs.File
+import uniffi.filen_sdk_rs.CreatedTime
+import uniffi.filen_sdk_rs.FileBuilderParams
 import uniffi.filen_sdk_rs.FileBuilderParamsOptionalName
+import uniffi.filen_sdk_rs.FileMetaChanges
+import uniffi.filen_sdk_rs.HttpProviderHandle
+import uniffi.filen_sdk_rs.UploadFileParams
 import uniffi.filen_sdk_rs.FileMeta
 import uniffi.filen_sdk_rs.FilenSdkException
 import uniffi.filen_sdk_rs.JsClient
@@ -20,6 +29,8 @@ import uniffi.filen_sdk_rs.StringifiedClient
 import uniffi.filen_sdk_rs.UnauthJsClient
 
 /** Error that the Dart side can switch on; [code] is stable, [message] is for logs only. */
+private const val TAG = "FilenSdk"
+
 class FilenException(val code: String, message: String?) : Exception(message)
 
 /**
@@ -30,6 +41,17 @@ class FilenException(val code: String, message: String?) : Exception(message)
 class FilenBackend {
     @Volatile
     private var client: JsClient? = null
+
+    init {
+        // The SDK ships its own logcat sink (tag per Rust target); DEBUG shows requests and retries.
+        try {
+            uniffiInit()
+            uniffiSetLogLevel(LogLevel.DEBUG)
+            Log.i(TAG, "Filen SDK logging to logcat at DEBUG")
+        } catch (e: Throwable) {
+            Log.w(TAG, "Could not enable Filen SDK logging", e)
+        }
+    }
 
     private fun requireClient(): JsClient =
         client ?: throw FilenException("NOT_LOGGED_IN", "No Filen session")
@@ -50,16 +72,21 @@ class FilenBackend {
     /** Returns the serialized session; the caller keeps it in the Android Keystore backed storage. */
     suspend fun login(email: String, password: String, twoFactorCode: String?): String =
         wrap {
+            Log.i(TAG, "login: starting (2fa code ${if (twoFactorCode.isNullOrBlank()) "absent" else "given"})")
             val c = unauth().login(LoginParams(email, password, twoFactorCode?.ifBlank { null }))
             client = c
+            Log.i(TAG, "login: ok")
             serialize(c.toStringified())
         }
 
     suspend fun restore(session: String) = wrap {
         client = unauth().fromStringified(deserialize(session))
+        Log.i(TAG, "session restored")
     }
 
     fun logout() {
+        httpProvider?.destroy()
+        httpProvider = null
         client?.destroy()
         client = null
     }
@@ -128,6 +155,84 @@ class FilenBackend {
         val c = requireClient()
         val file = c.getFile(uuid)
         c.downloadFileToPath(AnyFile.File(file), destPath, null, ManagedFuture(null, null))
+    }
+
+    /** One level of a folder, nothing recursive: used for the app's own state folder. */
+    suspend fun listFolder(uuid: String): Map<String, Any?> = wrap {
+        val c = requireClient()
+        val listing = c.listDir(dirTarget(c, uuid))
+        mapOf(
+            "dirs" to listing.dirs.map { d ->
+                mapOf("uuid" to d.uuid, "parent" to uuid, "name" to dirName(d.meta))
+            },
+            "files" to listing.files.mapNotNull { fileMap(it, uuid) },
+        )
+    }
+
+    /** Returns the uuid of the child folder [name] of [parentUuid], creating it when missing. */
+    suspend fun ensureDir(parentUuid: String, name: String): String = wrap {
+        val c = requireClient()
+        val existing = c.listDir(dirTarget(c, parentUuid)).dirs.firstOrNull { dirName(it.meta) == name }
+        existing?.uuid ?: c.createDir(dirTarget(c, parentUuid), name).uuid
+    }
+
+    suspend fun readBytes(uuid: String): ByteArray = wrap {
+        val c = requireClient()
+        c.downloadFileToBytes(AnyFile.File(c.getFile(uuid)), ManagedFuture(null, null))
+    }
+
+    /** Creates a new file; the caller picks unique names (Filen would otherwise replace by name). */
+    suspend fun writeBytes(parentUuid: String, name: String, data: ByteArray, modifiedMs: Long?): Map<String, Any?> = wrap {
+        val c = requireClient()
+        val file = c.uploadFileFromBytes(
+            data,
+            UploadFileParams(
+                FileBuilderParams(
+                    parent = dirTarget(c, parentUuid),
+                    name = name,
+                    created = null,
+                    modified = modifiedMs,
+                    mime = null,
+                    noExif = true,
+                ),
+                ManagedFuture(null, null),
+            ),
+        )
+        fileMap(file, parentUuid) ?: throw FilenException("INTERNAL", "written file has no readable metadata")
+    }
+
+    /** Permanent delete. Only ever used on the app's own state files, never on user photos. */
+    suspend fun deleteFilePermanently(uuid: String) = wrap {
+        val c = requireClient()
+        c.deleteFilePermanently(c.getFile(uuid))
+    }
+
+    /** Sets the capture/modification time stored by Filen. */
+    suspend fun setFileTimes(uuid: String, createdMs: Long?, modifiedMs: Long?) = wrap {
+        val c = requireClient()
+        c.updateFileMetadata(
+            c.getFile(uuid),
+            FileMetaChanges(
+                name = null,
+                mime = null,
+                lastModified = modifiedMs,
+                created = if (createdMs == null) CreatedTime.Keep else CreatedTime.Set(createdMs),
+            ),
+        )
+        Unit
+    }
+
+    @Volatile
+    private var httpProvider: HttpProviderHandle? = null
+
+    /**
+     * A 127.0.0.1 URL that streams the decrypted file with range support, for the video player.
+     * The SDK's own HTTP provider does the decrypting; nothing is stored on disk.
+     */
+    suspend fun streamUrl(uuid: String): String = wrap {
+        val c = requireClient()
+        val provider = httpProvider ?: c.startHttpProvider(null).also { httpProvider = it }
+        provider.getFileUrl(AnyFile.File(c.getFile(uuid)))
     }
 
     /** Moves a file to Filen's trash (recoverable there), never deletes it permanently. */
