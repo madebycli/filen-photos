@@ -166,7 +166,7 @@ class UpdateService {
     if (Platform.isIOS) {
       return false;
     }
-    return _packageInfo.packageName.startsWith("io.ente.photos.independent");
+    return _packageInfo.packageName.startsWith("com.madebycli.filenphotos");
   }
 
   bool isFDroidFlavor() {

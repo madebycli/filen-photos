@@ -18,6 +18,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 typedef BackgroundPushHandler = Future<void> Function(Object message);
 
+/// Filen fork: push notifications are disabled.
+const bool kPushEnabled = false;
+
 class PushService {
   static const kFCMPushToken = "fcm_push_token";
   static const kLastFCMTokenUpdationTime = "fcm_push_token_updation_time";
@@ -36,6 +39,9 @@ class PushService {
   PushService._privateConstructor();
 
   Future<void> init({BackgroundPushHandler? onBackgroundPush}) async {
+    // Filen fork: pushes are an Ente-server feature and Firebase is not configured (no Ente
+    // Firebase project, no token registration). Nothing to do.
+    if (!kPushEnabled) return;
     _prefs = await SharedPreferences.getInstance();
     await Firebase.initializeApp();
     if (Platform.isAndroid) {

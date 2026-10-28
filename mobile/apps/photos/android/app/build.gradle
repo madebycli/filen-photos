@@ -71,7 +71,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.ente.photos"
+        // Filen fork: own application id so it installs next to the original Ente app.
+        applicationId = "com.madebycli.filenphotos"
         minSdk = 26
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -98,7 +99,6 @@ android {
     productFlavors {
         independent {
             dimension "default"
-            applicationIdSuffix ".independent"
         }
         dev {
             dimension "default"

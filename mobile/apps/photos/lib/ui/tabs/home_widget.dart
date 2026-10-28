@@ -30,6 +30,7 @@ import "package:photos/events/sync_status_update_event.dart";
 import "package:photos/events/tab_changed_event.dart";
 import "package:photos/events/trigger_logout_event.dart";
 import "package:photos/events/user_logged_out_event.dart";
+import 'package:photos/filen/filen_account.dart';
 import "package:photos/models/collection/collection.dart";
 import "package:photos/models/collection/collection_items.dart";
 import "package:photos/models/file/file.dart";
@@ -334,8 +335,10 @@ class _HomeWidgetState extends State<HomeWidget> {
         endpointConfig.isProduction) {
       PackageInfo.fromPlatform().then((packageInfo) {
         final packageName = packageInfo.packageName;
-        if (packageName == 'io.ente.photos.independent' ||
-            packageName == 'io.ente.photos.fdroid') {
+        // Filen fork: this prompt is about Ente's public album links, which do not exist here.
+        if (!FilenAccount.isActive &&
+            (packageName == 'com.madebycli.filenphotos' ||
+                packageName == 'io.ente.photos.fdroid')) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               requestPermissionToOpenLinksInApp(context, packageName);

@@ -22,11 +22,11 @@ Future<void> requestPermissionToOpenLinksInApp(
     );
     if (choice!.action == ButtonAction.first) {
       final AndroidIntent intent;
-      if (packageName == 'io.ente.photos.independent') {
+      if (packageName == 'com.madebycli.filenphotos') {
         intent = const AndroidIntent(
           action: 'android.settings.APP_OPEN_BY_DEFAULT_SETTINGS',
-          package: 'io.ente.photos.independent',
-          data: 'package:io.ente.photos.independent',
+          package: 'com.madebycli.filenphotos',
+          data: 'package:com.madebycli.filenphotos',
         );
         await intent.launch();
       } else if (packageName == 'io.ente.photos.fdroid') {
