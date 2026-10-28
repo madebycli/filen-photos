@@ -18,9 +18,6 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     ServiceLocator.instance.init(
       prefs,
-      Dio(),
-      Dio(),
-      Dio(),
       PackageInfo(
         appName: "Photos",
         packageName: "photos",

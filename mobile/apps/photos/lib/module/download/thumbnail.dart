@@ -292,8 +292,8 @@ Future<void> _downloadAndDecryptThumbnail(_ThumbnailDownload item) async {
   if (!isFilenFile(file)) {
     throw StateError('${file.tag} is not stored on Filen');
   }
-  final data = await filenThumbnail(file);
-  if (!_isCurrent(item)) {
+  final data = await filenThumbnail(file, isCancelled: () => !_isCurrent(item));
+  if (data == null || !_isCurrent(item)) {
     return;
   }
   ThumbnailInMemoryLruCache.put(item.file, data);

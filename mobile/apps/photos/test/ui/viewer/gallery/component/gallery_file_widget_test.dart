@@ -102,9 +102,6 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     ServiceLocator.instance.init(
       await SharedPreferences.getInstance(),
-      Dio(),
-      Dio(),
-      Dio(),
       PackageInfo(
         appName: "Photos",
         packageName: "photos",
@@ -159,7 +156,6 @@ void main() {
                             limitSelectionToOne: false,
                             tag: "selection_",
                             photoGridSize: photoGridSizeDefault,
-                            currentUserID: null,
                           ),
                         );
                       }).toList(),
@@ -234,7 +230,6 @@ void main() {
               tag: "gallery_",
               photoGridSize: gridSize,
               thumbnailSize: thumbnailSize,
-              currentUserID: null,
             ),
           ),
         ),
@@ -307,7 +302,6 @@ void main() {
                   tag: "gallery_",
                   photoGridSize: photoGridSizeDefault,
                   thumbnailSize: thumbnailLargeSize,
-                  currentUserID: null,
                 ),
               ),
             ),
@@ -389,7 +383,6 @@ void main() {
                 // small-local-cache behavior when no justified override exists.
                 photoGridSize: photoGridSizeDefault - 1,
                 thumbnailSize: justified ? thumbnailLargeSize : null,
-                currentUserID: null,
               ),
             ),
           ),

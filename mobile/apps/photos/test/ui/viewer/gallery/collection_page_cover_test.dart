@@ -97,9 +97,6 @@ void main() {
       );
     ServiceLocator.instance.init(
       preferences,
-      dio,
-      Dio(),
-      Dio(),
       PackageInfo(
         appName: "Photos",
         packageName: "photos",

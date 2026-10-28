@@ -12,6 +12,8 @@ import "package:photos/events/guest_view_event.dart";
 import "package:photos/events/pause_video_event.dart";
 import "package:photos/events/resume_video_event.dart";
 import "package:photos/events/video_mute_changed_event.dart";
+import "package:photos/filen/filen_file_access.dart";
+import "package:photos/filen/filen_ids.dart";
 import "package:photos/models/file/extensions/file_props.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/module/download/file.dart";
@@ -236,6 +238,22 @@ class _VideoWidgetMediaKitState extends State<VideoWidgetMediaKit>
   void _loadNetworkVideo({int? generation}) {
     bool isCurrent() =>
         mounted && (generation == null || generation == _videoLoad);
+    if (isFilenFile(widget.file)) {
+      // Filen fork: play straight from the SDK's stream, no download.
+      filenStreamUrl(widget.file)
+          .then((url) {
+            if (isCurrent()) _setVideoController(url);
+          })
+          .onError((error, stackTrace) {
+            if (!mounted || !isCurrent()) return;
+            showErrorDialog(
+              context,
+              context.strings.error,
+              context.strings.failedToDownloadVideo,
+            );
+          });
+      return;
+    }
     getFileFromServer(
           widget.file,
           progressCallback: (count, total) {

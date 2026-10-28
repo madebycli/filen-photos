@@ -47,7 +47,22 @@ Future<File> filenDownloadOriginal(EnteFile file) async {
   return dest;
 }
 
-Future<Uint8List> filenThumbnail(EnteFile file) async {
+/// A local http address the SDK serves the decrypted video from. The player asks for byte ranges,
+/// so only what is watched is fetched and nothing is written to disk - the same
+/// "stream, don't keep" behaviour Ente has for videos.
+Future<String> filenStreamUrl(EnteFile file) async {
+  final url = await FilenSdk.instance.streamUrl(filenUuidOf(file));
+  _logger.info('Streaming ${file.tag} (${file.fileSize ?? '?'} bytes)');
+  return url;
+}
+
+/// The preview of [file], or null when [isCancelled] says nobody wants it any more by the time
+/// its turn comes. Like Ente, a preview that scrolled off screen before it started is never
+/// fetched, so flinging through a big library does not queue thousands of requests.
+Future<Uint8List?> filenThumbnail(
+  EnteFile file, {
+  bool Function()? isCancelled,
+}) async {
   final uuid = filenUuidOf(file);
   final watch = Stopwatch()..start();
   final state = FilenState.instance;
@@ -69,9 +84,14 @@ Future<Uint8List> filenThumbnail(EnteFile file) async {
   }
 
   // 2. Make one from the original (needs the file, so it is rate limited) ...
-  final data = await _thumbnailLimiter.run(
-    () => _generateThumbnail(file, uuid),
-  );
+  final data = await _thumbnailLimiter.run(() async {
+    if (isCancelled?.call() ?? false) return null;
+    return _generateThumbnail(file, uuid);
+  });
+  if (data == null) {
+    _logger.fine('Thumbnail ${file.tag} no longer needed, skipped');
+    return null;
+  }
   _logger.info(
     'Thumbnail ${file.tag}: ${data.length} bytes generated in ${watch.elapsedMilliseconds} ms',
   );

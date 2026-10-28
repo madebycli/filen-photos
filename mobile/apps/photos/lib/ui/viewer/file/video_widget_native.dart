@@ -14,6 +14,8 @@ import "package:photos/events/resume_video_event.dart";
 import "package:photos/events/seekbar_triggered_event.dart";
 import "package:photos/events/use_media_kit_for_video.dart";
 import "package:photos/events/video_mute_changed_event.dart";
+import "package:photos/filen/filen_file_access.dart";
+import "package:photos/filen/filen_ids.dart";
 import "package:photos/models/file/extensions/file_props.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/module/download/file.dart";
@@ -76,6 +78,8 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
   late final StreamSubscription<GuestViewEvent> _guestViewEventSubscription;
   NativeVideoPlayerController? _controller;
   String? _filePath;
+  // True when [_filePath] is a stream address (Filen) instead of a file on the device.
+  bool _isStream = false;
   String? duration;
   double? aspectRatio;
   final _isPlaybackReady = ValueNotifier(false);
@@ -173,7 +177,7 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     }
     final videoSource = VideoSource(
       path: _filePath!,
-      type: VideoSourceType.file,
+      type: _isStream ? VideoSourceType.network : VideoSourceType.file,
     );
     await _controller?.loadVideo(videoSource);
     await _applyVolume();
@@ -185,7 +189,10 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
 
   void loadOriginal() async {
     final generation = ++_videoLoad;
-    setState(() => _filePath = null);
+    setState(() {
+      _filePath = null;
+      _isStream = false;
+    });
     if (widget.file.isRemoteOnlyFile) {
       _loadNetworkVideo();
       _setFileSizeIfNull();
@@ -646,6 +653,25 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
   void _loadNetworkVideo({int? generation}) {
     bool isCurrent() =>
         mounted && (generation == null || generation == _videoLoad);
+    if (isFilenFile(widget.file)) {
+      // Filen fork: play straight from the SDK's stream, no download.
+      filenStreamUrl(widget.file)
+          .then((url) {
+            if (!isCurrent()) return;
+            _isStream = true;
+            _setFilePathForNativePlayer(url);
+          })
+          .onError((error, stackTrace) {
+            if (!mounted || !isCurrent()) return;
+            _logger.warning('Could not start the video stream', error);
+            showErrorDialog(
+              context,
+              context.strings.error,
+              context.strings.failedToDownloadVideo,
+            );
+          });
+      return;
+    }
     getFileFromServer(
           widget.file,
           progressCallback: (count, total) {

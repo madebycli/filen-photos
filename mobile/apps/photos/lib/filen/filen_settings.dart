@@ -205,15 +205,15 @@ class FilenSettingsSync {
     for (final entry in result.applyLocally.entries) {
       final value = decodeSetting(entry.value);
       switch (value) {
-        case bool b:
+        case final bool b:
           await prefs.setBool(entry.key, b);
-        case int i:
+        case final int i:
           await prefs.setInt(entry.key, i);
-        case double d:
+        case final double d:
           await prefs.setDouble(entry.key, d);
-        case String s:
+        case final String s:
           await prefs.setString(entry.key, s);
-        case List<String> l:
+        case final List<String> l:
           await prefs.setStringList(entry.key, l);
         default:
           _logger.warning('Ignoring setting ${entry.key} of unknown type');
