@@ -3,6 +3,7 @@ import 'package:ente_icons/ente_icons.dart';
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
+import 'package:photos/filen/filen_account.dart';
 import "package:photos/models/api/collection/user.dart";
 import "package:photos/models/file/file.dart";
 import 'package:photos/models/file/trash_file.dart';
@@ -158,6 +159,10 @@ class TrashedFileOverlayText extends StatelessWidget {
   const TrashedFileOverlayText(this.file, {super.key});
   @override
   Widget build(BuildContext context) {
+    // Filen fork: Filen's trash has no countdown.
+    if (FilenAccount.isActive) {
+      return FileSizeOverlayText(file);
+    }
     final int daysLeft =
         ((file.deleteBy - DateTime.now().microsecondsSinceEpoch) /
                 Duration.microsecondsPerDay)

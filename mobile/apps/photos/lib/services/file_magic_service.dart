@@ -11,6 +11,8 @@ import 'package:photos/db/files_db.dart';
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_sync.dart';
 import "package:photos/gateways/collections/models/metadata.dart";
 import "package:photos/gateways/files/file_magic_gateway.dart";
 import 'package:photos/models/file/file.dart';
@@ -120,14 +122,20 @@ class FileMagicService {
         );
       }
 
-      await _gateway.updatePublicMagicMetadata(
-        updates.map((update) => update.request).toList(),
-      );
+      // Filen fork: nothing is sent to a server; the edit is queued for the state folder.
+      if (!FilenAccount.isActive) {
+        await _gateway.updatePublicMagicMetadata(
+          updates.map((update) => update.request).toList(),
+        );
+      }
       for (final update in updates) {
         update.file
           ..pubMmdEncodedJson = update.encodedJson
           ..pubMagicMetadata = update.decodedMetadata
           ..pubMmdVersion = update.nextVersion;
+        if (FilenAccount.isActive) {
+          FilenSyncService.instance.noteFileMeta(update.file);
+        }
       }
       await _filesDB.insertMultiple(files);
       RemoteSyncService.instance.sync(silently: true).ignore();
@@ -173,14 +181,19 @@ class FileMagicService {
           );
         }
 
-        await _gateway.updateMagicMetadata(
-          updates.map((update) => update.request).toList(),
-        );
+        if (!FilenAccount.isActive) {
+          await _gateway.updateMagicMetadata(
+            updates.map((update) => update.request).toList(),
+          );
+        }
         for (final update in updates) {
           update.file
             ..mMdEncodedJson = update.encodedJson
             ..magicMetadata = update.decodedMetadata
             ..mMdVersion = update.nextVersion;
+          if (FilenAccount.isActive) {
+            FilenSyncService.instance.noteFileMeta(update.file);
+          }
         }
         await _filesDB.insertMultiple(batch);
       }
@@ -215,6 +228,20 @@ class FileMagicService {
     final Map<String, dynamic> jsonToUpdate = jsonDecode(encodedJson ?? '{}');
     jsonToUpdate.addAll(newMetadata);
     final updatedJson = jsonEncode(jsonToUpdate);
+    if (FilenAccount.isActive) {
+      // Filen fork: no file key and no request; the update is stored as plain JSON in the
+      // (end-to-end encrypted) state folder.
+      return _PreparedMagicMetadataUpdate(
+        file: file,
+        encodedJson: updatedJson,
+        decodedMetadata: decode(jsonToUpdate),
+        nextVersion: currentVersion + 1,
+        request: UpdateMagicMetadataRequest(
+          id: file.uploadedFileID!,
+          magicMetadata: null,
+        ),
+      );
+    }
     final encryptedMMd = await CryptoUtil.encryptChaCha(
       utf8.encode(updatedJson),
       getFileKey(file),

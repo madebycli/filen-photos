@@ -1075,10 +1075,18 @@ class CollectionsService {
   Future<void> trashNonEmptyCollection(Collection collection) async {
     try {
       await _turnOffDeviceFolderSync(collection);
-      await collectionsGateway.deleteCollection(
-        collectionID: collection.id,
-        keepFiles: false,
-      );
+      // Filen fork: folders go to Filen's trash, virtual albums are dropped.
+      if (FilenAccount.isActive) {
+        await FilenSyncService.instance.deleteCollection(
+          collection,
+          withFiles: true,
+        );
+      } else {
+        await collectionsGateway.deleteCollection(
+          collectionID: collection.id,
+          keepFiles: false,
+        );
+      }
       await _handleCollectionDeletion(collection);
     } catch (e) {
       _logger.severe('failed to trash collection', e);
@@ -1115,10 +1123,17 @@ class CollectionsService {
       }
       // keepFiles makes the server reject deletion unless the album is empty;
       // false would trash any files still in it.
-      await collectionsGateway.deleteCollection(
-        collectionID: collection.id,
-        keepFiles: true,
-      );
+      if (FilenAccount.isActive) {
+        await FilenSyncService.instance.deleteCollection(
+          collection,
+          withFiles: false,
+        );
+      } else {
+        await collectionsGateway.deleteCollection(
+          collectionID: collection.id,
+          keepFiles: true,
+        );
+      }
       if (isBulkDelete) {
         final deletedCollection = collection.copyWith(isDeleted: true);
         _collectionIDToCollections[collection.id] = deletedCollection;
@@ -1309,6 +1324,21 @@ class CollectionsService {
 
   Future<void> rename(Collection collection, String newName) async {
     try {
+      // Filen fork: folders are renamed on Filen, virtual albums in the state folder.
+      if (FilenAccount.isActive) {
+        await FilenSyncService.instance.renameCollection(collection, newName);
+        collection.setName(newName);
+        _collectionIDToCollections[collection.id] = collection;
+        unawaited(_db.insert([collection]));
+        Bus.instance.fire(
+          CollectionUpdatedEvent(
+            collection.id,
+            <EnteFile>[],
+            "rename_collection",
+          ),
+        );
+        return;
+      }
       // Renaming a quick-share album makes it a regular album.
       if (collection.isQuickLinkCollection()) {
         await updateMagicMetadata(collection, {"subType": 0});
@@ -1364,6 +1394,25 @@ class CollectionsService {
         jsonToUpdate[key] = value;
       });
 
+      // Filen fork: the metadata is kept in the state folder, not encrypted for a server.
+      if (FilenAccount.isActive) {
+        final int nextVersion = max(collection.mMdVersion, 1) + 1;
+        final json = jsonEncode(jsonToUpdate);
+        await FilenSyncService.instance.updateCollectionMeta(
+          collection,
+          mmd: json,
+          mv: nextVersion,
+        );
+        collection.mMdEncodedJson = json;
+        collection.magicMetadata = CollectionMagicMetadata.fromJson(
+          jsonToUpdate,
+        );
+        collection.mMdVersion = nextVersion;
+        _collectionIDToCollections[collection.id] = collection;
+        unawaited(_db.insert([collection]));
+        return;
+      }
+
       final key = getCollectionKey(collection.id);
       final encryptedMMd = await CryptoUtil.encryptChaCha(
         utf8.encode(jsonEncode(jsonToUpdate)),
@@ -1414,6 +1463,24 @@ class CollectionsService {
       newMetadataUpdate.forEach((key, value) {
         jsonToUpdate[key] = value;
       });
+
+      if (FilenAccount.isActive) {
+        final int nextVersion = max(collection.mMbPubVersion, 1) + 1;
+        final json = jsonEncode(jsonToUpdate);
+        await FilenSyncService.instance.updateCollectionMeta(
+          collection,
+          pub: json,
+          pv: nextVersion,
+        );
+        collection.mMdPubEncodedJson = json;
+        collection.pubMagicMetadata = CollectionPubMagicMetadata.fromJson(
+          jsonToUpdate,
+        );
+        collection.mMbPubVersion = nextVersion;
+        _cacheLocalPathAndCollection(collection);
+        unawaited(_db.insert([collection]));
+        return;
+      }
 
       final key = getCollectionKey(collection.id);
       final encryptedMMd = await CryptoUtil.encryptChaCha(
@@ -1973,6 +2040,12 @@ class CollectionsService {
   }
 
   Future<Collection> fetchCollectionByID(int collectionID) async {
+    // Filen fork: there is no server to ask; the cache is the truth right after creation.
+    if (FilenAccount.isActive) {
+      final cached = _collectionIDToCollections[collectionID];
+      if (cached != null) return cached;
+      throw StateError('Unknown Filen collection $collectionID');
+    }
     try {
       _logger.info('fetching collectionByID $collectionID');
       final collectionData = await collectionsGateway.getCollection(
@@ -2124,6 +2197,10 @@ class CollectionsService {
   }
 
   Future<void> _addToCollection(int collectionID, List<EnteFile> files) async {
+    // Filen fork: "add to album" records a membership, the photo stays in its folder.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.addFiles(collectionID, files);
+    }
     final containsUploadedFile = files.any((e) => e.isUploaded);
     if (containsUploadedFile) {
       final existingFileIDsInCollection = await FilesDB.instance
@@ -2197,6 +2274,13 @@ class CollectionsService {
     );
     if (pendingUpload) {
       throw ArgumentError('Can only add uploaded files silently');
+    }
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.addFiles(
+        collectionID,
+        files,
+        updateDb: false,
+      );
     }
     final existingFileIDsInCollection = await FilesDB.instance
         .getUploadedFileIDs(collectionID);
@@ -2401,6 +2485,10 @@ class CollectionsService {
   }
 
   Future<void> restore(int toCollectionID, List<EnteFile> files) async {
+    // Filen fork: restore from Filen's trash.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.restoreFromTrash(toCollectionID, files);
+    }
     final toCollectionKey = getCollectionKey(toCollectionID);
     final int ownerID = Configuration.instance.getUserID()!;
     final Set<String> existingLocalIDS = await FilesDB.instance
@@ -2644,6 +2732,19 @@ class CollectionsService {
   Future<Collection> createAndCacheCollection(
     CreateRequest createRequest,
   ) async {
+    // Filen fork: albums and favorites live in the state folder.
+    if (FilenAccount.isActive) {
+      final created = await FilenSyncService.instance
+          .createCollectionFromRequest(createRequest);
+      Bus.instance.fire(
+        CollectionUpdatedEvent(
+          created.id,
+          List<EnteFile>.empty(),
+          "createCollection",
+        ),
+      );
+      return created;
+    }
     final collectionData = await collectionsGateway.createCollection(
       createRequest,
     );

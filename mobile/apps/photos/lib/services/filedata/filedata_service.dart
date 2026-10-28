@@ -5,6 +5,8 @@ import "package:flutter/foundation.dart" show Uint8List;
 import "package:logging/logging.dart";
 import "package:photos/db/files_db.dart";
 import "package:photos/db/ml/db.dart";
+import "package:photos/filen/filen_account.dart";
+import "package:photos/filen/filen_ml.dart";
 import "package:photos/gateways/files/file_data_gateway.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/service_locator.dart";
@@ -38,6 +40,10 @@ class FileDataService {
 
   Future<void> putFileData(EnteFile file, FileDataEntity data) async {
     data.validate();
+    // Filen fork: ML results go to the Filen state folder.
+    if (FilenAccount.isActive) {
+      return FilenMl.put(file, data);
+    }
     final ChaChaEncryptionResult encryptionResult = await gzipAndEncryptJson(
       data.remoteRawData,
       getFileKey(file),
@@ -60,6 +66,9 @@ class FileDataService {
     Set<int> fileIds, {
     DataType type = DataType.mlData,
   }) async {
+    if (FilenAccount.isActive) {
+      return FilenMl.get(fileIds, type);
+    }
     try {
       final res = await _gateway.fetchFileData(
         fileIDs: fileIds.toList(),
@@ -131,6 +140,16 @@ class FileDataService {
   Future<void> _syncFDStatusInternal() async {
     if (isLocalGalleryMode) {
       _logger.fine("Skipping file data sync in local gallery mode");
+      return;
+    }
+    if (FilenAccount.isActive) {
+      // Filen fork: only the listing of stored ML results is refreshed; there is no server-side
+      // processing status.
+      try {
+        await FilenMl.refreshIndex();
+      } catch (e, s) {
+        _logger.warning("Could not list ML data on Filen", e, s);
+      }
       return;
     }
     try {

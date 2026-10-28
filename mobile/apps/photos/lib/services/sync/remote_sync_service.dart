@@ -20,6 +20,7 @@ import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
 import 'package:photos/extensions/logger_extension.dart';
 import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_state.dart';
 import 'package:photos/main.dart' show isProcessBg;
 import 'package:photos/models/device_collection.dart';
 import 'package:photos/models/file/extensions/file_props.dart';
@@ -241,6 +242,12 @@ class RemoteSyncService {
     try {
       // Pull first so files that are already on Filen are not queued again after a reinstall.
       await _pullDiff();
+      try {
+        await trashSyncService.syncTrash();
+      } catch (e, s) {
+        // The gallery is more important than the trash page: keep syncing.
+        _logger.warning("Could not read Filen's trash", e, s);
+      }
       await _prefs.setBool(_isFirstRemoteSyncDone, true);
       if (!isProcessBg || await canUseHighBandwidth()) {
         await syncDeviceCollectionFilesForUpload();
@@ -251,6 +258,8 @@ class RemoteSyncService {
           await _pullDiff();
         }
       }
+      // Write what was queued (album membership, metadata edits) before the sync ends.
+      await FilenState.instance.flush();
       Bus.instance.fire(SyncStatusUpdate(SyncStatus.completedBackup));
     } catch (e, s) {
       _logger.severe("Filen sync failed", e, s);

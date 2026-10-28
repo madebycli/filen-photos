@@ -32,6 +32,10 @@ class BlobInfo {
 abstract class FilenBlobStore {
   Future<List<BlobInfo>> list(String dir);
 
+  /// Every file below [dir], keyed by its path relative to [dir] (`''` for [dir] itself). One
+  /// request on the real drive, so use it instead of listing many sub-folders one by one.
+  Future<Map<String, List<BlobInfo>>> listRecursive(String dir);
+
   Future<Uint8List> readById(String id);
 
   Future<BlobInfo> write(String dir, String name, Uint8List data);
@@ -113,6 +117,36 @@ class FilenDriveBlobStore implements FilenBlobStore {
   }
 
   @override
+  Future<Map<String, List<BlobInfo>>> listRecursive(String dir) async {
+    final uuid = await _dirUuid(dir);
+    final tree = await _limited(() => _sdk.listTree(uuid));
+    final names = {for (final d in tree.dirs) d.uuid: d};
+    String? pathOf(String dirUuid) {
+      if (dirUuid == uuid) return '';
+      final d = names[dirUuid];
+      if (d == null || d.name == null) return null;
+      final parent = pathOf(d.parentUuid);
+      if (parent == null) return null;
+      return parent.isEmpty ? d.name! : '$parent/${d.name}';
+    }
+
+    final result = <String, List<BlobInfo>>{};
+    for (final f in tree.files) {
+      final path = pathOf(f.parentUuid);
+      if (path == null) continue;
+      (result[path] ??= []).add(
+        BlobInfo(
+          id: f.uuid,
+          name: f.name,
+          size: f.size,
+          modifiedMs: f.modifiedMs,
+        ),
+      );
+    }
+    return result;
+  }
+
+  @override
   Future<Uint8List> readById(String id) => _limited(() => _sdk.readBytes(id));
 
   @override
@@ -164,6 +198,30 @@ class MemoryBlobStore implements FilenBlobStore {
           modifiedMs: e.value.modifiedMs,
         ),
     ];
+  }
+
+  @override
+  Future<Map<String, List<BlobInfo>>> listRecursive(String dir) async {
+    listCalls++;
+    final result = <String, List<BlobInfo>>{};
+    for (final d in _dirs.keys) {
+      final String? rel = d == dir
+          ? ''
+          : d.startsWith('$dir/')
+          ? d.substring(dir.length + 1)
+          : null;
+      if (rel == null) continue;
+      result[rel] = [
+        for (final e in _dirs[d]!.entries)
+          BlobInfo(
+            id: e.value.id,
+            name: e.key,
+            size: e.value.data.length,
+            modifiedMs: e.value.modifiedMs,
+          ),
+      ];
+    }
+    return result;
   }
 
   @override

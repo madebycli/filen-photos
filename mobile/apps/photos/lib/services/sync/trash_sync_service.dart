@@ -150,6 +150,10 @@ class TrashSyncService {
   }
 
   Future<TrashDiff> getTrashFilesDiff(int sinceTime) async {
+    // Filen fork: compare Filen's trash with the local table.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.trashDiff();
+    }
     try {
       final responseData = await _gateway.getDiff(sinceTime);
       int latestUpdatedAtTime = 0;
@@ -250,6 +254,9 @@ class TrashSyncService {
   }
 
   Future<void> deleteFromTrash(List<EnteTrashFile> files) async {
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.deleteFromTrash(files);
+    }
     final uniqueFileIds = files.map((e) => e.uploadedFileID!).toSet().toList();
     final batchedFileIDs = uniqueFileIds.chunks(batchSize);
     for (final batch in batchedFileIDs) {
@@ -266,6 +273,15 @@ class TrashSyncService {
   }
 
   Future<void> emptyTrash() async {
+    if (FilenAccount.isActive) {
+      // Only the photos and videos shown in the trash page; the rest of the Filen trash stays.
+      final all = await _trashDB.getTrashedFiles(0, 1 << 62);
+      await FilenSyncService.instance.deleteFromTrash([
+        for (final f in all.files) f as EnteTrashFile,
+      ]);
+      Bus.instance.fire(ForceReloadTrashPageEvent());
+      return;
+    }
     await _gateway.emptyTrash(_getSyncTime());
     await _trashDB.clearTable();
     unawaited(syncTrash());

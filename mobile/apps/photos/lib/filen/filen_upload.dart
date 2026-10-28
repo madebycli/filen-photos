@@ -94,6 +94,7 @@ Future<EnteFile> filenUploadFile(
     ..addedTime = -1
     ..metadataVersion = EnteFile.kCurrentMetadataVersion;
   await FilesDB.instance.update(remoteFile);
+  await sync.noteUploadedMeta(remoteFile, remote);
   return remoteFile;
 }
 

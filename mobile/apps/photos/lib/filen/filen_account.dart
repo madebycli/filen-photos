@@ -6,6 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/filen/filen_ids.dart';
+import 'package:photos/filen/filen_state.dart';
+import 'package:photos/filen/filen_sync.dart';
 import 'package:photos/gateways/billing/models/subscription.dart';
 import 'package:photos/models/user_details.dart';
 
@@ -106,6 +108,8 @@ class FilenAccount {
   /// Drops the in-memory client. [Configuration.logout] already wiped secure storage.
   Future<void> onLogout() async {
     _photosRootUuid = null;
+    FilenState.instance.reset();
+    FilenSyncService.instance.reset();
     try {
       await _sdk.logout();
     } catch (e, s) {

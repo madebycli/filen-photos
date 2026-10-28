@@ -11,6 +11,7 @@ import uniffi.filen_sdk_rs.DirMeta
 import uniffi.filen_sdk_rs.ErrorKind
 import uniffi.filen_sdk_rs.File
 import uniffi.filen_sdk_rs.CreatedTime
+import uniffi.filen_sdk_rs.DirectoryMetaChanges
 import uniffi.filen_sdk_rs.FileBuilderParams
 import uniffi.filen_sdk_rs.FileBuilderParamsOptionalName
 import uniffi.filen_sdk_rs.FileMetaChanges
@@ -109,7 +110,7 @@ class FilenBackend {
      * Lists every folder and file below [rootUuid] (breadth first), so Dart can mirror a whole
      * photo tree with one call. Parents are reported by uuid.
      */
-    suspend fun listTree(rootUuid: String): Map<String, Any?> = wrap {
+    suspend fun listTree(rootUuid: String, skipDirNames: Set<String> = emptySet()): Map<String, Any?> = wrap {
         val c = requireClient()
         val dirs = ArrayList<Map<String, Any?>>()
         val files = ArrayList<Map<String, Any?>>()
@@ -119,6 +120,7 @@ class FilenBackend {
             val uuid = queue.removeFirst()
             val listing = c.listDir(dirTarget(c, uuid))
             for (d in listing.dirs) {
+                if (dirName(d.meta) in skipDirNames) continue
                 dirs.add(
                     mapOf(
                         "uuid" to d.uuid,
@@ -235,11 +237,49 @@ class FilenBackend {
         provider.getFileUrl(AnyFile.File(c.getFile(uuid)))
     }
 
+    /** Moves a folder (with everything in it) to Filen's trash, where it stays recoverable. */
+    suspend fun trashDir(uuid: String) = wrap {
+        val c = requireClient()
+        c.trashDir(c.getDir(uuid))
+        Unit
+    }
+
+    suspend fun renameDir(uuid: String, name: String) = wrap {
+        val c = requireClient()
+        c.updateDirMetadata(c.getDir(uuid), DirectoryMetaChanges(name = name, created = CreatedTime.Keep))
+        Unit
+    }
+
     /** Moves a file to Filen's trash (recoverable there), never deletes it permanently. */
     suspend fun trashFile(uuid: String) = wrap {
         val c = requireClient()
         c.trashFile(c.getFile(uuid))
         Unit
+    }
+
+    /** Files at the top level of Filen's trash (trashed folders are not unpacked). */
+    private val trashed = java.util.concurrent.ConcurrentHashMap<String, File>()
+
+    suspend fun listTrash(): Map<String, Any?> = wrap {
+        val c = requireClient()
+        val listing = c.listTrash()
+        trashed.clear()
+        for (f in listing.files) trashed[f.uuid] = f
+        mapOf("dirs" to emptyList<Map<String, Any?>>(), "files" to listing.files.mapNotNull { fileMap(it, "") })
+    }
+
+    /** Puts a trashed file back where it was. */
+    suspend fun restoreFile(uuid: String) = wrap {
+        val c = requireClient()
+        c.restoreFile(trashed[uuid] ?: c.getFile(uuid))
+        trashed.remove(uuid)
+        Unit
+    }
+
+    /** Permanently deletes the contents of Filen's trash. */
+    suspend fun emptyTrash() = wrap {
+        requireClient().emptyTrash()
+        trashed.clear()
     }
 
     suspend fun moveFile(uuid: String, newParentUuid: String) = wrap {

@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 import "package:photos/core/configuration.dart";
 import "package:photos/db/entities_db.dart";
 import "package:photos/db/files_db.dart";
+import "package:photos/filen/filen_account.dart";
+import "package:photos/filen/filen_entities.dart";
 import "package:photos/gateways/entity/entity_gateway.dart";
 import "package:photos/gateways/entity/models/data.dart";
 import "package:photos/gateways/entity/models/key.dart";
@@ -64,6 +66,18 @@ class EntityService {
     int? expectedUpdatedAt,
   }) async {
     final String plainText = jsonEncode(jsonMap);
+    // Filen fork: entities are stored as JSON in the Filen state folder.
+    if (FilenAccount.isActive) {
+      final localData = await FilenEntities.put(
+        type,
+        id,
+        plainText,
+        _config.getUserID() ?? 0,
+      );
+      await _db.upsertEntities([localData]);
+      syncEntities().ignore();
+      return localData;
+    }
     final key = await getOrCreateEntityKey(type);
     late String encryptedData, header;
     if (type.isZipped) {
@@ -108,6 +122,11 @@ class EntityService {
   }
 
   Future<void> deleteEntry(String id) async {
+    if (FilenAccount.isActive) {
+      await FilenEntities.delete(id);
+      await _db.deleteEntities([id]);
+      return;
+    }
     await _gateway.deleteEntity(id);
     await _db.deleteEntities([id]);
   }
@@ -139,6 +158,9 @@ class EntityService {
     EntityType type, {
     int prevFetchCount = 0,
   }) async {
+    if (FilenAccount.isActive) {
+      return FilenEntities.pull(type, _prefs, _db);
+    }
     final int lastSyncTime =
         _prefs.getInt(_getEntityLastSyncTimePrefix(type)) ?? 0;
     final List<EntityData> result = await _gateway.getDiff(

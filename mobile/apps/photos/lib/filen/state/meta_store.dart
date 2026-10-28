@@ -1,14 +1,25 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/filen/state/rev_doc.dart';
 
-/// Ente's per-file "magic metadata" (private: archive/hidden visibility...; public: edited date,
-/// caption, location override, dimensions...) as stored for a Filen file. Filen's own file
-/// metadata has no room for it, so it lives in small shard documents in the state folder.
+/// Ente's per-file metadata as stored for a Filen file. Filen's own file metadata has no room for
+/// it, so it lives in small shard documents in the state folder:
+///
+///  * private magic metadata (archive/hidden visibility...) and public magic metadata (edited
+///    date, caption, location override, dimensions...), each with Ente's version counter;
+///  * the [base] values only the uploading device knows (hash, GPS position, video duration, the
+///    device folder and gallery id the file came from).
 class FileMetaEntry {
-  const FileMetaEntry({this.mmd, this.mv = 0, this.pub, this.pv = 0});
+  const FileMetaEntry({
+    this.mmd,
+    this.mv = 0,
+    this.pub,
+    this.pv = 0,
+    this.base,
+  });
 
   /// Private magic metadata JSON and its version (Ente's optimistic-concurrency counter).
   final String? mmd;
@@ -18,13 +29,17 @@ class FileMetaEntry {
   final String? pub;
   final int pv;
 
-  bool get isEmpty => mv == 0 && pv == 0;
+  /// Values recorded when the file was uploaded; keys: `lid`, `df`, `h`, `la`, `lo`, `d`, `st`.
+  final Map<String, dynamic>? base;
+
+  bool get isEmpty => mv == 0 && pv == 0 && (base == null || base!.isEmpty);
 
   Map<String, dynamic> toJson() => {
     if (mmd != null) 'm': mmd,
     if (mv != 0) 'mv': mv,
     if (pub != null) 'p': pub,
     if (pv != 0) 'pv': pv,
+    if (base != null && base!.isNotEmpty) 'b': base,
   };
 
   static FileMetaEntry fromJson(Map<String, dynamic> j) => FileMetaEntry(
@@ -32,19 +47,29 @@ class FileMetaEntry {
     mv: (j['mv'] as num?)?.toInt() ?? 0,
     pub: j['p'] as String?,
     pv: (j['pv'] as num?)?.toInt() ?? 0,
+    base: j['b'] is Map<String, dynamic>
+        ? Map<String, dynamic>.of(j['b'] as Map<String, dynamic>)
+        : null,
   );
 
-  /// Field-wise "higher version wins" (ties keep [this]).
+  /// Field-wise "higher version wins" for the magic metadata; [base] values are written once, so
+  /// the existing ones win and the other side only adds missing keys.
   FileMetaEntry mergedWith(FileMetaEntry other) {
     final takeMmd = other.mv > mv;
     final takePub = other.pv > pv;
+    final mergedBase = (base == null && other.base == null)
+        ? null
+        : <String, dynamic>{...?other.base, ...?base};
     return FileMetaEntry(
       mmd: takeMmd ? other.mmd : mmd,
       mv: takeMmd ? other.mv : mv,
       pub: takePub ? other.pub : pub,
       pv: takePub ? other.pv : pv,
+      base: mergedBase,
     );
   }
+
+  static const _eq = DeepCollectionEquality();
 
   @override
   bool operator ==(Object other) =>
@@ -52,10 +77,11 @@ class FileMetaEntry {
       other.mmd == mmd &&
       other.mv == mv &&
       other.pub == pub &&
-      other.pv == pv;
+      other.pv == pv &&
+      _eq.equals(other.base ?? const {}, base ?? const {});
 
   @override
-  int get hashCode => Object.hash(mmd, mv, pub, pv);
+  int get hashCode => Object.hash(mmd, mv, pub, pv, _eq.hash(base ?? const {}));
 }
 
 /// Cloud copy of the per-file magic metadata, sharded by the first two hex digits of the Filen file
@@ -82,6 +108,14 @@ class FilenMetaStore {
 
   /// What the cloud knows about [uuid] (as of the last [pull]).
   FileMetaEntry? remote(String uuid) => _remote[uuid];
+
+  /// What the cloud has plus what is queued to be written: the view every device would see soon.
+  FileMetaEntry? effective(String uuid) {
+    final cloud = _remote[uuid];
+    final queued = _dirty[uuid];
+    if (queued == null) return cloud;
+    return cloud == null ? queued : cloud.mergedWith(queued);
+  }
 
   /// Downloads the shards that changed since the last call. One listing plus one read per changed
   /// shard, so calling it on every sync is cheap.

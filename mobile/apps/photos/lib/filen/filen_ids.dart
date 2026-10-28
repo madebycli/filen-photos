@@ -47,3 +47,7 @@ String? filenDirUuidOf(Collection collection) =>
     collection.keyDecryptionNonce == kFilenKeyMarker
     ? collection.encryptedKey
     : null;
+
+/// Filen's trash has no automatic deletion that this app relies on, so trashed photos carry a
+/// "delete by" date that is never reached (the trash page does not show a countdown for them).
+const int kFilenTrashKeepsForever = 1 << 62;

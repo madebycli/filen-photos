@@ -1,9 +1,11 @@
 import 'package:filen_sdk/filen_sdk.dart';
 import 'package:photos/filen/filen_ids.dart';
+import 'package:photos/filen/state/collection_store.dart';
 import 'package:photos/models/api/collection/user.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
+import 'package:photos/models/metadata/collection_magic.dart';
 
 const _imageExtensions = {
   'jpg',
@@ -131,5 +133,41 @@ Collection filenDirToCollection({
     updationTime,
   );
   c.setName(name);
+  return c;
+}
+
+/// Copies a stored collection metadata overlay (visibility, pinning, cover...) into [c].
+void applyCollectionMeta(Collection c, CollectionMeta m) {
+  if (m.mv > c.mMdVersion && m.mmd != null) {
+    c.mMdEncodedJson = m.mmd;
+    c.mMdVersion = m.mv;
+    c.magicMetadata = CollectionMagicMetadata.fromEncodedJson(m.mmd!);
+  }
+  if (m.pv > c.mMbPubVersion && m.pub != null) {
+    c.mMdPubEncodedJson = m.pub;
+    c.mMbPubVersion = m.pv;
+    c.pubMagicMetadata = CollectionPubMagicMetadata.fromEncodedJson(m.pub!);
+  }
+}
+
+/// A virtual collection (user album or favorites) as an Ente collection.
+Collection filenVirtualToCollection(VirtualCollection v, User owner) {
+  final c = Collection(
+    filenUuidToId(v.uuid),
+    owner,
+    v.uuid,
+    kFilenKeyMarker,
+    v.name,
+    null,
+    null,
+    v.type == 'favorites' ? CollectionType.favorites : CollectionType.album,
+    CollectionAttributes(),
+    [],
+    [],
+    v.updatedAt,
+    isDeleted: v.deleted,
+  );
+  c.setName(v.name);
+  applyCollectionMeta(c, v.meta);
   return c;
 }

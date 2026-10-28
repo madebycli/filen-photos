@@ -151,8 +151,11 @@ class FilenSdk {
   Future<String> rootUuid() async => (await _call<String>('rootUuid'))!;
 
   /// Every folder and file below [rootUuid].
-  Future<FilenTree> listTree(String rootUuid) async {
-    final m = (await _call<Map<Object?, Object?>>('listTree', {'rootUuid': rootUuid}))!;
+  Future<FilenTree> listTree(String rootUuid, {List<String> skipDirNames = const []}) async {
+    final m = (await _call<Map<Object?, Object?>>('listTree', {
+      'rootUuid': rootUuid,
+      'skipDirNames': skipDirNames,
+    }))!;
     return FilenTree(
       [for (final d in m['dirs']! as List<Object?>) FilenDir.fromMap(d! as Map<Object?, Object?>)],
       [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)],
@@ -207,8 +210,26 @@ class FilenSdk {
   /// Local http URL that streams the decrypted file (with range requests) for media players.
   Future<String> streamUrl(String uuid) async => (await _call<String>('streamUrl', {'uuid': uuid}))!;
 
+  /// Moves a whole folder to Filen's trash (recoverable there).
+  Future<void> trashDir(String uuid) => _call<void>('trashDir', {'uuid': uuid});
+
+  Future<void> renameDir({required String uuid, required String name}) =>
+      _call<void>('renameDir', {'uuid': uuid, 'name': name});
+
   /// Moves the file to Filen's trash.
   Future<void> trashFile(String uuid) => _call<void>('trashFile', {'uuid': uuid});
+
+  /// Files at the top level of Filen's trash.
+  Future<List<FilenFile>> listTrash() async {
+    final m = (await _call<Map<Object?, Object?>>('listTrash', {}))!;
+    return [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)];
+  }
+
+  /// Puts a trashed file back into its original folder.
+  Future<void> restoreFile(String uuid) => _call<void>('restoreFile', {'uuid': uuid});
+
+  /// Permanently deletes everything in Filen's trash.
+  Future<void> emptyTrash() => _call<void>('emptyTrash', {});
 
   Future<void> moveFile({required String uuid, required String newParentUuid}) =>
       _call<void>('moveFile', {'uuid': uuid, 'newParentUuid': newParentUuid});

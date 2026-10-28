@@ -58,7 +58,12 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "isLoggedIn" -> backend.isLoggedIn
             "userInfo" -> backend.userInfo()
             "rootUuid" -> backend.rootUuid()
-            "listTree" -> backend.listTree(str("rootUuid"))
+            "listTree" -> backend.listTree(
+                str("rootUuid"),
+                (call.argument<List<String>>("skipDirNames") ?: emptyList()).toSet(),
+            )
+            "trashDir" -> { backend.trashDir(str("uuid")); null }
+            "renameDir" -> { backend.renameDir(str("uuid"), str("name")); null }
             "findOrCreateRootChild" -> backend.findOrCreateRootChild(str("name"))
             "createDir" -> backend.createDir(str("parentUuid"), str("name"))
             "listFolder" -> backend.listFolder(str("uuid"))
@@ -81,6 +86,9 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "streamUrl" -> backend.streamUrl(str("uuid"))
             "trashFile" -> { backend.trashFile(str("uuid")); null }
+            "listTrash" -> backend.listTrash()
+            "restoreFile" -> { backend.restoreFile(str("uuid")); null }
+            "emptyTrash" -> { backend.emptyTrash(); null }
             "moveFile" -> { backend.moveFile(str("uuid"), str("newParentUuid")); null }
             "downloadFile" -> { backend.downloadFile(str("uuid"), str("destPath")); null }
             "thumbnail" -> backend.thumbnail(

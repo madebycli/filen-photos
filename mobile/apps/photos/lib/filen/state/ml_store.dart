@@ -29,24 +29,27 @@ class FilenMlStore {
   static String fileName(String uuid, String type, int version) =>
       '$uuid.$type.v$version.json.gz';
 
-  /// Lists every shard once (at most 256 listings) so later lookups know which photos have data
-  /// without a request per photo.
-  Future<void> refresh({int parallel = 4}) async {
-    final shards = [
-      for (var i = 0; i < 256; i++) i.toRadixString(16).padLeft(2, '0'),
-    ];
-    for (var i = 0; i < shards.length; i += parallel) {
-      await Future.wait([
-        for (final shard in shards.skip(i).take(parallel)) _refreshShard(shard),
-      ]);
-    }
+  Future<void>? _refreshing;
+
+  /// Lists the whole `ml` folder with one request, so later lookups know which photos have data
+  /// without a request per photo. Concurrent callers share one run.
+  Future<void> refresh() {
+    return _refreshing ??= _refresh().whenComplete(() => _refreshing = null);
+  }
+
+  Future<void> _refresh() async {
+    final all = await _store.listRecursive('ml');
+    _index
+      ..clear()
+      ..addAll({
+        for (final e in all.entries)
+          if (e.key.isNotEmpty) e.key: {for (final f in e.value) f.name: f},
+      });
     _complete = true;
   }
 
-  Future<void> _refreshShard(String shard) async {
-    final files = await _store.list('ml/$shard');
-    _index[shard] = {for (final f in files) f.name: f};
-  }
+  /// Refreshes the listing once per process; later calls return immediately.
+  Future<void> ensureIndexed() => _complete ? Future.value() : refresh();
 
   bool get isIndexed => _complete;
 
