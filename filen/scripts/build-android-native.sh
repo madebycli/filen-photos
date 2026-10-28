@@ -4,14 +4,14 @@
 #
 #   FILEN_ABIS            ABIs to build (default: arm64-v8a)
 #   FILEN_FEATURES        filen-sdk-rs cargo features (default: uniffi,http-provider)
-#   FILEN_NATIVE_OUT      output dir (default: plugin/android/build/filen-native)
+#   FILEN_NATIVE_OUT      output dir (default: build/native)
 #   FILEN_CARGO_TARGET_DIR  cargo target dir (default: build/cargo-target)
 #   FILEN_PREBUILT_DIR    use an already built output dir (jniLibs/ + kotlin/) instead of building
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK="$ROOT/filen-rs"
-OUT="${FILEN_NATIVE_OUT:-$ROOT/plugin/android/build/filen-native}"
+OUT="${FILEN_NATIVE_OUT:-$ROOT/build/native}"
 ABIS="${FILEN_ABIS:-arm64-v8a}"
 FEATURES="${FILEN_FEATURES:-uniffi,http-provider}"
 export CARGO_TARGET_DIR="${FILEN_CARGO_TARGET_DIR:-$ROOT/build/cargo-target}"

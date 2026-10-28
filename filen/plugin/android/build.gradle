@@ -19,7 +19,8 @@ rootProject.allprojects {
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
-def nativeOut = layout.buildDirectory.dir("filen-native").get().asFile
+// Fixed location (Flutter redirects every plugin's buildDir, and `flutter clean` must not cost a 15 min Rust build).
+def nativeOut = new File(projectDir, "../../build/native").canonicalFile
 
 android {
     namespace = "io.ente.photos.filen"
