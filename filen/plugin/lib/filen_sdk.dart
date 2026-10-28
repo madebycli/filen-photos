@@ -153,6 +153,12 @@ class FilenSdk {
   Future<String> createDir({required String parentUuid, required String name}) async =>
       (await _call<String>('createDir', {'parentUuid': parentUuid, 'name': name}))!;
 
+  /// Moves the file to Filen's trash.
+  Future<void> trashFile(String uuid) => _call<void>('trashFile', {'uuid': uuid});
+
+  Future<void> moveFile({required String uuid, required String newParentUuid}) =>
+      _call<void>('moveFile', {'uuid': uuid, 'newParentUuid': newParentUuid});
+
   Future<void> downloadFile({required String uuid, required String destPath}) =>
       _call<void>('downloadFile', {'uuid': uuid, 'destPath': destPath});
 

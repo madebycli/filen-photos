@@ -2477,6 +2477,14 @@ class CollectionsService {
       _logger.info("nothing to move to collection");
       return;
     }
+    // Filen fork: moving between albums is moving between Filen folders.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.moveFiles(
+        filesToMove,
+        toCollectionID: toCollectionID,
+        fromCollectionID: fromCollectionID,
+      );
+    }
     final batchedFiles = filesToMove.chunks(batchSize);
     for (final batch in batchedFiles) {
       final fileItems = <CollectionFileItem>[];
@@ -2569,6 +2577,10 @@ class CollectionsService {
     int collectionID,
     List<EnteFile> files,
   ) async {
+    // Filen fork: an album is a folder, so removing a file from it moves it to the library root.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.removeFromAlbum(collectionID, files);
+    }
     final batchedFiles = files.chunks(batchSize);
     for (final batch in batchedFiles) {
       final fileIDs = <int>[];

@@ -150,7 +150,8 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   final DiffFetcher _diffFetcher = DiffFetcher();
 
-  List<int> get _tabIndices => homeTabIndices(showFeed: !isLocalGalleryMode);
+  // Filen fork: the feed tab is Ente's social layer (shared albums, comments), not available on Filen.
+  List<int> get _tabIndices => homeTabIndices(showFeed: false);
 
   void _startWithoutAccountFlow() {
     setState(() {
@@ -1204,7 +1205,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                     _selectedFiles,
                     _selectedAlbums,
                     selectedTabIndex: _selectedTabIndex,
-                    showFeed: !localGalleryMode,
+                    showFeed: false,
                   ),
                 ],
               );

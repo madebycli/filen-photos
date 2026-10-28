@@ -27,12 +27,25 @@ on:
                 description: "Attach the APK to a GitHub pre-release (only after all checks passed)"
                 type: boolean
                 default: false
+    # Used by filen-sdk-update.yml to verify a bumped SDK before it is merged and released.
+    workflow_call:
+        inputs:
+            ref:
+                description: "Branch or commit to build"
+                type: string
+                default: ""
+            build_apk:
+                type: boolean
+                default: true
+            publish_test_release:
+                type: boolean
+                default: false
 
 permissions:
     contents: read
 
 concurrency:
-    group: filen-android-${{ github.ref }}
+    group: filen-android-${{ inputs.ref || github.ref }}
     cancel-in-progress: true
 
 env:
@@ -43,6 +56,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ inputs.ref }}
 
             - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
               with:
@@ -71,8 +86,7 @@ jobs:
     apk:
         needs: checks
         if: >-
-            github.event_name == 'push' ||
-            (github.event_name == 'workflow_dispatch' && inputs.build_apk)
+            github.event_name == 'push' || inputs.build_apk
         runs-on: ubuntu-latest
         timeout-minutes: 120
         outputs:
@@ -80,6 +94,8 @@ jobs:
             sdk_version: ${{ steps.build.outputs.sdk_version }}
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ inputs.ref }}
 
             - name: Fetch pinned Filen SDK
               run: git submodule update --init --depth 1 filen/filen-rs
@@ -180,7 +196,7 @@ jobs:
 
     test-release:
         needs: apk
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_test_release
+        if: inputs.publish_test_release
         runs-on: ubuntu-latest
         permissions:
             contents: write

@@ -16,6 +16,7 @@ import "package:photos/events/files_updated_event.dart";
 import "package:photos/events/force_reload_trash_page_event.dart";
 import "package:photos/events/guest_view_event.dart";
 import "package:photos/events/people_changed_event.dart";
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/device_collection.dart';
 import "package:photos/models/file/extensions/file_props.dart";
@@ -170,6 +171,9 @@ class _FileSelectionActionsWidgetState
         isCollectionOwnerOrAdmin &&
         split.ownedByOtherUsers.isNotEmpty;
 
+    // Filen fork: sharing links, favorites, archive/hide, metadata edits and people tagging are
+    // Ente account features that need Ente's servers; they are not offered for Filen accounts.
+    final bool isFilen = FilenAccount.isActive;
     final List<SelectionSheetAction> items = [];
     if (widget.type == GalleryType.trash) {
       items.add(
@@ -227,7 +231,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showCreateLink()) {
+      if (!isFilen && widget.type.showCreateLink()) {
         if (_cachedCollectionForSharedLink != null && anyUploadedFiles) {
           items.add(
             SelectionSheetAction(
@@ -254,7 +258,7 @@ class _FileSelectionActionsWidgetState
       final showUploadIcon =
           widget.type == GalleryType.localFolder &&
           split.ownedByCurrentUser.isEmpty;
-      if (widget.type.showAddToAlbum() && !isLocalGalleryMode) {
+      if (!isFilen && widget.type.showAddToAlbum() && !isLocalGalleryMode) {
         if (showUploadIcon) {
           items.add(
             SelectionSheetAction(
@@ -276,7 +280,7 @@ class _FileSelectionActionsWidgetState
         }
       }
 
-      if (widget.type.showAddtoHiddenAlbum()) {
+      if (!isFilen && widget.type.showAddtoHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageAdd01,
@@ -298,7 +302,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showMovetoHiddenAlbum()) {
+      if (!isFilen && widget.type.showMovetoHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageUpload,
@@ -319,7 +323,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showRemoveFromHiddenAlbum()) {
+      if (!isFilen && widget.type.showRemoveFromHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageDelete01,
@@ -329,7 +333,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (canSuggestDeleteAction) {
+      if (!isFilen && canSuggestDeleteAction) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedFlag01,
@@ -384,7 +388,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showFavoriteOption()) {
+      if (!isFilen && widget.type.showFavoriteOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedStar,
@@ -394,7 +398,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (widget.type.showUnFavoriteOption()) {
+      } else if (!isFilen && widget.type.showUnFavoriteOption()) {
         items.add(
           SelectionSheetAction(
             iconWidget: const Icon(Icons.star_rounded),
@@ -406,7 +410,8 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (flagService.manualTagFileToPerson &&
+      if (!isFilen &&
+          flagService.manualTagFileToPerson &&
           widget.type.showAddToPersonOption()) {
         items.add(
           SelectionSheetAction(
@@ -418,7 +423,9 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type == GalleryType.peopleTag && widget.person != null) {
+      if (!isFilen &&
+          widget.type == GalleryType.peopleTag &&
+          widget.person != null) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedUserRemove01,
@@ -439,7 +446,9 @@ class _FileSelectionActionsWidgetState
         }
       }
 
-      if (widget.type == GalleryType.cluster && widget.clusterID != null) {
+      if (!isFilen &&
+          widget.type == GalleryType.cluster &&
+          widget.clusterID != null) {
         items.add(
           SelectionSheetAction(
             labelText: context.strings.notThisPerson,
@@ -460,7 +469,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showHideOption()) {
+      if (!isFilen && widget.type.showHideOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedViewOff,
@@ -470,7 +479,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (widget.type.showUnHideOption()) {
+      } else if (!isFilen && widget.type.showUnHideOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedView,
@@ -482,7 +491,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showArchiveOption()) {
+      if (!isFilen && widget.type.showArchiveOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedInboxDownload,
@@ -492,7 +501,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (widget.type.showUnArchiveOption()) {
+      } else if (!isFilen && widget.type.showUnArchiveOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedInboxUpload,
@@ -525,7 +534,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showBulkEditTime()) {
+      if (!isFilen && widget.type.showBulkEditTime()) {
         items.add(
           SelectionSheetAction(
             shouldShow: widget.selectedFiles.files.every(
@@ -546,7 +555,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type.showEditLocation()) {
+      if (!isFilen && widget.type.showEditLocation()) {
         items.add(
           SelectionSheetAction(
             shouldShow: widget.selectedFiles.files.any(

@@ -130,6 +130,19 @@ class FilenBackend {
         c.downloadFileToPath(AnyFile.File(file), destPath, null, ManagedFuture(null, null))
     }
 
+    /** Moves a file to Filen's trash (recoverable there), never deletes it permanently. */
+    suspend fun trashFile(uuid: String) = wrap {
+        val c = requireClient()
+        c.trashFile(c.getFile(uuid))
+        Unit
+    }
+
+    suspend fun moveFile(uuid: String, newParentUuid: String) = wrap {
+        val c = requireClient()
+        c.moveFile(c.getFile(uuid), dirTarget(c, newParentUuid))
+        Unit
+    }
+
     /** WebP thumbnail bytes, or null when the SDK cannot make one for this file. */
     suspend fun thumbnail(uuid: String, maxWidth: Int, maxHeight: Int): ByteArray? = wrap {
         val c = requireClient()

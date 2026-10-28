@@ -12,6 +12,8 @@ import 'package:photos/db/trash_db.dart';
 import 'package:photos/events/collection_updated_event.dart';
 import 'package:photos/events/force_reload_trash_page_event.dart';
 import 'package:photos/events/trash_updated_event.dart';
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_sync.dart';
 import 'package:photos/gateways/trash/models/trash_item_request.dart';
 import "package:photos/gateways/trash/trash_gateway.dart";
 import 'package:photos/models/file/file.dart';
@@ -106,6 +108,10 @@ class TrashSyncService {
   }
 
   Future<void> trashFilesOnServer(List<TrashRequest> trashRequestItems) async {
+    // Filen fork: files go to Filen's own trash.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.trashFiles(trashRequestItems);
+    }
     final includedFileIDs = <int>{};
     final uniqueItems = <TrashRequest>[];
     final ownedCollectionIDs = CollectionsService.instance

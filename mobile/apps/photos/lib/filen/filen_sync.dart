@@ -1,11 +1,16 @@
 import 'package:filen_sdk/filen_sdk.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
+import 'package:photos/core/event_bus.dart';
 import 'package:photos/db/collections_db.dart';
 import 'package:photos/db/files_db.dart';
+import 'package:photos/events/collection_updated_event.dart';
+import 'package:photos/events/files_updated_event.dart';
+import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/filen_ids.dart';
 import 'package:photos/filen/filen_media_mapper.dart';
+import 'package:photos/gateways/trash/models/trash_item_request.dart';
 import 'package:photos/models/api/collection/user.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
@@ -32,16 +37,32 @@ class FilenSyncService {
     final tree = await FilenSdk.instance.listTree(rootUuid);
     _tree = tree;
     _rootUuid = rootUuid;
-    return collectionsFromTree(
+    final owner = User(
+      id: Configuration.instance.getUserID()!,
+      email: Configuration.instance.getEmail() ?? '',
+    );
+    // Every sync must re-diff every collection: Filen folders carry no change counter.
+    final now = DateTime.now().microsecondsSinceEpoch;
+    final current = collectionsFromTree(
       tree,
       rootUuid: rootUuid,
-      owner: User(
-        id: Configuration.instance.getUserID()!,
-        email: Configuration.instance.getEmail() ?? '',
-      ),
-      // Every sync must re-diff every collection: Filen folders carry no change counter.
-      updationTime: DateTime.now().microsecondsSinceEpoch,
+      owner: owner,
+      updationTime: now,
     );
+    // Folders deleted on Filen disappear here too (only the local mirror is touched).
+    final present = {
+      filenUuidToId(rootUuid),
+      for (final d in tree.dirs) filenUuidToId(d.uuid),
+    };
+    final vanished = [
+      for (final c
+          in CollectionsService.instance.collectionIDToCollections.values)
+        if (filenDirUuidOf(c) != null &&
+            !c.isDeleted &&
+            !present.contains(c.id))
+          filenDeletedCollection(c, now),
+    ];
+    return [...current, ...vanished];
   }
 
   /// Files directly in a Filen folder, from the most recent listing (plus this session's uploads).
@@ -104,6 +125,86 @@ class FilenSyncService {
     CollectionsService.instance.collectionIDToCollections[collection.id] =
         collection;
     return collection;
+  }
+
+  /// Moves files to Filen's trash (not permanently deleted). Throws on the first failure, so the
+  /// caller only forgets the local rows when everything worked; files already trashed disappear
+  /// from the next listing on their own.
+  Future<void> trashFiles(List<TrashRequest> requests) async {
+    final db = FilesDB.instance;
+    for (final r in requests) {
+      final row = await db.getUploadedFile(r.fileID, r.collectionID);
+      if (row == null || !isFilenFile(row)) {
+        _logger.warning(
+          'Skipping trash of ${r.fileID}: not a known Filen file',
+        );
+        continue;
+      }
+      await FilenSdk.instance.trashFile(filenUuidOf(row));
+    }
+  }
+
+  /// Moves files between albums (= between Filen folders) and mirrors it in the local database.
+  /// Refuses to move onto a name that is already taken in the target folder.
+  Future<void> moveFiles(
+    List<EnteFile> files, {
+    required int toCollectionID,
+    required int fromCollectionID,
+  }) async {
+    final target = CollectionsService.instance.getCollectionByID(
+      toCollectionID,
+    );
+    final targetUuid = target == null ? null : filenDirUuidOf(target);
+    if (targetUuid == null) {
+      throw StateError('Collection $toCollectionID is not a Filen folder');
+    }
+    final taken = {for (final f in filesInFolder(targetUuid)) f.name};
+    final moved = <EnteFile>[];
+    for (final file in files) {
+      if (!isFilenFile(file)) continue;
+      if (file.title != null && taken.contains(file.title)) {
+        throw const FilenException(
+          'NAME_TAKEN',
+          'A file with this name already exists in the target album',
+        );
+      }
+      await FilenSdk.instance.moveFile(
+        uuid: filenUuidOf(file),
+        newParentUuid: targetUuid,
+      );
+      if (file.title != null) taken.add(file.title!);
+      moved.add(
+        file.copyWith()
+          ..generatedID = null
+          ..collectionID = toCollectionID,
+      );
+    }
+    final db = FilesDB.instance;
+    await db.removeFromCollection(
+      fromCollectionID,
+      moved.map((f) => f.uploadedFileID!).toList(),
+    );
+    Bus.instance.fire(
+      CollectionUpdatedEvent(
+        fromCollectionID,
+        moved,
+        'moveFrom',
+        type: EventType.deletedFromRemote,
+      ),
+    );
+    await db.insertMultiple(moved);
+    Bus.instance.fire(CollectionUpdatedEvent(toCollectionID, moved, 'moveTo'));
+    Bus.instance.fire(LocalPhotosUpdatedEvent(moved, source: 'filenMove'));
+  }
+
+  /// "Remove from album" on Filen: the file moves to the library root (Uncategorized).
+  Future<void> removeFromAlbum(int collectionID, List<EnteFile> files) async {
+    final rootUuid = _rootUuid ?? await FilenAccount.instance.photosRootUuid();
+    await moveFiles(
+      files,
+      toCollectionID: filenUuidToId(rootUuid),
+      fromCollectionID: collectionID,
+    );
   }
 
   /// Files of [collectionID] as seen on Filen right now, plus the ones that vanished.

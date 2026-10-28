@@ -83,8 +83,9 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
 
                                     _buildOnboardingAnimation(),
 
-                                    Text(
-                                      context.strings.onboardingTitle,
+                                    const Text(
+                                      // Filen fork: branding is Filen's, the strings below are not localized yet.
+                                      "Filen Photos",
                                       textAlign: TextAlign.center,
                                       textScaler: TextScaler.noScaling,
                                       style: const TextStyle(
@@ -104,7 +105,7 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
                                         horizontal: 32,
                                       ),
                                       child: Text(
-                                        context.strings.onboardingOrganizeDesc,
+                                        "Your photos and videos, end-to-end encrypted in your Filen drive.",
                                         textAlign: TextAlign.center,
                                         style: TextStyles.body.copyWith(
                                           color: colorScheme.greenLight,

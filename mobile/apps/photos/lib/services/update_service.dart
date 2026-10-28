@@ -157,14 +157,9 @@ class UpdateService {
   }
 
   bool isIndependent() {
-    if (Platform.isIOS) {
-      return false;
-    }
-    if (!kDebugMode &&
-        _packageInfo.packageName != "io.ente.photos.independent") {
-      return false;
-    }
-    return true;
+    // Filen fork: Ente's release feed describes Ente's app, never offer it as an update.
+    // Updates come from this repository's GitHub releases.
+    return false;
   }
 
   bool isIndependentFlavor() {

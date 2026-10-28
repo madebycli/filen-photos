@@ -56,6 +56,8 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "listTree" -> backend.listTree(str("rootUuid"))
             "findOrCreateRootChild" -> backend.findOrCreateRootChild(str("name"))
             "createDir" -> backend.createDir(str("parentUuid"), str("name"))
+            "trashFile" -> { backend.trashFile(str("uuid")); null }
+            "moveFile" -> { backend.moveFile(str("uuid"), str("newParentUuid")); null }
             "downloadFile" -> { backend.downloadFile(str("uuid"), str("destPath")); null }
             "thumbnail" -> backend.thumbnail(
                 str("uuid"),

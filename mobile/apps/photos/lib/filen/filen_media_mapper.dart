@@ -85,6 +85,27 @@ EnteFile? filenFileToEnteFile(
     ..keyDecryptionNonce = kFilenKeyMarker;
 }
 
+/// The tombstone Ente's collection sync expects for a collection that no longer exists.
+Collection filenDeletedCollection(Collection gone, int updationTime) {
+  final c = Collection(
+    gone.id,
+    gone.owner,
+    gone.encryptedKey,
+    gone.keyDecryptionNonce,
+    gone.displayName,
+    null,
+    null,
+    gone.type,
+    CollectionAttributes(),
+    [],
+    [],
+    updationTime,
+    isDeleted: true,
+  );
+  c.setName(gone.displayName);
+  return c;
+}
+
 /// A Filen folder as an Ente collection. The photo library root becomes the "Uncategorized"
 /// collection (files directly in it), every sub-folder an album. The folder's UUID is kept in
 /// [Collection.encryptedKey] and tagged with [kFilenKeyMarker], mirroring what is done for files.
