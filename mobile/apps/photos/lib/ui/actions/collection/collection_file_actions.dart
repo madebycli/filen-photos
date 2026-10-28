@@ -1,20 +1,14 @@
 import "dart:async";
 
-import "package:dio/dio.dart";
-import "package:ente_components/ente_components.dart";
-import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/cupertino.dart';
 import "package:photo_manager/photo_manager.dart";
-import "package:photos/core/configuration.dart";
-import "package:photos/core/errors.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/db/files_db.dart";
 import "package:photos/events/collection_updated_event.dart";
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/selected_files.dart';
-import "package:photos/module/upload/service/file_uploader.dart";
 import "package:photos/services/collections_service.dart";
 import 'package:photos/services/favorites_service.dart';
 import "package:photos/services/ignored_files_service.dart";
@@ -25,8 +19,6 @@ import 'package:photos/ui/components/action_sheet_widget.dart';
 import 'package:photos/ui/components/buttons/button_widget.dart';
 import 'package:photos/ui/components/models/button_type.dart';
 import 'package:photos/ui/notification/toast.dart';
-import "package:photos/ui/payment/subscription.dart";
-import "package:photos/ui/settings/backup/free_space_options.dart";
 import 'package:photos/utils/dialog_util.dart';
 import "package:photos/utils/share_util.dart";
 import "package:receive_sharing_intent/receive_sharing_intent.dart";
@@ -35,8 +27,7 @@ extension CollectionFileActions on CollectionActions {
   Future<void> showRemoveFromCollectionSheetV2(
     BuildContext context,
     Collection collection,
-    SelectedFiles selectedFiles,
-    bool removingOthersFile, {
+    SelectedFiles selectedFiles, {
     bool isHidden = false,
     String? body,
   }) async {
@@ -45,9 +36,7 @@ extension CollectionFileActions on CollectionActions {
       buttons: [
         ButtonWidget(
           labelText: context.strings.remove,
-          buttonType: removingOthersFile
-              ? ButtonType.critical
-              : ButtonType.neutral,
+          buttonType: ButtonType.neutral,
           buttonSize: ButtonSize.large,
           shouldStickToDarkTheme: true,
           isInAlert: true,
@@ -75,11 +64,7 @@ extension CollectionFileActions on CollectionActions {
         ),
       ],
       title: context.strings.removeFromAlbumTitle,
-      body:
-          body ??
-          (removingOthersFile
-              ? context.strings.removeShareItemsWarning
-              : context.strings.itemsWillBeRemovedFromAlbum),
+      body: body ?? context.strings.itemsWillBeRemovedFromAlbum,
       actionSheetType: ActionSheetType.defaultActionSheet,
     );
     if (actionResult?.action != null &&
@@ -108,7 +93,6 @@ extension CollectionFileActions on CollectionActions {
           )
         : null;
     await dialog?.show();
-    final int currentUserID = Configuration.instance.getUserID()!;
     for (final collection in collections) {
       try {
         final List<EnteFile> files = [];
@@ -140,38 +124,22 @@ extension CollectionFileActions on CollectionActions {
           }
         }
         if (filesPendingUpload.isNotEmpty) {
-          // A newly created collection might not be cached yet.
-          final Collection? c = CollectionsService.instance.getCollectionByID(
-            collection.id,
-          );
-          if (c != null && c.owner.id != currentUserID) {
-            final Collection uncat = await CollectionsService.instance
-                .getUncategorizedCollection();
-            for (EnteFile unuploadedFile in filesPendingUpload) {
-              final uploadedFile = await FileUploader.instance.forceUpload(
-                unuploadedFile,
-                uncat.id,
-              );
-              files.add(uploadedFile);
-            }
-          } else {
-            for (final file in filesPendingUpload) {
-              file.collectionID = collection.id;
-            }
-            // filesPendingUpload might be getting ignored during auto-upload
-            // because the user deleted these files from ente in the past.
-            await IgnoredFilesService.instance.removeIgnoredMappings(
-              filesPendingUpload,
-            );
-            await FilesDB.instance.insertMultiple(filesPendingUpload);
-            Bus.instance.fire(
-              CollectionUpdatedEvent(
-                collection.id,
-                filesPendingUpload,
-                "pendingFilesAdd",
-              ),
-            );
+          for (final file in filesPendingUpload) {
+            file.collectionID = collection.id;
           }
+          // filesPendingUpload might be getting ignored during auto-upload
+          // because the user deleted these files from the cloud in the past.
+          await IgnoredFilesService.instance.removeIgnoredMappings(
+            filesPendingUpload,
+          );
+          await FilesDB.instance.insertMultiple(filesPendingUpload);
+          Bus.instance.fire(
+            CollectionUpdatedEvent(
+              collection.id,
+              filesPendingUpload,
+              "pendingFilesAdd",
+            ),
+          );
         }
         if (files.isNotEmpty) {
           await CollectionsService.instance.addOrCopyToCollection(
@@ -184,11 +152,7 @@ extension CollectionFileActions on CollectionActions {
         logger.severe("Failed to add to album", e, s);
         await dialog?.hide();
         if (!context.mounted) return false;
-        if (_isStorageLimitError(e)) {
-          await _showStorageFullSheet(context);
-        } else {
-          await showGenericErrorDialog(context: context, error: e);
-        }
+        await showGenericErrorDialog(context: context, error: e);
         return false;
       } finally {
         // Earlier collections may have succeeded before a later one failed.
@@ -208,7 +172,7 @@ extension CollectionFileActions on CollectionActions {
     List<SharedMediaFile>? sharedFiles,
     List<AssetEntity>? picketAssets,
   }) async {
-    ProgressDialog? dialog = showProgressDialog
+    final ProgressDialog? dialog = showProgressDialog
         ? createProgressDialog(
             context,
             context.strings.uploadingFilesToAlbum,
@@ -219,7 +183,6 @@ extension CollectionFileActions on CollectionActions {
     try {
       final List<EnteFile> files = [];
       final List<EnteFile> filesPendingUpload = [];
-      final int currentUserID = Configuration.instance.getUserID()!;
       if (sharedFiles != null) {
         filesPendingUpload.addAll(
           await convertIncomingSharedMediaToFile(sharedFiles, collectionID),
@@ -252,47 +215,22 @@ extension CollectionFileActions on CollectionActions {
         }
       }
       if (filesPendingUpload.isNotEmpty) {
-        // A newly created collection might not be cached yet.
-        final Collection? c = CollectionsService.instance.getCollectionByID(
-          collectionID,
-        );
-        if (c != null && c.owner.id != currentUserID) {
-          if (!showProgressDialog) {
-            if (!context.mounted) return false;
-            dialog = createProgressDialog(
-              context,
-              context.strings.uploadingFilesToAlbum,
-              isDismissible: true,
-            );
-            await dialog.show();
-          }
-          final Collection uncat = await CollectionsService.instance
-              .getUncategorizedCollection();
-          for (EnteFile unuploadedFile in filesPendingUpload) {
-            final uploadedFile = await FileUploader.instance.forceUpload(
-              unuploadedFile,
-              uncat.id,
-            );
-            files.add(uploadedFile);
-          }
-        } else {
-          for (final file in filesPendingUpload) {
-            file.collectionID = collectionID;
-          }
-          // filesPendingUpload might be getting ignored during auto-upload
-          // because the user deleted these files from ente in the past.
-          await IgnoredFilesService.instance.removeIgnoredMappings(
-            filesPendingUpload,
-          );
-          await FilesDB.instance.insertMultiple(filesPendingUpload);
-          Bus.instance.fire(
-            CollectionUpdatedEvent(
-              collectionID,
-              filesPendingUpload,
-              "pendingFilesAdd",
-            ),
-          );
+        for (final file in filesPendingUpload) {
+          file.collectionID = collectionID;
         }
+        // filesPendingUpload might be getting ignored during auto-upload
+        // because the user deleted these files from the cloud in the past.
+        await IgnoredFilesService.instance.removeIgnoredMappings(
+          filesPendingUpload,
+        );
+        await FilesDB.instance.insertMultiple(filesPendingUpload);
+        Bus.instance.fire(
+          CollectionUpdatedEvent(
+            collectionID,
+            filesPendingUpload,
+            "pendingFilesAdd",
+          ),
+        );
       }
       if (files.isNotEmpty) {
         await CollectionsService.instance.addOrCopyToCollection(
@@ -307,11 +245,7 @@ extension CollectionFileActions on CollectionActions {
       logger.severe("Failed to add to album", e, s);
       await dialog?.hide();
       if (context.mounted) {
-        if (_isStorageLimitError(e)) {
-          await _showStorageFullSheet(context);
-        } else {
-          await showGenericErrorDialog(context: context, error: e);
-        }
+        await showGenericErrorDialog(context: context, error: e);
       }
       rethrow;
     }
@@ -352,53 +286,4 @@ extension CollectionFileActions on CollectionActions {
     }
     return false;
   }
-}
-
-enum _StorageFullAction { upgrade, freeUpSpace }
-
-Future<void> _showStorageFullSheet(BuildContext context) async {
-  final action = await showBottomSheetComponent<_StorageFullAction>(
-    context: context,
-    builder: (sheetContext) => BottomSheetComponent(
-      title: sheetContext.strings.notEnoughStorageTitle,
-      content: Text(
-        sheetContext.strings.notEnoughStorageBody,
-        style: TextStyles.body.copyWith(
-          color: sheetContext.componentColors.textLight,
-        ),
-      ),
-      actions: [
-        ButtonComponent(
-          label: sheetContext.strings.upgrade,
-          variant: ButtonComponentVariant.primary,
-          size: ButtonComponentSize.large,
-          onTap: () =>
-              Navigator.of(sheetContext).pop(_StorageFullAction.upgrade),
-        ),
-        ButtonComponent(
-          label: sheetContext.strings.freeUpSpace,
-          variant: ButtonComponentVariant.secondary,
-          size: ButtonComponentSize.large,
-          onTap: () =>
-              Navigator.of(sheetContext).pop(_StorageFullAction.freeUpSpace),
-        ),
-      ],
-    ),
-  );
-  if (!context.mounted) {
-    return;
-  }
-  switch (action) {
-    case _StorageFullAction.upgrade:
-      await routeToPage(context, getSubscriptionPage());
-    case _StorageFullAction.freeUpSpace:
-      await routeToPage(context, const FreeUpSpaceOptionsScreen());
-    case null:
-      return;
-  }
-}
-
-bool _isStorageLimitError(Object error) {
-  return error is StorageLimitExceededError ||
-      error is DioException && error.response?.statusCode == 426;
 }

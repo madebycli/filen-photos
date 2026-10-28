@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/events/account_configured_event.dart';
 import 'package:photos/filen/filen_account.dart';
-import 'package:photos/ui/account/onboarding_page_scaffold.dart';
+import 'package:photos/filen/ui/onboarding_page_scaffold.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 /// Sign-in with a Filen account, in Ente's onboarding look. Email and password go straight to

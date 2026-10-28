@@ -60,8 +60,6 @@ class LocalSettings {
   static const kGalleryLayoutType = "gallery_layout_type";
   static const kPhotoGridSize = "photo_grid_size";
   static const _kisMLLocalIndexingEnabled = "ls.ml_local_indexing";
-  static const _kLocalGalleryMLLocalIndexingEnabled =
-      "ls.offline_ml_local_indexing";
   static const kRateUsShownCount = "rate_us_shown_count";
   static const kEnableMultiplePart = "ls.enable_multiple_part";
   static const kCuratedMemoriesEnabled = "ls.curated_memories_enabled";
@@ -129,12 +127,6 @@ class LocalSettings {
   static const _kWidgetHideTextFlagsNativeKey = "widgetHideTitleFlags";
 
   static const _kLocalGalleryFlags = "ls.offline_flags";
-  static const _kLocalGalleryMapEnabled = "ls.offline_map_enabled";
-  static const _kLocalGalleryGetStartedBannerDismissedAt =
-      "ls.offline_get_started_banner_dismissed_at";
-  static const _kLocalGalleryGetStartedBannerDismissDuration = Duration(
-    days: 7,
-  );
   static const _kCraftingMemoriesBannerDismissed =
       'is_crafting_memories_banner_dismissed';
   static const _kInitialMemoriesNotificationScheduledAt =
@@ -353,24 +345,9 @@ class LocalSettings {
     return getRateUsShownCount() < kRateUsPromptThreshold;
   }
 
-  bool get localGalleryMLConsent => _getFlag(LocalGalleryFlag.mlConsent);
-
-  Future<void> setLocalGalleryMLConsent(bool value) =>
-      _setFlag(LocalGalleryFlag.mlConsent, value);
-
-  bool get localGalleryMapEnabled =>
-      _prefs.getBool(_kLocalGalleryMapEnabled) ?? true;
-
-  Future<void> setLocalGalleryMapEnabled(bool value) async {
-    await _prefs.setBool(_kLocalGalleryMapEnabled, value);
-    await _setFlag(LocalGalleryFlag.mapEnabled, value);
-  }
-
   bool get isLocalGalleryMode => appMode == AppMode.localGallery;
 
-  String get _mlLocalIndexingKey => isLocalGalleryMode
-      ? _kLocalGalleryMLLocalIndexingEnabled
-      : _kisMLLocalIndexingEnabled;
+  String get _mlLocalIndexingKey => _kisMLLocalIndexingEnabled;
 
   bool get _defaultMLLocalIndexingEnabled => isLocalGalleryMode
       ? enoughRamForLocalGalleryLocalIndexing
@@ -675,25 +652,6 @@ class LocalSettings {
     await _prefs.setBool(_kLocalGalleryOnboardingPending, value);
   }
 
-  bool get isLocalGalleryGetStartedBannerDismissed {
-    final dismissedAtMs =
-        _prefs.getInt(_kLocalGalleryGetStartedBannerDismissedAt) ?? 0;
-    if (dismissedAtMs == 0) return false;
-    final elapsed = DateTime.now().millisecondsSinceEpoch - dismissedAtMs;
-    return elapsed >= 0 &&
-        elapsed < _kLocalGalleryGetStartedBannerDismissDuration.inMilliseconds;
-  }
-
-  Future<void> setLocalGalleryGetStartedBannerDismissed(bool value) {
-    if (value) {
-      return _prefs.setInt(
-        _kLocalGalleryGetStartedBannerDismissedAt,
-        DateTime.now().millisecondsSinceEpoch,
-      );
-    }
-    return _prefs.remove(_kLocalGalleryGetStartedBannerDismissedAt);
-  }
-
   bool get isMLProgressBannerDismissed =>
       _getFlag(LocalGalleryFlag.mlProgressBannerDismissed);
 
@@ -705,12 +663,6 @@ class LocalSettings {
 
   Future<void> setLocalGalleryFacesBannerDismissed(bool value) =>
       _setFlag(LocalGalleryFlag.facesBannerDismissed, value);
-
-  bool get isLocalGalleryNameFaceBannerDismissed =>
-      _getFlag(LocalGalleryFlag.nameFaceBannerDismissed);
-
-  Future<void> setLocalGalleryNameFaceBannerDismissed(bool value) =>
-      _setFlag(LocalGalleryFlag.nameFaceBannerDismissed, value);
 
   bool get isLocalGallerySettingsBannerDismissed =>
       _getFlag(LocalGalleryFlag.localGallerySettingsBannerDismissed);

@@ -19,17 +19,13 @@ import "package:photos/models/ml/face/person.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/memory_lane/memory_lane_cache_service.dart";
 import "package:photos/services/memory_lane/memory_lane_service.dart";
-import "package:photos/services/memory_share_service.dart";
 import "package:photos/theme/ente_theme.dart";
-import "package:photos/ui/home/memories/memory_music_session.dart";
 import "package:photos/ui/home/memories/memory_progress_indicator.dart";
-import "package:photos/ui/home/memories/memory_viewer_constants.dart";
 import "package:photos/ui/viewer/gallery/jump_to_date_gallery.dart";
 import "package:photos/ui/viewer/people/memory_lane_caption.dart";
 import "package:photos/ui/viewer/people/memory_lane_scrubber.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/face/face_thumbnail_cache.dart";
-import "package:photos/utils/share_util.dart";
 
 Future<void> openMemoryLanePage(
   BuildContext context, {
@@ -83,7 +79,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
   bool _useFastTransition = false;
   late final Future<void> _memoryLaneLoaded;
   Key _currentEntryKey = UniqueKey();
-  MemoryLanePersonTimeline? _timeline;
   final List<MemoryLaneEntry> _entries = [];
   _Chunkinator<MemoryLaneEntry, Uint8List?>? _chunkinator;
   final Map<(Future<Uint8List?>, Size, bool), Future<(Uint8List, int)?>>
@@ -92,56 +87,11 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
   int i = 0;
   bool _hasMarkedScheduleSeen = false;
   MemoryLaneSchedule? _schedule;
-  bool _isMusicPausedByPointer = false;
-  bool _isMusicPausedByDialog = false;
 
   @override
   void initState() {
     super.initState();
     _memoryLaneLoaded = _loadMemoryLane();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.isActive) {
-      _syncMusic();
-    }
-  }
-
-  void _syncMusic() {
-    if (!widget.isActive) return;
-    final scope = MemoryAudioScope.maybeOf(context, listen: false);
-    if (scope == null) return;
-    if (_entries.isEmpty) {
-      scope.setMusicViewerActionPaused(true);
-      return;
-    }
-    scope.activateMusic(
-      "memoryLane_${widget.personId}",
-      currentItemIsVideo: false,
-      viewerActionPaused: _isMusicPausedByPointer || _isMusicPausedByDialog,
-    );
-  }
-
-  void _setMusicPausedByPointer(bool paused) {
-    _isMusicPausedByPointer = paused;
-    _syncMusicViewerActionPaused();
-  }
-
-  void _setMusicPausedByDialog(bool paused) {
-    _isMusicPausedByDialog = paused;
-    _syncMusicViewerActionPaused();
-  }
-
-  void _syncMusicViewerActionPaused() {
-    if (!mounted || !widget.isActive) return;
-    MemoryAudioScope.maybeOf(
-      context,
-      listen: false,
-    )?.setMusicViewerActionPaused(
-      _isMusicPausedByPointer || _isMusicPausedByDialog || _entries.isEmpty,
-    );
   }
 
   @override
@@ -153,7 +103,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
       return;
     }
     unawaited(_play(0));
-    _syncMusic();
   }
 
   @override
@@ -179,7 +128,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
         isCluster: widget.isCluster,
       );
       if (!mounted) return;
-      _timeline = timeline;
       if (timeline == null ||
           !timeline.isEligible ||
           timeline.entries.isEmpty) {
@@ -205,7 +153,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
           return _loadEntry(entry, files[entry.fileId]!);
         },
       );
-      _syncMusic();
       unawaited(_play(0));
     } catch (error) {
       if (!mounted ||
@@ -265,7 +212,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
   void _onPhotoPointerEnd(PointerEvent event) {
     if (event.pointer != _photoPointer) return;
     _photoPointer = null;
-    _setMusicPausedByPointer(false);
     unawaited(_play(i, fastTransition: true));
   }
 
@@ -367,7 +313,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
     final safePadding = MediaQuery.paddingOf(context);
-    final memoryAudio = MemoryAudioScope.maybeOf(context);
     final toolbarTopPadding = widget.isFromMemoriesStrip
         ? math.max(40.0 - safePadding.top, 0.0) + 16
         : 16.0;
@@ -501,7 +446,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
                     backgroundColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     iconTheme: const IconThemeData(color: Colors.white),
-                    actionsIconTheme: const IconThemeData(color: Colors.white),
                     systemOverlayStyle: SystemUiOverlayStyle.light,
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,9 +490,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
                       ],
                     ),
                     leadingWidth: 48 + screenSize.width * 0.04,
-                    actionsPadding: EdgeInsets.only(
-                      right: screenSize.width * 0.04,
-                    ),
                     // TODO: Replace with an Ente component when it supports this pressed overlay.
                     leading: Align(
                       alignment: Alignment.centerRight,
@@ -567,26 +508,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
                         ),
                       ),
                     ),
-                    actions: [
-                      if (!isLocalGalleryMode)
-                        // TODO: Replace with an Ente component when it supports this pressed overlay.
-                        SizedBox.square(
-                          dimension: 48,
-                          child: IconButton(
-                            tooltip: context.strings.shareLink,
-                            style: IconButton.styleFrom(
-                              overlayColor: Colors.white.withValues(
-                                alpha: 0.08,
-                              ),
-                            ),
-                            icon: const HugeIcon(
-                              icon: HugeIcons.strokeRoundedShare08,
-                              color: Colors.white,
-                            ),
-                            onPressed: _onShareTap,
-                          ),
-                        ),
-                    ],
                   ),
                 ),
               ),
@@ -599,7 +520,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
                           if (_photoPointer != null || !widget.isActive) return;
                           _photoPointer = event.pointer;
                           _pause();
-                          _setMusicPausedByPointer(true);
                         },
                         onPointerUp: _onPhotoPointerEnd,
                         onPointerCancel: _onPhotoPointerEnd,
@@ -783,12 +703,6 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
                 ),
               ),
             ),
-            if (memoryAudio != null && _entries.isNotEmpty)
-              Positioned(
-                left: safePadding.left + kMemoryOverlayHorizontalInset,
-                bottom: safePadding.bottom + kMemoryOverlayBottomInset,
-                child: MemoryAudioMuteButton(memoryAudio),
-              ),
           ],
         );
       },
@@ -798,59 +712,13 @@ class _MemoryLanePageV2State extends State<MemoryLanePageV2> {
   Future<void> _runWithViewerPaused(Future<void> Function() action) async {
     final wasPlaying = _playbackToken != null;
     _pause();
-    _setMusicPausedByDialog(true);
     try {
       await action();
     } finally {
-      _setMusicPausedByDialog(false);
       if (mounted && wasPlaying && ModalRoute.of(context)?.isCurrent == true) {
         unawaited(_play(i));
       }
     }
-  }
-
-  Future<void> _onShareTap() async {
-    final timeline = _timeline;
-    final person = widget.person;
-    if (isLocalGalleryMode ||
-        timeline == null ||
-        !timeline.isEligible ||
-        timeline.entries.isEmpty) {
-      return;
-    }
-    final l10n = context.strings;
-    final name = person?.data.name.trim() ?? "";
-    var title = l10n.facesTimelineAppBarTitle;
-    if (name.isNotEmpty) {
-      title = l10n.memoryLaneCardTitle(
-        name: name,
-        nameEndsWithS: name.toLowerCase().endsWith("s").toString(),
-      );
-    }
-    final dialog = createProgressDialog(context, l10n.creatingLink);
-    await _runWithViewerPaused(() async {
-      try {
-        await dialog.show();
-        final shareLinkData = await MemoryShareService.instance
-            .getOrCreateMemoryLaneLink(
-              entries: timeline.entries,
-              title: title,
-              personId: person?.remoteID,
-              personName: person?.data.name,
-              birthDate: person?.data.birthDate,
-            );
-        await dialog.hide();
-        if (!mounted) return;
-        await shareText(
-          formatMemoryShareText(title, shareLinkData.$1),
-          context: context,
-        );
-      } catch (e) {
-        await dialog.hide();
-        if (!mounted) return;
-        await showGenericErrorBottomSheet(context: context, error: e);
-      }
-    });
   }
 
   Future<void> _onDateTap(EnteFile file) async {

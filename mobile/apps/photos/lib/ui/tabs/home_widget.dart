@@ -1,19 +1,13 @@
 import "dart:async";
-import "dart:convert";
 import "dart:io";
 
-import "package:app_links/app_links.dart";
-import "package:ente_crypto/ente_crypto.dart";
-import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:flutter/scheduler.dart";
-import "package:flutter/services.dart";
 import "package:flutter_local_notifications/flutter_local_notifications.dart";
 import "package:logging/logging.dart";
 import "package:media_extension/media_extension_action_types.dart";
 import "package:move_to_background/move_to_background.dart";
-import "package:package_info_plus/package_info_plus.dart";
 import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/ente_theme_data.dart";
@@ -25,22 +19,16 @@ import "package:photos/events/clear_and_unfocus_search_bar_event.dart";
 import "package:photos/events/homepage_swipe_to_select_in_progress_event.dart";
 import "package:photos/events/opened_settings_event.dart";
 import "package:photos/events/permission_granted_event.dart";
-import "package:photos/events/subscription_purchased_event.dart";
 import "package:photos/events/sync_status_update_event.dart";
 import "package:photos/events/tab_changed_event.dart";
 import "package:photos/events/trigger_logout_event.dart";
 import "package:photos/events/user_logged_out_event.dart";
-import 'package:photos/filen/filen_account.dart';
-import "package:photos/models/collection/collection.dart";
 import "package:photos/models/collection/collection_items.dart";
-import "package:photos/models/file/file.dart";
-import "package:photos/models/gallery_type.dart";
 import "package:photos/models/home_tab.dart";
 import "package:photos/models/search/index_of_indexed_stack.dart";
 import "package:photos/models/selected_albums.dart";
 import "package:photos/models/selected_files.dart";
 import "package:photos/service_locator.dart";
-import "package:photos/services/account/user_service.dart";
 import "package:photos/services/album_home_widget_service.dart";
 import "package:photos/services/app_lifecycle_service.dart";
 import "package:photos/services/app_navigation_service.dart";
@@ -48,13 +36,9 @@ import "package:photos/services/collections_service.dart";
 import "package:photos/services/machine_learning/face_ml/person/person_service.dart";
 import "package:photos/services/machine_learning/semantic_search/semantic_search_service.dart";
 import "package:photos/services/memory_home_widget_service.dart";
-import "package:photos/services/memory_share_service.dart";
 import "package:photos/services/notification_service.dart";
 import "package:photos/services/people_home_widget_service.dart";
-import "package:photos/services/sync/diff_fetcher.dart";
 import "package:photos/services/sync/local_sync_service.dart";
-import "package:photos/services/sync/remote_sync_service.dart";
-import "package:photos/services/update_service.dart";
 import "package:photos/states/user_details_state.dart";
 import "package:photos/theme/ente_theme.dart";
 import "package:photos/ui/collections/collection_action_sheet.dart";
@@ -64,27 +48,20 @@ import "package:photos/ui/extents_page_view.dart";
 import "package:photos/ui/home/christmas/christmas_pull_animation.dart";
 import "package:photos/ui/home/christmas/christmas_utils.dart";
 import "package:photos/ui/home/christmas/snow_fall_overlay.dart";
-import "package:photos/ui/home/gallery_download_banner.dart";
 import "package:photos/ui/home/grant_permissions_widget.dart";
 import "package:photos/ui/home/header_widget.dart";
 import "package:photos/ui/home/home_bottom_nav_bar.dart";
 import "package:photos/ui/home/home_gallery_widget.dart";
 import "package:photos/ui/home/landing_page_widget.dart";
 import "package:photos/ui/home/loading_photos_widget.dart";
-import "package:photos/ui/notification/update/change_log_page.dart";
 import "package:photos/ui/rituals/ritual_camera_page.dart";
 import "package:photos/ui/rituals/ritual_page.dart";
 import "package:photos/ui/rituals/ritual_privacy.dart";
-import "package:photos/ui/settings/app_update_sheet.dart";
 import "package:photos/ui/settings_page.dart";
-import "package:photos/ui/social/feed_screen.dart";
 import "package:photos/ui/tabs/albums_tab.dart";
 import "package:photos/ui/viewer/actions/file_viewer.dart";
-import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/gallery/collection_page.dart";
-import "package:photos/ui/viewer/gallery/shared_public_collection_page.dart";
 import "package:photos/ui/viewer/search_tab/search_tab.dart";
-import "package:photos/utils/collection_util.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/intent_util.dart";
 import "package:receive_sharing_intent/receive_sharing_intent.dart";
@@ -97,7 +74,6 @@ class HomeWidget extends StatefulWidget {
 }
 
 class _HomeWidgetState extends State<HomeWidget> {
-  static const _feedTab = FeedScreen(showBackButton: false);
   final _logger = Logger("HomeWidgetState");
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _selectedAlbums = SelectedAlbums();
@@ -119,7 +95,6 @@ class _HomeWidgetState extends State<HomeWidget> {
   bool _mediaViewFallbackNavigationScheduled = false;
   bool _personSyncTriggered = false;
   bool _collectionsSyncTriggered = false;
-  bool _isShowingChangeLog = false;
   bool _startWithoutAccount = localSettings.isLocalGalleryOnboardingPending;
   final isOnSearchTabNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isAlbumsSearchActiveNotifier = ValueNotifier<bool>(
@@ -133,23 +108,17 @@ class _HomeWidgetState extends State<HomeWidget> {
       ValueNotifier<bool>(false);
 
   late StreamSubscription<TabChangedEvent> _tabChangedEventSubscription;
-  late StreamSubscription<SubscriptionPurchasedEvent>
-  _subscriptionPurchaseEvent;
   late StreamSubscription<TriggerLogoutEvent> _triggerLogoutEvent;
   late StreamSubscription<UserLoggedOutEvent> _loggedOutEvent;
   late StreamSubscription<PermissionGrantedEvent> _permissionGrantedEvent;
   late StreamSubscription<SyncStatusUpdate> _firstImportEvent;
   late StreamSubscription<BackupFoldersUpdatedEvent> _backupFoldersUpdatedEvent;
   late StreamSubscription<AccountConfiguredEvent> _accountConfiguredEvent;
-  StreamSubscription? _publicAlbumLinkSubscription;
-  StreamSubscription<Uri?>? _authDeepLinkSubscription;
   late StreamSubscription<HomepageSwipeToSelectInProgressEvent>
   _homepageSwipeToSelectInProgressEventSubscription;
   late StreamSubscription<ChristmasBannerEvent>
   _christmasBannerEventSubscription;
   late StreamSubscription<AppModeChangedEvent> _appModeChangedEventSubscription;
-
-  final DiffFetcher _diffFetcher = DiffFetcher();
 
   // Filen fork: the feed tab is Ente's social layer (shared albums, comments), not available on Filen.
   List<int> get _tabIndices => homeTabIndices(showFeed: false);
@@ -158,26 +127,6 @@ class _HomeWidgetState extends State<HomeWidget> {
     setState(() {
       _startWithoutAccount = true;
     });
-  }
-
-  void _handleMissingRecoveryKey() {
-    final config = Configuration.instance;
-    if (!config.hasConfiguredAccount()) {
-      return;
-    }
-    final keyAttributes = config.getKeyAttributes();
-    if (keyAttributes == null) {
-      return;
-    }
-    final encryptedRecoveryKey =
-        keyAttributes.recoveryKeyEncryptedWithMasterKey;
-    final recoveryKeyNonce = keyAttributes.recoveryKeyDecryptionNonce;
-    if (encryptedRecoveryKey == null ||
-        encryptedRecoveryKey.isEmpty ||
-        recoveryKeyNonce == null ||
-        recoveryKeyNonce.isEmpty) {
-      Bus.instance.fire(TriggerLogoutEvent());
-    }
   }
 
   @override
@@ -228,21 +177,12 @@ class _HomeWidgetState extends State<HomeWidget> {
         }
       }
     });
-    _subscriptionPurchaseEvent = Bus.instance
-        .on<SubscriptionPurchasedEvent>()
-        .listen((event) {
-          setState(() {});
-        });
     _accountConfiguredEvent = Bus.instance.on<AccountConfiguredEvent>().listen((
       event,
     ) {
       _startWithoutAccount = false;
       unawaited(localSettings.setLocalGalleryOnboardingPending(false));
       setState(() {});
-      _handleMissingRecoveryKey();
-      if (!isLocalGalleryMode) {
-        flagService.flags;
-      }
     });
     _triggerLogoutEvent = Bus.instance.on<TriggerLogoutEvent>().listen((
       event,
@@ -283,7 +223,6 @@ class _HomeWidgetState extends State<HomeWidget> {
                 ),
               );
             });
-            _scheduleChangeLogCheck(delay: const Duration(milliseconds: 250));
           }
         });
     _firstImportEvent = Bus.instance.on<SyncStatusUpdate>().listen((
@@ -310,43 +249,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             setState(() {});
           }
         });
-    _initDeepLinks();
-    updateService.shouldShowUpdateNotification().then((value) {
-      Future.delayed(Duration.zero, () {
-        if (value) {
-          if (!mounted) return;
-          showAppUpdateSheet(
-            context,
-            latestVersionInfo: updateService.getLatestVersionInfo()!,
-          ).ignore();
-          updateService.resetUpdateAvailableShownTime();
-        }
-      });
-    });
-
-    _initDeepLinkSubscriptionForPublicAlbums();
-
     _initMediaShareSubscription();
-    _scheduleChangeLogCheck(delay: const Duration(seconds: 1));
-
-    if (Platform.isAndroid &&
-        !localSettings.hasConfiguredInAppLinkPermissions() &&
-        RemoteSyncService.instance.isFirstRemoteSyncDone() &&
-        endpointConfig.isProduction) {
-      PackageInfo.fromPlatform().then((packageInfo) {
-        final packageName = packageInfo.packageName;
-        // Filen fork: this prompt is about Ente's public album links, which do not exist here.
-        if (!FilenAccount.isActive &&
-            (packageName == 'com.madebycli.filenphotos' ||
-                packageName == 'io.ente.photos.fdroid')) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              requestPermissionToOpenLinksInApp(context, packageName);
-            }
-          });
-        }
-      });
-    }
 
     _homepageSwipeToSelectInProgressEventSubscription = Bus.instance
         .on<HomepageSwipeToSelectInProgressEvent>()
@@ -361,14 +264,6 @@ class _HomeWidgetState extends State<HomeWidget> {
             setState(() {});
           }
         });
-    if (!isLocalGalleryMode && Configuration.instance.hasConfiguredAccount()) {
-      MemoryShareService.instance.listMemoryShares().ignore();
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _handleMissingRecoveryKey();
-      }
-    });
   }
 
   Future<void> syncWidget() async {
@@ -380,181 +275,8 @@ class _HomeWidgetState extends State<HomeWidget> {
     await MemoryHomeWidgetService.instance.checkPendingMemorySync();
   }
 
-  void _scheduleChangeLogCheck({required Duration delay}) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(delay, () {
-        if (mounted) {
-          showChangeLog(context);
-        }
-      });
-    });
-  }
-
-  final Map<Uri, (bool, int)> _linkedPublicAlbums = {};
   bool get _isGuestViewActive =>
       AppNavigationService.instance.isGuestViewActive;
-
-  Future<void> _handlePublicAlbumLink(Uri uri, String via) async {
-    if (!mounted) {
-      _logger.warning("Cannot handle public album link - widget not mounted");
-      return;
-    }
-    if (_isGuestViewActive) return;
-    try {
-      _logger.info("Handling public album link: via $via");
-      final int currentTime = DateTime.now().millisecondsSinceEpoch;
-      final bool isInitialStream = via.toLowerCase().contains('initial');
-      if (_linkedPublicAlbums.containsKey(uri)) {
-        final (lastInitialLink, lastTime) = _linkedPublicAlbums[uri]!;
-        // for initial stream, wait for 30 seconds to ignore duplicate links event
-        if (currentTime - lastTime < (lastInitialLink ? 30000 : 2000)) {
-          _logger.info(
-            "ignore was it has handled $lastInitialLink at epoch $lastTime",
-          );
-          return;
-        }
-      }
-      _linkedPublicAlbums[uri] = (isInitialStream, currentTime);
-
-      final Collection? collection = await CollectionsService.instance
-          .getCollectionFromPublicLink(context, uri);
-      if (!mounted || _isGuestViewActive) {
-        return;
-      }
-      if (collection == null) {
-        return;
-      }
-
-      final existingCollection = CollectionsService.instance.getCollectionByID(
-        collection.id,
-      );
-
-      if (collection.isOwner(Configuration.instance.getUserID() ?? -1) ||
-          (existingCollection != null && !existingCollection.isDeleted)) {
-        await routeToPage(
-          context,
-          CollectionPage(CollectionWithThumbnail(collection, null)),
-          useFadeTransition: true,
-        );
-        return;
-      }
-
-      final shouldShowJoinDialog =
-          uri.queryParameters['action'] == 'join' &&
-          Configuration.instance.isLoggedIn();
-
-      final dialog = createProgressDialog(context, "Loading...");
-      final publicUrl = collection.publicURLs[0];
-      if (!publicUrl.enableDownload) {
-        await showErrorDialog(
-          context,
-          context.strings.canNotOpenTitle,
-          context.strings.canNotOpenBody,
-        );
-        return;
-      }
-      if (publicUrl.passwordEnabled) {
-        await showTextInputDialog(
-          context,
-          title: context.strings.enterPassword,
-          submitButtonLabel: context.strings.ok,
-          alwaysShowSuccessState: false,
-          popnavAfterSubmission: false,
-          onSubmit: (String text) async {
-            if (text.trim() == "") {
-              return;
-            }
-            try {
-              final hashedPassword = await CryptoUtil.deriveKey(
-                utf8.encode(text),
-                CryptoUtil.base642bin(publicUrl.nonce!),
-                publicUrl.memLimit!,
-                publicUrl.opsLimit!,
-              );
-
-              if (!mounted) return;
-              unawaited(
-                CollectionsService.instance
-                    .verifyPublicCollectionPassword(
-                      context,
-                      CryptoUtil.bin2base64(hashedPassword),
-                      collection.id,
-                    )
-                    .then((result) async {
-                      if (result) {
-                        await dialog.show();
-
-                        if (!mounted) return;
-                        final List<EnteFile> sharedFiles = await _diffFetcher
-                            .getPublicFiles(
-                              context,
-                              collection.id,
-                              collection.pubMagicMetadata.asc ?? false,
-                            );
-                        await dialog.hide();
-                        if (!mounted || _isGuestViewActive) return;
-                        Navigator.of(context).pop();
-
-                        if (!mounted) return;
-                        await routeToPage(
-                          context,
-                          SharedPublicCollectionPage(
-                            CollectionWithThumbnail(collection, null),
-                            files: sharedFiles,
-                            shouldShowJoinDialog: shouldShowJoinDialog,
-                          ),
-                        );
-                      }
-                    }),
-              );
-            } catch (e, s) {
-              _logger.severe("Failed to decrypt password for album", e, s);
-              if (!mounted) return;
-              await showGenericErrorDialog(context: context, error: e);
-              return;
-            }
-          },
-        );
-      } else {
-        await dialog.show();
-
-        if (!mounted) return;
-        final List<EnteFile> sharedFiles = await _diffFetcher.getPublicFiles(
-          context,
-          collection.id,
-          collection.pubMagicMetadata.asc ?? false,
-        );
-        await dialog.hide();
-
-        if (!mounted || _isGuestViewActive) return;
-        await routeToPage(
-          context,
-          SharedPublicCollectionPage(
-            CollectionWithThumbnail(collection, null),
-            files: sharedFiles,
-            shouldShowJoinDialog: shouldShowJoinDialog,
-          ),
-        );
-        if (sharedFiles.length == 1) {
-          if (!mounted || _isGuestViewActive) return;
-          await routeToPage(
-            context,
-            DetailPage(
-              DetailPageConfiguration(
-                sharedFiles,
-                0,
-                "sharedPublicCollection",
-                galleryType: GalleryType.sharedPublicCollection,
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e, s) {
-      _logger.severe("Failed to handle public album link", e, s);
-      return;
-    }
-  }
 
   Future<void> _autoLogoutAlert() async {
     final AlertDialog alert = AlertDialog(
@@ -601,7 +323,6 @@ class _HomeWidgetState extends State<HomeWidget> {
     _selectedFiles.removeListener(_selectedFilesListener);
     _hasSelectedFilesNotifier.dispose();
     _tabChangedEventSubscription.cancel();
-    _subscriptionPurchaseEvent.cancel();
     _triggerLogoutEvent.cancel();
     _loggedOutEvent.cancel();
     _permissionGrantedEvent.cancel();
@@ -615,8 +336,6 @@ class _HomeWidgetState extends State<HomeWidget> {
     _shouldAlbumsSearchConsumeBackNotifier.dispose();
     _shouldSearchTabSearchConsumeBackNotifier.dispose();
     _pageController.dispose();
-    _publicAlbumLinkSubscription?.cancel();
-    _authDeepLinkSubscription?.cancel();
     _homepageSwipeToSelectInProgressEventSubscription.cancel();
     _christmasBannerEventSubscription.cancel();
     _swipeToSelectInProgressNotifier.dispose();
@@ -646,12 +365,6 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   Future<void> _handleSharedMediaStream(List<SharedMediaFile> value) async {
     if (!mounted || _isGuestViewActive || value.isEmpty) {
-      return;
-    }
-
-    if (_isPublicAlbumUrl(value[0].path)) {
-      final uri = Uri.parse(value[0].path);
-      unawaited(_handlePublicAlbumLink(uri, "sharedIntent.getMediaStream"));
       return;
     }
 
@@ -722,12 +435,6 @@ class _HomeWidgetState extends State<HomeWidget> {
     if (!mounted || _isGuestViewActive) {
       return;
     }
-    if (value.isNotEmpty && _isPublicAlbumUrl(value[0].path)) {
-      final uri = Uri.parse(value[0].path);
-      unawaited(_handlePublicAlbumLink(uri, "sharedIntent.getInitialMedia"));
-      return;
-    }
-
     if (await _consumeAndroidMediaViewIntent()) {
       if (!mounted || _isGuestViewActive) {
         return;
@@ -804,70 +511,6 @@ class _HomeWidgetState extends State<HomeWidget> {
     });
   }
 
-  Future<void> _initDeepLinkSubscriptionForPublicAlbums() async {
-    final appLinks = AppLinks();
-
-    try {
-      final initialUri = await appLinks.getInitialLink();
-      if (initialUri != null) {
-        if (_isPublicAlbumDeepLink(initialUri)) {
-          await _handlePublicAlbumLink(initialUri, "appLinks.getInitialLink");
-        } else {
-          _logger.info(
-            "Ignoring deep link: ${baseUrlForLogging(initialUri.toString())}",
-          );
-        }
-      } else {
-        _logger.info(
-          "No initial link received in public album link subscription.",
-        );
-      }
-    } catch (e) {
-      _logger.severe("Error while getting initial public album deep link: $e");
-    }
-
-    _publicAlbumLinkSubscription = appLinks.uriLinkStream.listen(
-      (Uri? uri) {
-        if (uri != null) {
-          if (_isPublicAlbumDeepLink(uri)) {
-            _handlePublicAlbumLink(uri, "appLinks.uriLinkStream");
-          } else {
-            _logger.info(
-              "Ignoring deep link: ${baseUrlForLogging(uri.toString())}",
-            );
-          }
-        } else {
-          _logger.info("No link received in public album link subscription.");
-        }
-      },
-      onError: (err) {
-        _logger.severe("Error while getting public album deep link: $err");
-      },
-    );
-  }
-
-  bool _isPublicAlbumDeepLink(Uri uri) {
-    if (!_isPublicAlbumHost(uri.host)) {
-      return false;
-    }
-    if (Platform.isIOS) {
-      return uri.scheme == "https";
-    }
-    if (Platform.isAndroid) {
-      return uri.scheme == "ente" || uri.scheme == "https";
-    }
-    return false;
-  }
-
-  bool _isPublicAlbumUrl(String url) {
-    final host = Uri.tryParse(url)?.host ?? "";
-    return _isPublicAlbumHost(host);
-  }
-
-  bool _isPublicAlbumHost(String host) {
-    return host == "albums.ente.io" || host == "albums.ente.com";
-  }
-
   @override
   Widget build(BuildContext context) {
     _logger.info("Building home_Widget with tab $_selectedTabIndex");
@@ -937,12 +580,10 @@ class _HomeWidgetState extends State<HomeWidget> {
           drawer: enableDrawer
               ? ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 430),
-                  child: Drawer(
+                  child: const Drawer(
                     width: double.infinity,
-                    shape: const RoundedRectangleBorder(),
-                    child: SettingsPage(
-                      emailNotifier: UserService.instance.emailValueNotifier,
-                    ),
+                    shape: RoundedRectangleBorder(),
+                    child: SettingsPage(),
                   ),
                 )
               : null,
@@ -1134,8 +775,6 @@ class _HomeWidgetState extends State<HomeWidget> {
                                 _shouldAlbumsSearchConsumeBackNotifier,
                           ),
                         ),
-                        if (!localGalleryMode)
-                          _buildTabHeroMode(2, selectedTabIndex, _feedTab),
                         _buildTabHeroMode(
                           3,
                           selectedTabIndex,
@@ -1203,7 +842,6 @@ class _HomeWidgetState extends State<HomeWidget> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (flagService.internalUser) const GalleryDownloadBanner(),
                   HomeBottomNavigationBar(
                     _selectedFiles,
                     _selectedAlbums,
@@ -1234,73 +872,6 @@ class _HomeWidgetState extends State<HomeWidget> {
       SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         _scaffoldKey.currentState?.closeDrawer();
       });
-    }
-  }
-
-  Future<bool> _initDeepLinks() async {
-    final appLinks = AppLinks();
-    try {
-      final initialLink = await appLinks.getInitialLink();
-      if (initialLink != null) {
-        _logger.info("Initial link received: host ${initialLink.host}");
-        if (!mounted) return false;
-        _getCredentials(context, initialLink);
-        return true;
-      } else {
-        _logger.info("No initial link received.");
-      }
-    } on PlatformException {
-      _logger.severe("PlatformException thrown while getting initial link");
-    }
-
-    _authDeepLinkSubscription = appLinks.uriLinkStream.listen(
-      (link) {
-        _logger.info("Link received: host ${link.host}");
-        if (!mounted) return;
-        _getCredentials(context, link);
-      },
-      onError: (err) {
-        _logger.severe(err);
-      },
-    );
-    return false;
-  }
-
-  void _getCredentials(BuildContext context, Uri? link) {
-    if (Configuration.instance.hasConfiguredAccount() || link == null) {
-      return;
-    }
-    final ott = link.queryParameters["ott"];
-    if (ott == null || ott.isEmpty) {
-      _logger.info("Ignoring auth deep link without ott parameter");
-      return;
-    }
-    UserService.instance.verifyEmail(context, ott);
-  }
-
-  Future<void> showChangeLog(BuildContext context) async {
-    if (_isShowingChangeLog || !mounted) {
-      return;
-    }
-    _isShowingChangeLog = true;
-    try {
-      final action = await updateService.getChangeLogAction(
-        locale: Localizations.localeOf(context),
-        isLocalGallery: isLocalGalleryMode,
-        isSignedIn: Configuration.instance.isLoggedIn(),
-      );
-      if (!mounted || action == ChangeLogAction.skip) {
-        return;
-      }
-      if (action == ChangeLogAction.consumeWithoutShowing) {
-        updateService.hideChangeLog().ignore();
-        return;
-      }
-      if (!context.mounted) return;
-      await showChangeLogSheet(context);
-      await updateService.hideChangeLog();
-    } finally {
-      _isShowingChangeLog = false;
     }
   }
 
@@ -1340,17 +911,6 @@ class _HomeWidgetState extends State<HomeWidget> {
         // ignore: unawaited_futures
         AppNavigationService.instance.pushPage(
           RitualCameraPage(ritualId: ritualId, albumId: albumId),
-        );
-        return;
-      }
-      if (uri != null && uri.host.toLowerCase() == "feed") {
-        if (!Configuration.instance.isLoggedIn()) {
-          return;
-        }
-        final target = FeedNavigationTarget.fromUri(uri);
-        // ignore: unawaited_futures
-        AppNavigationService.instance.pushPage(
-          FeedScreen(initialTarget: target),
         );
         return;
       }

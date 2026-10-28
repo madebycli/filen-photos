@@ -19,7 +19,6 @@ import "package:photos/service_locator.dart" show isLocalGalleryMode;
 import "package:photos/services/machine_learning/face_ml/feedback/cluster_feedback.dart";
 import "package:photos/services/machine_learning/ml_result.dart";
 import "package:photos/services/memory_lane/memory_lane_service.dart";
-import "package:photos/ui/components/banners/name_face_banner.dart";
 import "package:photos/ui/notification/toast.dart";
 import "package:photos/ui/viewer/actions/file_selection_overlay_bar.dart";
 import "package:photos/ui/viewer/gallery/gallery.dart";
@@ -241,15 +240,13 @@ class _ClusterPageState extends State<ClusterPage> {
       enableFileGrouping: widget.enableGrouping,
       initialFiles: files,
       header:
-          (_localGalleryUiMode || widget.showNamingBanner) && files.isNotEmpty
-          ? _localGalleryUiMode
-                ? const NameFaceBanner()
-                : SavePersonBanner(
-                    faceWidget: PersonFaceWidget(clusterID: widget.clusterID),
-                    text: context.strings.savePerson,
-                    subText: context.strings.findThemQuickly,
-                    onTap: _handleSavePerson,
-                  )
+          !_localGalleryUiMode && widget.showNamingBanner && files.isNotEmpty
+          ? SavePersonBanner(
+              faceWidget: PersonFaceWidget(clusterID: widget.clusterID),
+              text: context.strings.savePerson,
+              subText: context.strings.findThemQuickly,
+              onTap: _handleSavePerson,
+            )
           : null,
     );
     return GalleryBoundariesProvider(

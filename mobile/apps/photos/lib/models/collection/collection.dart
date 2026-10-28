@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import "package:photos/core/configuration.dart";
-import "package:photos/extensions/user_extension.dart";
 import "package:photos/gateways/collections/models/public_url.dart";
 import "package:photos/models/api/collection/user.dart";
 import "package:photos/models/metadata/collection_magic.dart";
@@ -61,11 +60,6 @@ class Collection {
 
   // ignore: deprecated_member_use_from_same_package
   String get displayName {
-    if (!isDeleted &&
-        type == CollectionType.favorites &&
-        !isOwner(Configuration.instance.getUserID() ?? -1)) {
-      return '${owner.nameOrEmail}\'s favorites';
-    }
     return decryptedName ?? name ?? "Unnamed Album";
   }
 

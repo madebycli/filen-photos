@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:filen_sdk/filen_sdk.dart';
 import 'package:logging/logging.dart';
+import 'package:native_video_editor/native_video_editor.dart';
 import 'package:path/path.dart' as p;
 import 'package:photos/core/configuration.dart';
+import 'package:photos/core/constants.dart';
 import 'package:photos/filen/filen_ids.dart';
+import 'package:photos/filen/filen_state.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
 import 'package:photos/module/download/thumbnail.dart'
@@ -43,27 +47,51 @@ Future<File> filenDownloadOriginal(EnteFile file) async {
   return dest;
 }
 
-/// Thumbnail bytes for the gallery grid. The SDK makes WebP thumbnails from the encrypted
-/// stream (embedded previews where possible, so large RAW/HEIC files stay cheap). Types the
-/// SDK cannot thumbnail fall back to scaling the downloaded image; videos have no fallback yet.
 Future<Uint8List> filenThumbnail(EnteFile file) async {
   final uuid = filenUuidOf(file);
   final watch = Stopwatch()..start();
-  final fromSdk = await FilenSdk.instance.thumbnail(uuid);
-  if (fromSdk != null) {
-    _logger.fine(
-      'Thumbnail ${file.tag}: ${fromSdk.length} bytes in ${watch.elapsedMilliseconds} ms',
-    );
-    return fromSdk;
+  final state = FilenState.instance;
+  await state.ensureInitialized();
+
+  // 1. A preview stored on Filen by this or another device: a few KB instead of the original.
+  try {
+    await state.thumbs.ensureIndexed();
+    final stored = await state.thumbs.get(uuid);
+    if (stored != null) {
+      _logger.fine(
+        'Thumbnail ${file.tag}: ${stored.length} bytes from the state folder '
+        'in ${watch.elapsedMilliseconds} ms',
+      );
+      return stored;
+    }
+  } catch (e, s) {
+    _logger.warning('Could not read the stored preview of ${file.tag}', e, s);
   }
+
+  // 2. Make one from the original (needs the file, so it is rate limited) ...
+  final data = await _thumbnailLimiter.run(
+    () => _generateThumbnail(file, uuid),
+  );
   _logger.info(
-    'Thumbnail ${file.tag}: SDK has none after ${watch.elapsedMilliseconds} ms',
+    'Thumbnail ${file.tag}: ${data.length} bytes generated in ${watch.elapsedMilliseconds} ms',
   );
 
-  if (file.fileType != FileType.image) {
-    throw UnsupportedError(
-      'No Filen thumbnail for ${file.fileType.name} ${file.tag}',
-    );
+  // 3. ... and keep it for the next time and for other devices.
+  unawaited(
+    state.thumbs.put(uuid, data).catchError((Object e, StackTrace s) {
+      _logger.warning('Could not store the preview of ${file.tag}', e, s);
+    }),
+  );
+  return data;
+}
+
+Future<Uint8List> _generateThumbnail(EnteFile file, String uuid) async {
+  if (file.fileType == FileType.video) {
+    return _videoThumbnail(file, uuid);
+  }
+  final fromSdk = await FilenSdk.instance.thumbnail(uuid);
+  if (fromSdk != null) {
+    return fromSdk;
   }
   _logger.info('SDK has no thumbnail for ${file.tag}, scaling the original');
   final original = await filenDownloadOriginal(file);
@@ -73,3 +101,61 @@ Future<Uint8List> filenThumbnail(EnteFile file) async {
     await original.delete();
   }
 }
+
+/// First frame of a video, read through the SDK's local streaming server so only the start of
+/// the file is fetched.
+Future<Uint8List> _videoThumbnail(EnteFile file, String uuid) async {
+  final url = await FilenSdk.instance.streamUrl(uuid);
+  final out = File(
+    p.join(
+      Configuration.instance.getTempDirectory(),
+      'filen-video-thumb-${const Uuid().v4()}.jpg',
+    ),
+  );
+  try {
+    await NativeVideoEditor.extractFrame(
+      VideoFrameRequest(
+        inputPath: url,
+        outputPath: out.path,
+        position: Duration.zero,
+        maxWidth: thumbnailLargeSize,
+        maxHeight: thumbnailLargeSize,
+        quality: 80,
+      ),
+    );
+    return await compressThumbnailToSizeLimit(await out.readAsBytes());
+  } finally {
+    if (out.existsSync()) {
+      await out.delete();
+    }
+  }
+}
+
+/// Runs at most [limit] actions at a time.
+class _Limiter {
+  _Limiter(this.limit);
+  final int limit;
+  int _running = 0;
+  final _waiting = <Completer<void>>[];
+
+  Future<T> run<T>(Future<T> Function() action) async {
+    if (_running >= limit) {
+      final turn = Completer<void>();
+      _waiting.add(turn);
+      await turn.future;
+    } else {
+      _running++;
+    }
+    try {
+      return await action();
+    } finally {
+      if (_waiting.isNotEmpty) {
+        _waiting.removeAt(0).complete();
+      } else {
+        _running--;
+      }
+    }
+  }
+}
+
+final _thumbnailLimiter = _Limiter(3);

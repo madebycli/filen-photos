@@ -10,7 +10,6 @@ import "package:hugeicons/hugeicons.dart";
 import "package:photos/core/configuration.dart";
 import "package:photos/models/collection/collection.dart";
 import "package:photos/services/collections_service.dart";
-import "package:photos/ui/tabs/shared/all_links_page.dart";
 import "package:photos/ui/viewer/gallery/archive_page.dart";
 import "package:photos/ui/viewer/gallery/hidden_page.dart";
 import "package:photos/ui/viewer/gallery/trash_page.dart";
@@ -27,30 +26,6 @@ Future<void> showAlbumsManageSheet(BuildContext context) {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _manageItem(
-              label: strings.links,
-              icon: HugeIcons.strokeRoundedLink02,
-              iconColor: colors.blue,
-              onTap: () async {
-                final data = await CollectionsService.instance
-                    .getSharedCollectionsAndMemoryLinks();
-                if (!context.mounted) return;
-                if (sheetContext.mounted) {
-                  Navigator.of(sheetContext).pop();
-                }
-                unawaited(
-                  routeToPage(
-                    context,
-                    AllLinksPage(
-                      quickLinks: data.collections.quickLinks,
-                      memoryShares: data.memoryLinks,
-                      titleHeroTag: "manage_links",
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
             _manageItem(
               label: strings.uncategorized,
               icon: HugeIcons.strokeRoundedHelpCircle,

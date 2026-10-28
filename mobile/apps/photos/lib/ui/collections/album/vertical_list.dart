@@ -6,7 +6,6 @@ import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import 'package:logging/logging.dart';
-import 'package:photos/core/configuration.dart';
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/create_new_album_event.dart";
 import "package:photos/events/tab_changed_event.dart";
@@ -23,7 +22,6 @@ import "package:photos/ui/collections/album/new_list_item.dart";
 import 'package:photos/ui/collections/collection_action_sheet.dart';
 import "package:photos/ui/collections/shared_media_backup_sheet.dart";
 import 'package:photos/ui/notification/toast.dart';
-import "package:photos/ui/sharing/share_collection_page.dart";
 import 'package:photos/ui/viewer/gallery/collection_page.dart';
 import "package:photos/ui/viewer/gallery/empty_state.dart";
 import 'package:photos/utils/dialog_util.dart';
@@ -32,7 +30,6 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 class AlbumVerticalListWidget extends StatefulWidget {
   final List<Collection> collections;
   final List<Collection> recentCollections;
-  final List<Collection> sharedCollections;
   final CollectionActionType actionType;
   final SelectedFiles? selectedFiles;
   final List<SharedMediaFile>? sharedFiles;
@@ -54,7 +51,6 @@ class AlbumVerticalListWidget extends StatefulWidget {
     this.shouldShowCreateAlbum, {
     required this.selectedCollections,
     this.recentCollections = const [],
-    this.sharedCollections = const [],
     this.enableSelection = false,
     this.onSelectionChanged,
     this.scrollController,
@@ -84,11 +80,8 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
         : widget.selectedFiles?.files.length ?? 0;
 
     final hasRecentCollections = widget.recentCollections.isNotEmpty;
-    final hasSharedCollections = widget.sharedCollections.isNotEmpty;
 
-    if (widget.collections.isEmpty &&
-        !hasRecentCollections &&
-        !hasSharedCollections) {
+    if (widget.collections.isEmpty && !hasRecentCollections) {
       if (widget.shouldShowCreateAlbum) {
         return Align(
           alignment: Alignment.topCenter,
@@ -103,17 +96,13 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
     final recentItemsCount = widget.recentCollections.length;
     final showDivider = hasRecentCollections && widget.collections.isNotEmpty;
     final dividerOffset = showDivider ? 1 : 0;
-    final sharedHeaderOffset = hasSharedCollections ? 1 : 0;
-    final sharedItemsCount = widget.sharedCollections.length;
 
     final totalItemCount =
         createAlbumOffset +
         recentHeaderOffset +
         recentItemsCount +
         dividerOffset +
-        widget.collections.length +
-        sharedHeaderOffset +
-        sharedItemsCount;
+        widget.collections.length;
 
     return ListView.separated(
       controller: widget.scrollController,
@@ -151,18 +140,6 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
           final collectionIndex = adjustedIndex - collectionsStartIndex;
           final item = widget.collections[collectionIndex];
           return _buildCollectionItem(context, item);
-        }
-
-        final sharedHeaderIndex = collectionsEndIndex;
-        if (hasSharedCollections && adjustedIndex == sharedHeaderIndex) {
-          return _buildSectionHeader(context, "Shared with you");
-        }
-
-        final sharedStartIndex = sharedHeaderIndex + sharedHeaderOffset;
-        if (hasSharedCollections && adjustedIndex >= sharedStartIndex) {
-          final sharedIndex = adjustedIndex - sharedStartIndex;
-          final item = widget.sharedCollections[sharedIndex];
-          return _buildSharedCollectionItem(context, item);
         }
 
         return const SizedBox.shrink();
@@ -203,67 +180,6 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
         selectedCollections: widget.selectedCollections,
       ),
     );
-  }
-
-  Widget _buildSharedCollectionItem(BuildContext context, Collection item) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _sharedAlbumOnTap(context, item),
-      child: AlbumColumnItemWidget(
-        item,
-        selectedCollections: widget.selectedCollections,
-      ),
-    );
-  }
-
-  Future<void> _sharedAlbumOnTap(BuildContext context, Collection item) async {
-    final shouldAdd = await _showAddToSharedAlbumSheet(context);
-    if (!shouldAdd) {
-      return;
-    }
-
-    if (!context.mounted) return;
-    final success = await _addToCollection(context, item.id, true);
-    if (success) {
-      if (!context.mounted) return;
-      showShortToast(
-        context,
-        context.strings.addedSuccessfullyTo(albumName: item.displayName),
-      );
-      if (!context.mounted) return;
-      Navigator.pop(context);
-      if (!context.mounted) return;
-      await _navigateToCollection(context, item);
-    }
-  }
-
-  Future<bool> _showAddToSharedAlbumSheet(BuildContext context) async {
-    final l10n = context.strings;
-    final result = await showBottomSheetComponent<bool>(
-      context: context,
-      builder: (sheetContext) => BottomSheetComponent(
-        title: l10n.cannotMoveToSharedAlbums,
-        content: Text(
-          l10n.cannotMoveToSharedAlbumsMessage,
-          style: TextStyles.body.copyWith(
-            color: sheetContext.componentColors.textLight,
-          ),
-        ),
-        closeTooltip: l10n.close,
-        closeResult: false,
-        actions: [
-          ButtonComponent(
-            label: l10n.add,
-            variant: ButtonComponentVariant.neutral,
-            shouldSurfaceExecutionStates: false,
-            onTap: () async {
-              Navigator.of(sheetContext).pop(true);
-            },
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
   }
 
   Future<void> _toggleCollectionSelection(Collection collection) async {
@@ -464,8 +380,6 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
         return _moveFilesToCollection(context, collection.id);
       case CollectionActionType.restoreFiles:
         return _restoreFilesToCollection(context, collection.id);
-      case CollectionActionType.shareCollection:
-        return _showShareCollectionPage(context, collection);
       case CollectionActionType.moveToHiddenCollection:
         return _moveFilesToCollection(context, collection.id);
     }
@@ -484,22 +398,6 @@ class _AlbumVerticalListWidgetState extends State<AlbumVerticalListWidget> {
       ),
       useFadeTransition: true,
     );
-  }
-
-  Future<bool> _showShareCollectionPage(
-    BuildContext context,
-    Collection collection,
-  ) {
-    if (Configuration.instance.getUserID() == collection.owner.id) {
-      unawaited(routeToPage(context, ShareCollectionPage(collection)));
-    } else {
-      showGenericErrorDialog(
-        context: context,
-        error: Exception("Can not share collection owned by others"),
-      ).ignore();
-      _logger.severe("Cannot share collections owned by others");
-    }
-    return Future.value(true);
   }
 
   Future<bool> _addToCollection(

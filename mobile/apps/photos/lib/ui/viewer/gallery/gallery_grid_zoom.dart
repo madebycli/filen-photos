@@ -12,7 +12,6 @@ import "package:photos/models/gallery/gallery_grid_zoom_layout.dart";
 import "package:photos/models/gallery/gallery_groups.dart";
 import "package:photos/ui/viewer/actions/select_all_status_icon.dart";
 import "package:photos/ui/viewer/file/thumbnail_widget.dart";
-import "package:photos/ui/viewer/gallery/component/gallery_file_widget.dart";
 import "package:photos/ui/viewer/gallery/component/group/group_header_widget.dart";
 import "package:photos/ui/viewer/gallery/component/group/type.dart";
 import "package:photos/ui/viewer/gallery/gallery_app_bar_widget.dart";
@@ -354,11 +353,7 @@ class _GalleryGridZoomState extends State<GalleryGridZoom>
             fromOpacity: item.fromOpacity,
             toOpacity: item.toOpacity,
             fadeDuringReflow: item.fadeDuringReflow,
-            selectionColor: galleryFileSelectionColor(
-              context,
-              first.file,
-              widget.groups.currentUserID,
-            ),
+            selectionColor: Colors.white,
           ),
         );
       }

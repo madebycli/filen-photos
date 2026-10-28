@@ -9,9 +9,7 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
-import "package:photos/core/user_config.dart";
 import "package:photos/events/people_changed_event.dart";
 import "package:photos/models/ffmpeg/ffprobe_props.dart";
 import "package:photos/models/file/extensions/file_props.dart";
@@ -25,14 +23,12 @@ import "package:photos/module/metadata/video.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/file_magic_service.dart";
 import 'package:photos/ui/viewer/file/file_caption_widget.dart';
-import "package:photos/ui/viewer/file_details/added_by_widget.dart";
 import "package:photos/ui/viewer/file_details/albums_item_widget.dart";
 import "package:photos/ui/viewer/file_details/creation_time_item_widget.dart";
 import 'package:photos/ui/viewer/file_details/exif_item_widgets.dart';
 import "package:photos/ui/viewer/file_details/file_info_faces_item_widget.dart";
 import "package:photos/ui/viewer/file_details/file_properties_item_widget.dart";
 import "package:photos/ui/viewer/file_details/location_tags_widget.dart";
-import "package:photos/ui/viewer/file_details/preview_properties_item_widget.dart";
 import "package:photos/ui/viewer/file_details/video_exif_item.dart";
 
 class FileDetailsWidget extends StatefulWidget {
@@ -63,7 +59,6 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
   late final StreamSubscription<PeopleChangedEvent> _peopleChangedEvent;
 
   bool _isImage = false;
-  late int _currentUserID;
   bool showExifListTile = false;
   final ValueNotifier<Map<String, IfdTag>?> _exifNotifier = ValueNotifier(null);
   final ValueNotifier<bool> hasLocationData = ValueNotifier(false);
@@ -75,7 +70,6 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
   @override
   void initState() {
     debugPrint('file_details_sheet initState');
-    _currentUserID = Configuration.instance.getUserIDV2();
     hasLocationData.value = widget.file.hasLocation;
     _isImage =
         widget.file.fileType == FileType.image ||
@@ -150,11 +144,9 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
   @override
   Widget build(BuildContext context) {
     final file = widget.file;
-    final bool isFileOwner =
-        file.ownerID == null || file.ownerID == _currentUserID;
 
     final fileDetailsTiles = <Widget>[];
-    final bool canEditCaption = isFileOwner && !file.isTrash;
+    final bool canEditCaption = !file.isTrash;
     fileDetailsTiles.add(
       !widget.file.isUploaded ||
               (!canEditCaption && (widget.file.caption?.isEmpty ?? true))
@@ -166,21 +158,14 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
                   : FileCaptionReadyOnly(caption: widget.file.caption!),
             ),
     );
-    final hasPreview =
-        widget.file.uploadedFileID != null &&
-        fileDataService.previewIds.containsKey(widget.file.uploadedFileID);
     fileDetailsTiles.addAll([
       MenuGroupComponent(
         items: [
-          CreationTimeItem(file, _currentUserID),
+          CreationTimeItem(file),
           ValueListenableBuilder(
             valueListenable: _exifNotifier,
-            builder: (context, _, _) => FilePropertiesItemWidget(
-              file,
-              _isImage,
-              _exifData,
-              _currentUserID,
-            ),
+            builder: (context, _, _) =>
+                FilePropertiesItemWidget(file, _isImage, _exifData),
           ),
           ValueListenableBuilder(
             valueListenable: _exifNotifier,
@@ -218,7 +203,7 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
 
     if (!file.isTrash) {
       fileDetailsTiles.addAll([
-        AlbumsItemWidget(file, _currentUserID),
+        AlbumsItemWidget(file),
         const SizedBox(height: Spacing.xxl),
       ]);
     }
@@ -227,13 +212,6 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
       fileDetailsTiles.addAll([
         MenuGroupComponent(
           items: [
-            if (hasPreview)
-              PreviewPropertiesItemWidget(
-                file,
-                _isImage,
-                _exifData,
-                _currentUserID,
-              ),
             ValueListenableBuilder(
               valueListenable: _exifNotifier,
               builder: (context, _, _) =>
@@ -245,13 +223,6 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
       ]);
     } else if (file.isVideo) {
       final items = <Widget>[
-        if (hasPreview)
-          PreviewPropertiesItemWidget(
-            file,
-            _isImage,
-            _exifData,
-            _currentUserID,
-          ),
         if (flagService.internalUser && !file.isDeviceTrash)
           ValueListenableBuilder(
             valueListenable: _videoMetadataNotifier,
@@ -308,7 +279,6 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
                 ],
               ),
               const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
-              SliverToBoxAdapter(child: AddedByWidget(widget.file)),
               SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   return fileDetailsTiles[index];
@@ -323,10 +293,7 @@ class _FileDetailsWidgetState extends State<FileDetailsWidget> {
 
   // Some devices leave file location empty even when EXIF contains it.
   Future<void> _updateLocationFromExif(Location? locationDataFromExif) async {
-    if (!widget.file.isUploaded || widget.file.ownerID == null) {
-      return;
-    }
-    if (widget.file.ownerID != _currentUserID) {
+    if (!widget.file.isUploaded) {
       return;
     }
     try {

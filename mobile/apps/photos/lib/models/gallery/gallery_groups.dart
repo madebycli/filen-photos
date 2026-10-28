@@ -517,7 +517,6 @@ class GalleryGroups {
                           limitSelectionToOne: limitSelectionToOne,
                           tag: tagPrefix,
                           photoGridSize: crossAxisCount,
-                          currentUserID: currentUserID,
                         ),
                       ),
                     );
@@ -541,7 +540,6 @@ class GalleryGroups {
                         limitSelectionToOne: limitSelectionToOne,
                         tag: tagPrefix,
                         photoGridSize: crossAxisCount,
-                        currentUserID: currentUserID,
                       ),
                     ),
                   );
@@ -645,7 +643,6 @@ class GalleryGroups {
                     tag: tagPrefix,
                     photoGridSize: crossAxisCount,
                     thumbnailSize: thumbnailLargeSize,
-                    currentUserID: currentUserID,
                   ),
                 ),
               );

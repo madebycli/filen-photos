@@ -7,7 +7,6 @@ import 'package:photos/core/constants.dart';
 import 'package:photos/models/file/file_type.dart';
 import 'package:photos/models/location/location.dart';
 import "package:photos/models/metadata/file_magic.dart";
-import "package:photos/module/download/file_url.dart";
 
 //Todo: files with no location data have lat and long set to 0.0. This should ideally be null.
 class EnteFile {
@@ -192,8 +191,8 @@ class EnteFile {
     return metadata;
   }
 
-  String get downloadUrl =>
-      FileUrl.getLegacyUrl(uploadedFileID!, FileUrlType.download);
+  /// Key of the downloaded original in the local file cache.
+  String get downloadUrl => 'filen://file/$uploadedFileID';
 
   String? get caption {
     return pubMagicMetadata?.caption;

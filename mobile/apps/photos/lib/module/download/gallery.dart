@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import "package:flutter/foundation.dart";
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as file_path;
 import "package:photo_manager/photo_manager.dart";
@@ -10,13 +9,9 @@ import "package:photos/db/files_db.dart";
 import "package:photos/events/local_photos_updated_event.dart";
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/file/file_type.dart";
-import 'package:photos/models/ignored_file.dart';
-import 'package:photos/module/download/decrypt.dart';
+import "package:photos/module/download/download_error.dart";
 import "package:photos/module/download/file.dart";
-import "package:photos/module/download/manager.dart";
-import "package:photos/services/ignored_files_service.dart";
 import "package:photos/services/sync/local_sync_service.dart";
-import "package:photos/utils/apple_photos_errors.dart";
 import "package:photos/utils/device_storage_error.dart";
 import "package:photos/utils/gallery_save_title.dart";
 
@@ -70,11 +65,6 @@ Future<String?> getExistingLocalFolderNameForDownloadSkipToast(
   return null;
 }
 
-// Note: callers that tap Download repeatedly on a public-link file
-// (persistToFilesDB == false) may produce duplicate on-device copies, because
-// the in-memory EnteFile they hold is not updated with the saved localID and
-// LocalSyncService ingests the asset as a new local row rather than marking
-// the existing remote entry. Revisit if this surfaces as a user complaint.
 Future<void> downloadToGallery(
   EnteFile file, {
   bool forceResumableDownload = false,
@@ -82,8 +72,6 @@ Future<void> downloadToGallery(
 }) async {
   try {
     final FileType type = file.fileType;
-    final bool downloadLivePhotoOnDroid =
-        type == FileType.livePhoto && Platform.isAndroid;
     AssetEntity? savedAsset;
     final File? fileToSave = await getFile(
       file,
@@ -108,34 +96,9 @@ Future<void> downloadToGallery(
           fileToSave,
           title: mediaStoreTitle,
         );
-      } else if (type == FileType.livePhoto) {
-        final File? liveVideoFile = await getFileFromServer(
-          file,
-          liveVideo: true,
-          forGalleryDownload: forceResumableDownload,
-        );
-        if (liveVideoFile == null) {
-          throw AssertionError("Live video can not be null");
-        }
-        if (downloadLivePhotoOnDroid) {
-          await _saveLivePhotoOnDroid(
-            fileToSave,
-            liveVideoFile,
-            mediaStoreTitle,
-          );
-        } else {
-          savedAsset = await PhotoManager.editor.darwin.saveLivePhoto(
-            imageFile: fileToSave,
-            videoFile: liveVideoFile,
-            title: galleryTitle,
-          );
-        }
       }
 
       if (savedAsset != null) {
-        // Public-link downloads should be discovered by local sync so they are
-        // materialized as true on-device files instead of remote/shared
-        // entries in FilesDB.
         if (persistToFilesDB) {
           file.localID = savedAsset!.id;
           await FilesDB.instance.insert(file);
@@ -143,8 +106,8 @@ Future<void> downloadToGallery(
             LocalPhotosUpdatedEvent([file], source: "download"),
           );
         }
-      } else if (!downloadLivePhotoOnDroid && savedAsset == null) {
-        _logger.severe('Failed to save assert of type $type');
+      } else {
+        _logger.severe('Failed to save asset of type $type');
       }
     });
   } catch (e, s) {
@@ -152,52 +115,10 @@ Future<void> downloadToGallery(
       _logger.severe("Failed to save file due to storage limit", e, s);
       throw const DeviceStorageFullException();
     }
-    if (isPHPhotosUnsupportedResourceError(e)) {
-      _logger.warning(
-        "Failed to save file because Apple Photos rejected the resource",
-        e,
-        s,
-      );
-      throw DownloadFailedError(
-        DownloadManager.applePhotosUnsupportedResourceError,
-      );
-    }
     _logger.severe("Failed to save file", e, s);
     rethrow;
   } finally {
     await PhotoManager.startChangeNotify();
     LocalSyncService.instance.checkAndSync().ignore();
   }
-}
-
-Future<void> _saveLivePhotoOnDroid(
-  File image,
-  File video,
-  String imageTitle,
-) async {
-  debugPrint("Downloading LivePhoto on Droid");
-  var savedAsset = await PhotoManager.editor.saveImageWithPath(
-    image.path,
-    title: imageTitle,
-  );
-  IgnoredFile ignoreVideoFile = IgnoredFile(
-    savedAsset.id,
-    savedAsset.title ?? '',
-    savedAsset.relativePath ?? 'remoteDownload',
-    "remoteDownload",
-  );
-  await IgnoredFilesService.instance.cacheAndInsert([ignoreVideoFile]);
-  final videoTitle = await getMediaStoreCompatibleTitle(
-    file_path.basenameWithoutExtension(imageTitle) +
-        file_path.extension(video.path),
-  );
-  savedAsset = await PhotoManager.editor.saveVideo(video, title: videoTitle);
-
-  ignoreVideoFile = IgnoredFile(
-    savedAsset.id,
-    savedAsset.title ?? videoTitle,
-    savedAsset.relativePath ?? 'remoteDownload',
-    "remoteDownload",
-  );
-  await IgnoredFilesService.instance.cacheAndInsert([ignoreVideoFile]);
 }

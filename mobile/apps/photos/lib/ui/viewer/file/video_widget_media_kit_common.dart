@@ -21,7 +21,6 @@ class VideoWidget extends StatefulWidget {
   final TransformationController? transformationController;
   final ValueChanged<bool>? onInteractionLockChanged;
   final bool isFromMemories;
-  final bool isPreviewPlayer;
   final ValueNotifier<double> playbackSpeed;
 
   const VideoWidget(
@@ -32,7 +31,6 @@ class VideoWidget extends StatefulWidget {
     this.transformationController,
     this.onInteractionLockChanged,
     required this.isFromMemories,
-    required this.isPreviewPlayer,
     required this.playbackSpeed,
   });
 
@@ -100,17 +98,6 @@ class _VideoWidgetState extends State<VideoWidget> {
     _seekController.removeListener(_onSeekInteractionChanged);
     _seekController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant VideoWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isPreviewPlayer != widget.isPreviewPlayer) {
-      _seekController.reset(
-        position: widget.controller.player.state.position,
-        duration: widget.controller.player.state.duration,
-      );
-    }
   }
 
   void _onPlaybackSpeedChanged() {

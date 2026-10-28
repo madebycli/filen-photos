@@ -15,10 +15,7 @@ import "package:photos/theme/ente_theme.dart";
 import 'package:photos/ui/components/buttons/button_widget.dart';
 import 'package:photos/ui/components/dialog_widget.dart';
 import 'package:photos/ui/components/models/button_type.dart';
-import "package:photos/ui/settings/developer_settings_tap_area.dart";
-import "package:photos/ui/settings/developer_settings_widget.dart";
 import "package:rive/rive.dart" as rive;
-import 'package:url_launcher/url_launcher_string.dart';
 
 class LandingPageWidget extends StatefulWidget {
   const LandingPageWidget({required this.onStartWithoutAccount, super.key});
@@ -60,87 +57,100 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
           return Scaffold(
             backgroundColor: colorScheme.greenBase,
             body: SafeArea(
-              child: DeveloperSettingsTapArea(
-                onSettingsChanged: () {
-                  setState(() {});
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (kDebugMode) _buildDebugLanguageButton(),
-
-                                    _buildOnboardingAnimation(),
-
-                                    const Text(
-                                      // Filen fork: branding is Filen's, the strings below are not localized yet.
-                                      "Filen Photos",
-                                      textAlign: TextAlign.center,
-                                      textScaler: TextScaler.noScaling,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontFamily: TextStyles.outfitFontFamily,
-                                        package: TextStyles.fontPackage,
-                                        fontSize: 28,
-                                        height: 30 / 28,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 24),
-
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 32,
-                                      ),
-                                      child: Text(
-                                        "Your photos and videos, end-to-end encrypted in your Filen drive.",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyles.body.copyWith(
-                                          color: colorScheme.greenLight,
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 32),
-                                  ],
-                                ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
                               ),
-                            );
-                          },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (kDebugMode) _buildDebugLanguageButton(),
+
+                                  _buildOnboardingAnimation(),
+
+                                  const Text(
+                                    // Filen fork: branding is Filen's, the strings below are not localized yet.
+                                    "Filen Photos",
+                                    textAlign: TextAlign.center,
+                                    textScaler: TextScaler.noScaling,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontFamily: TextStyles.outfitFontFamily,
+                                      package: TextStyles.fontPackage,
+                                      fontSize: 28,
+                                      height: 30 / 28,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 24),
+
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                    ),
+                                    child: Text(
+                                      "Your photos and videos, end-to-end encrypted in your Filen drive.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyles.body.copyWith(
+                                        color: colorScheme.greenLight,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 32),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: _navigateToSignInPage,
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            minimumSize: const Size.fromHeight(48),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            "Log in to Filen",
+                            style: TextStyles.body.copyWith(
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ButtonComponent(
-                          variant: ButtonComponentVariant.neutral,
-                          density: ButtonComponentDensity.compact,
-                          label: context.strings.createMyAccount,
-                          onTap: _navigateToSignUpPage,
-                          shouldSurfaceExecutionStates: false,
-                        ),
-                      ),
+                    ),
+                    if (localSettings.showLocalGalleryModeOption) ...[
                       const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: SizedBox(
                           width: double.infinity,
                           child: TextButton(
-                            onPressed: _navigateToSignInPage,
+                            onPressed: _navigateWithoutAccount,
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
+                              foregroundColor: Colors.white,
                               minimumSize: const Size.fromHeight(48),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -151,47 +161,17 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
                               ),
                             ),
                             child: Text(
-                              context.strings.logInLabel,
-                              style: TextStyles.body.copyWith(
-                                color: Colors.black,
+                              context.strings.continueWithoutAccount,
+                              style: TextStyles.bodyLink.copyWith(
+                                color: Colors.white,
+                                decorationColor: Colors.white,
                               ),
                             ),
                           ),
                         ),
                       ),
-                      if (localSettings.showLocalGalleryModeOption) ...[
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: TextButton(
-                              onPressed: _navigateWithoutAccount,
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(48),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                context.strings.continueWithoutAccount,
-                                style: TextStyles.bodyLink.copyWith(
-                                  color: Colors.white,
-                                  decorationColor: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                      const DeveloperSettingsWidget(),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -255,18 +235,8 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
     widget.onStartWithoutAccount();
   }
 
-  // Filen fork: accounts live at Filen. Registration happens on Filen's website and the
-  // in-app sign-in talks to Filen only.
-  Future<void> _navigateToSignUpPage() async {
-    updateService.hideChangeLog().ignore();
-    await launchUrlString(
-      "https://app.filen.io/#/register",
-      mode: LaunchMode.externalApplication,
-    );
-  }
-
+  // Filen fork: the only login is Filen's.
   void _navigateToSignInPage() {
-    updateService.hideChangeLog().ignore();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) => const FilenLoginPage(),

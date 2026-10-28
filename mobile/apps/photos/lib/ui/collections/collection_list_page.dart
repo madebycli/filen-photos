@@ -4,13 +4,11 @@ import "package:ente_components/ente_components.dart";
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
 import "package:hugeicons/hugeicons.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/album_sort_order_change_event.dart";
 import "package:photos/events/collection_meta_event.dart";
 import "package:photos/events/collection_updated_event.dart";
 import 'package:photos/models/collection/collection.dart';
-import 'package:photos/models/collection/collection_items.dart';
 import "package:photos/models/selected_albums.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/collections_service.dart";
@@ -19,13 +17,7 @@ import "package:photos/ui/collections/flex_grid_view.dart";
 import "package:photos/ui/components/searchable_appbar.dart";
 import "package:photos/ui/viewer/actions/album_selection_overlay_bar.dart";
 
-enum UISectionType {
-  incomingCollections,
-  outgoingCollections,
-  homeCollections,
-  archivedCollections,
-  hiddenCollections,
-}
+enum UISectionType { homeCollections, archivedCollections, hiddenCollections }
 
 enum _CollectionListMenuAction { toggleView, name, newest, updated }
 
@@ -71,9 +63,7 @@ class _CollectionListPageState extends State<CollectionListPage> {
         .on<CollectionMetaEvent>()
         .where((event) => event.type == CollectionMetaEventType.orderChanged)
         .listen((_) {
-          if (widget.sectionType == UISectionType.archivedCollections ||
-              widget.sectionType == UISectionType.incomingCollections ||
-              widget.sectionType == UISectionType.outgoingCollections) {
+          if (widget.sectionType == UISectionType.archivedCollections) {
             unawaited(refreshCollections());
           }
         });
@@ -101,12 +91,6 @@ class _CollectionListPageState extends State<CollectionListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool enableSelectionMode =
-        widget.sectionType == UISectionType.homeCollections ||
-        widget.sectionType == UISectionType.outgoingCollections ||
-        widget.sectionType == UISectionType.incomingCollections ||
-        widget.sectionType == UISectionType.archivedCollections ||
-        widget.sectionType == UISectionType.hiddenCollections;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -140,7 +124,7 @@ class _CollectionListPageState extends State<CollectionListPage> {
                   CollectionsFlexiGridViewWidget(
                     collections,
                     tag: widget.tag,
-                    enableSelectionMode: enableSelectionMode,
+                    enableSelectionMode: true,
                     albumViewType: albumViewType ?? AlbumViewType.grid,
                     selectedAlbums: _selectedAlbum,
                     sectionType: widget.sectionType,
@@ -274,19 +258,9 @@ class _CollectionListPageState extends State<CollectionListPage> {
   }
 
   Future<void> refreshCollections() async {
-    if (widget.sectionType == UISectionType.incomingCollections ||
-        widget.sectionType == UISectionType.outgoingCollections) {
-      final SharedCollections sharedCollections = await CollectionsService
-          .instance
-          .getSharedCollections();
-      if (widget.sectionType == UISectionType.incomingCollections) {
-        collections = sharedCollections.incoming;
-      } else {
-        collections = sharedCollections.outgoing;
-      }
-    } else if (widget.sectionType == UISectionType.homeCollections) {
+    if (widget.sectionType == UISectionType.homeCollections) {
       collections = await CollectionsService.instance
-          .getCollectionForOnEnteSection();
+          .getCollectionsForAlbumsTab();
     } else if (widget.sectionType == UISectionType.archivedCollections) {
       collections = await CollectionsService.instance.getArchivedCollection();
     } else if (widget.sectionType == UISectionType.hiddenCollections) {
@@ -314,14 +288,9 @@ class _CollectionListPageState extends State<CollectionListPage> {
       if (!mounted || !identical(collections, collectionsToOrder)) {
         return;
       }
-      final userID = Configuration.instance.getUserID();
-      bool isPinnedForCurrentUser(Collection collection) =>
-          userID != null && !collection.isOwner(userID)
-          ? collection.hasShareePinned()
-          : collection.isPinned;
       collections = [
-        ...sortedCollections.where(isPinnedForCurrentUser),
-        ...sortedCollections.where((c) => !isPinnedForCurrentUser(c)),
+        ...sortedCollections.where((c) => c.isPinned),
+        ...sortedCollections.where((c) => !c.isPinned),
       ];
     } else if (widget.sectionType == UISectionType.hiddenCollections) {
       await CollectionsService.instance.sortCollectionsByAlbumPreferences(

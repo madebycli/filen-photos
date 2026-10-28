@@ -34,7 +34,6 @@ import "package:photos/services/machine_learning/ml_result.dart";
 import "package:photos/services/machine_learning/ml_run_control.dart";
 import "package:photos/services/machine_learning/semantic_search/semantic_search_service.dart";
 import "package:photos/services/search_service.dart";
-import "package:photos/services/video_preview_service.dart";
 import "package:photos/utils/isolate/isolate_operations.dart";
 import "package:photos/utils/ml_util.dart";
 import "package:photos/utils/network_util.dart";
@@ -107,9 +106,6 @@ class MLService {
 
     Bus.instance.on<ComputeControlEvent>().listen((event) {
       if (!hasGrantedMLConsent) {
-        if (!isProcessBg && event.shouldRun) {
-          VideoPreviewService.instance.queueFiles(duration: Duration.zero);
-        }
         return;
       }
 
@@ -529,9 +525,6 @@ class MLService {
       return MlRunDisposition.completed;
     } finally {
       _logger.info("ML finished running");
-      if (!isProcessBg) {
-        VideoPreviewService.instance.queueFiles();
-      }
     }
   }
 

@@ -957,11 +957,7 @@ class _AlbumThumbnail extends StatelessWidget {
           future: CollectionsService.instance.getCover(album!),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
-              return ThumbnailWidget(
-                snapshot.data!,
-                showFavForAlbumOnly: true,
-                shouldShowOwnerAvatar: false,
-              );
+              return ThumbnailWidget(snapshot.data!, showFavForAlbumOnly: true);
             }
             return Container(
               width: 60,

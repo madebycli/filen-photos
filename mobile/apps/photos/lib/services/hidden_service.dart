@@ -1,7 +1,5 @@
 import "dart:async";
-import 'dart:convert';
 
-import 'package:ente_crypto/ente_crypto.dart';
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -11,9 +9,6 @@ import 'package:photos/core/event_bus.dart';
 import "package:photos/db/files_db.dart";
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
-import 'package:photos/gateways/collections/models/create_request.dart';
-import "package:photos/gateways/collections/models/metadata.dart";
-import 'package:photos/models/collection/action.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/metadata/collection_magic.dart";
@@ -126,81 +121,6 @@ extension HiddenService on CollectionsService {
     return defaultHidden;
   }
 
-  Future<void> movePendingRemovalActionsToUncategorized() async {
-    try {
-      final pendingActions = await fetchPendingRemovalActions();
-      if (pendingActions.isEmpty) {
-        return;
-      }
-
-      final Map<int, Set<int>> collectionToFileIDs = {};
-      for (final CollectionAction action in pendingActions) {
-        final int? fileID = action.fileID;
-        if (fileID == null) {
-          continue;
-        }
-        collectionToFileIDs
-            .putIfAbsent(action.collectionID, () => <int>{})
-            .add(fileID);
-      }
-
-      if (collectionToFileIDs.isEmpty) {
-        return;
-      }
-
-      final List<int> uploadedFileIDs = collectionToFileIDs.values
-          .expand((ids) => ids)
-          .toSet()
-          .toList();
-      final Map<int, List<EnteFile>> localFilesByCollection = await filesDB
-          .getAllFilesGroupByCollectionID(uploadedFileIDs);
-      final Collection uncategorizedCollection =
-          await getUncategorizedCollection();
-
-      for (final MapEntry<int, Set<int>> entry in collectionToFileIDs.entries) {
-        final int collectionID = entry.key;
-        final Set<int> pendingFileIDs = entry.value;
-        final List<EnteFile> localFiles =
-            localFilesByCollection[collectionID] ?? <EnteFile>[];
-        final List<EnteFile> filesToMove = localFiles
-            .where(
-              (file) =>
-                  file.uploadedFileID != null &&
-                  pendingFileIDs.contains(file.uploadedFileID),
-            )
-            .toList();
-        if (filesToMove.isEmpty) {
-          continue;
-        }
-
-        // Files removed from hidden collections stay hidden; others move to
-        // Uncategorized.
-        final Collection? sourceCollection = getCollectionByID(collectionID);
-        final bool isSourceHidden = sourceCollection?.isHidden() ?? false;
-        final int destinationCollectionID;
-        if (isSourceHidden) {
-          final Collection defaultHiddenCollection =
-              await getDefaultHiddenCollection();
-          destinationCollectionID = defaultHiddenCollection.id;
-        } else {
-          destinationCollectionID = uncategorizedCollection.id;
-        }
-
-        await move(
-          filesToMove,
-          toCollectionID: destinationCollectionID,
-          fromCollectionID: collectionID,
-        );
-      }
-    } catch (error, stackTrace) {
-      _logger.warning(
-        "Failed to process pending collection removal actions",
-        error,
-        stackTrace,
-      );
-    }
-  }
-
   Future<bool> hideFiles(
     BuildContext context,
     List<EnteFile> filesToHide, {
@@ -270,76 +190,29 @@ extension HiddenService on CollectionsService {
   }
 
   Future<Collection> createHiddenAlbum(String name) async {
-    final CreateRequest createRequest = await buildCollectionCreateRequest(
-      name,
-      visibility: hiddenVisibility,
-      subType: 0,
-    );
     _logger.info("Creating Hidden Collection");
-    final collection = await createAndCacheCollection(createRequest);
-    _logger.info("Creating Hidden Collection Created Successfully");
-    final Collection collectionFromServer = await fetchCollectionByID(
-      collection.id,
+    final collection = await createCollection(
+      name: name,
+      magicMetadata: CollectionMagicMetadata(
+        visibility: hiddenVisibility,
+        subType: 0,
+      ).toJson(),
     );
-    _logger.info("Fetched Created Hidden Collection Successfully");
-    return collectionFromServer;
+    _logger.info("Hidden Collection created");
+    return collection;
   }
 
   Future<Collection> _createDefaultHiddenAlbum() async {
-    final CreateRequest createRequest = await buildCollectionCreateRequest(
-      ".Hidden",
-      visibility: hiddenVisibility,
-      subType: subTypeDefaultHidden,
-    );
     _logger.info("Creating Default Hidden Collection");
-    final collection = await createAndCacheCollection(createRequest);
-    _logger.info("Default Hidden Collection Created Successfully");
-    final Collection collectionFromServer = await fetchCollectionByID(
-      collection.id,
+    final collection = await createCollection(
+      name: ".Hidden",
+      magicMetadata: CollectionMagicMetadata(
+        visibility: hiddenVisibility,
+        subType: subTypeDefaultHidden,
+      ).toJson(),
     );
-    _logger.info("Fetched Created Default Hidden Collection Successfully");
-    return collectionFromServer;
-  }
-
-  Future<CreateRequest> buildCollectionCreateRequest(
-    String name, {
-    required int visibility,
-    required int subType,
-  }) async {
-    final collectionKey = CryptoUtil.generateKey();
-    final encryptedKeyData = CryptoUtil.encryptSync(
-      collectionKey,
-      config.getKey()!,
-    );
-    final encryptedName = CryptoUtil.encryptSync(
-      utf8.encode(name),
-      collectionKey,
-    );
-    final jsonToUpdate = CollectionMagicMetadata(
-      visibility: visibility,
-      subType: subType,
-    ).toJson();
-    assert(jsonToUpdate.length == 2, "metadata should have two keys");
-    final encryptedMMd = await CryptoUtil.encryptChaCha(
-      utf8.encode(jsonEncode(jsonToUpdate)),
-      collectionKey,
-    );
-    final MetadataRequest metadataRequest = MetadataRequest(
-      version: 1,
-      count: jsonToUpdate.length,
-      data: CryptoUtil.bin2base64(encryptedMMd.encryptedData!),
-      header: CryptoUtil.bin2base64(encryptedMMd.header!),
-    );
-    final CreateRequest createRequest = CreateRequest(
-      encryptedKey: CryptoUtil.bin2base64(encryptedKeyData.encryptedData!),
-      keyDecryptionNonce: CryptoUtil.bin2base64(encryptedKeyData.nonce!),
-      encryptedName: CryptoUtil.bin2base64(encryptedName.encryptedData!),
-      nameDecryptionNonce: CryptoUtil.bin2base64(encryptedName.nonce!),
-      type: CollectionType.album,
-      attributes: CollectionAttributes(),
-      magicMetadata: metadataRequest,
-    );
-    return createRequest;
+    _logger.info("Default Hidden Collection created");
+    return collection;
   }
 
   Future<bool> hasHiddenFilesOnDevice() async {

@@ -60,35 +60,6 @@ class BackupSettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _BackupOnlyNewPhotosToggle(debouncer: _onlyNewToggleDebouncer),
-        if (flagService.enableMobMultiPart) ...[
-          const SizedBox(height: 8),
-          _toggleItem(
-            context,
-            title: l10n.resumableUploads,
-            value: () => localSettings.userEnabledMultiplePart,
-            onChanged: () async {
-              await localSettings.setUserEnabledMultiplePart(
-                !localSettings.userEnabledMultiplePart,
-              );
-            },
-          ),
-        ],
-        if (endpointConfig.isProduction) ...[
-          const SizedBox(height: 8),
-          _toggleItem(
-            context,
-            title: l10n.fasterUploads,
-            value: () =>
-                localSettings.cfUploadProxyEnabled ??
-                flagService.cloudflareUploadWorker,
-            onChanged: () async {
-              final newValue =
-                  !(localSettings.cfUploadProxyEnabled ??
-                      flagService.cloudflareUploadWorker);
-              await localSettings.setCFUploadProxyEnabled(newValue);
-            },
-          ),
-        ],
         if (Platform.isIOS) ...[
           const SizedBox(height: 24),
           SettingsItem(

@@ -4,6 +4,7 @@ import "package:connectivity_plus/connectivity_plus.dart";
 import "package:logging/logging.dart";
 import "package:path/path.dart" as p;
 import "package:path_provider/path_provider.dart";
+import "package:photos/filen/filen_assets.dart";
 import "package:photos/service_locator.dart"
     show flagService, hasGrantedMLConsent, isLocalGalleryMode, localSettings;
 import "package:photos/services/machine_learning/ml_exceptions.dart";
@@ -110,6 +111,13 @@ class MLModelDownloadService {
             : "Downloading all ML models",
       );
       try {
+        // Fetch the files ourselves first; the native downloader then finds them in place.
+        await FilenAssets.seedModels(
+          indexing: downloadIndexing,
+          text: downloadText,
+          onProgress: (name, received, total) =>
+              _progressController.add((name, received, total)),
+        );
         await for (final update in rust_ml.preloadMlModels(
           assetsDir: await getAssetsDirectory(),
           runFaces: downloadIndexing,

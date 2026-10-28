@@ -44,7 +44,6 @@ String? detailPageFileIdentifier(EnteFile file) {
 
 class InheritedDetailPageState extends InheritedWidget {
   final ValueNotifier<bool> enableFullScreenNotifier;
-  final ValueNotifier<bool> isInSharedCollectionNotifier;
   final ValueNotifier<String?> showingThumbnailFallbackNotifier;
   final ValueNotifier<bool> isZoomedNotifier;
   final ValueNotifier<ZoomTransform> zoomTransformNotifier;
@@ -55,7 +54,6 @@ class InheritedDetailPageState extends InheritedWidget {
     super.key,
     required super.child,
     required this.enableFullScreenNotifier,
-    required this.isInSharedCollectionNotifier,
     required this.showingThumbnailFallbackNotifier,
     required this.isZoomedNotifier,
     required this.zoomTransformNotifier,
@@ -105,7 +103,6 @@ class InheritedDetailPageState extends InheritedWidget {
   @override
   bool updateShouldNotify(InheritedDetailPageState oldWidget) =>
       oldWidget.enableFullScreenNotifier != enableFullScreenNotifier ||
-      oldWidget.isInSharedCollectionNotifier != isInSharedCollectionNotifier ||
       oldWidget.showingThumbnailFallbackNotifier !=
           showingThumbnailFallbackNotifier ||
       oldWidget.isZoomedNotifier != isZoomedNotifier ||

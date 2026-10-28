@@ -7,7 +7,6 @@ import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import 'package:logging/logging.dart';
 import "package:path_provider/path_provider.dart";
-import "package:photos/core/configuration.dart";
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/data/holidays.dart';
 import 'package:photos/data/months.dart';
@@ -17,8 +16,6 @@ import 'package:photos/db/files_db.dart';
 import "package:photos/db/ml/db.dart";
 import "package:photos/db/offline_files_db.dart";
 import 'package:photos/events/local_photos_updated_event.dart';
-import "package:photos/extensions/user_extension.dart";
-import "package:photos/models/api/collection/user.dart";
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/collection/collection_items.dart';
 import 'package:photos/models/device_collection.dart';
@@ -35,28 +32,22 @@ import 'package:photos/models/search/album_search_result.dart';
 import 'package:photos/models/search/device_album_search_result.dart';
 import 'package:photos/models/search/generic_search_result.dart';
 import "package:photos/models/search/hierarchical/camera_filter.dart";
-import "package:photos/models/search/hierarchical/contacts_filter.dart";
 import "package:photos/models/search/hierarchical/face_filter.dart";
 import "package:photos/models/search/hierarchical/file_type_filter.dart";
 import "package:photos/models/search/hierarchical/hierarchical_search_filter.dart";
 import "package:photos/models/search/hierarchical/location_filter.dart";
 import "package:photos/models/search/hierarchical/magic_filter.dart";
 import "package:photos/models/search/hierarchical/top_level_generic_filter.dart";
-import "package:photos/models/search/hierarchical/uploader_filter.dart";
 import "package:photos/models/search/search_constants.dart";
 import "package:photos/models/search/search_types.dart";
 import "package:photos/service_locator.dart";
-import "package:photos/services/account/user_service.dart";
 import 'package:photos/services/collections_service.dart';
-import "package:photos/services/contacts/contact_identity_resolver.dart";
-import "package:photos/services/contacts/direct_contact_users.dart";
 import "package:photos/services/date_parse_service.dart";
 import "package:photos/services/filter/db_filters.dart";
 import "package:photos/services/location_service.dart";
 import "package:photos/services/machine_learning/face_ml/person/person_service.dart";
 import 'package:photos/services/machine_learning/semantic_search/semantic_search_service.dart';
 import "package:photos/services/memories_cache_service.dart";
-import "package:photos/services/photos_contacts_service.dart";
 import "package:photos/states/location_screen_state.dart";
 import "package:photos/ui/viewer/location/location_screen.dart";
 import "package:photos/ui/viewer/people/cluster_page.dart";
@@ -106,177 +97,6 @@ class SearchService {
 
   Set<int> ignoreCollections() {
     return CollectionsService.instance.getHiddenCollectionIds();
-  }
-
-  Map<String, dynamic> _contactSearchParams(
-    User user,
-    List<Collection> collections,
-  ) {
-    final contactUserId = user.id;
-    if (contactUserId <= 0) {
-      throw ArgumentError.value(
-        contactUserId,
-        "user.id",
-        "Contact search results require a positive user ID",
-      );
-    }
-    final params = <String, dynamic>{
-      kPersonParamID: user.linkedPersonID,
-      kContactUserId: contactUserId,
-      kContactEmail: resolveKnownEmail(user) ?? user.email,
-      kContactCollections: collections,
-    };
-    return params;
-  }
-
-  Future<void> _warmContactsCacheIfNeeded() async {
-    if (!PhotosContactsService.instance.needsWarmup) {
-      return;
-    }
-    try {
-      await PhotosContactsService.instance.ensureReady();
-    } catch (e, s) {
-      _logger.warning(
-        "Failed to preload contacts cache; continuing without saved contacts",
-        e,
-        s,
-      );
-    }
-  }
-
-  Map<User, List<EnteFile>> _directContactsWithSharedFiles(
-    List<EnteFile> allFiles, {
-    String? lowerCaseQuery,
-  }) {
-    final ownerUserId = Configuration.instance.getUserID()!;
-    final userDetails = UserService.instance.getCachedUserDetails();
-    final directContacts =
-        buildDirectContactUsers(
-          ownerUserId: ownerUserId,
-          ownerEmail: Configuration.instance.getEmail()!,
-          collections: _collectionService.getActiveCollections(),
-          familyMembers: userDetails?.familyData?.members ?? const [],
-          savedContacts: PhotosContactsService.instance.getCachedContacts(),
-        ).where(
-          (user) =>
-              lowerCaseQuery == null ||
-              matchesResolvedContactQuery(user, lowerCaseQuery),
-        );
-
-    final contactsToFiles = <User, List<EnteFile>>{};
-    final contactsByUserId = <int, User>{};
-    for (final contact in directContacts) {
-      contactsToFiles[contact] = [];
-      contactsByUserId[contact.id] = contact;
-    }
-
-    for (final file in allFiles) {
-      if (file.isOwner) {
-        continue;
-      }
-      final contact = contactsByUserId[file.ownerID];
-      if (contact != null) {
-        contactsToFiles[contact]!.add(file);
-      }
-    }
-
-    return contactsToFiles;
-  }
-
-  Map<int, List<Collection>> _incomingContactCollectionsByUserId(
-    int ownerID, {
-    required bool excludeArchived,
-  }) {
-    final collectionsByUserId = <int, List<Collection>>{};
-    final collections = _collectionService.getCollectionsForUI(
-      includedShared: true,
-      includeCollab: true,
-    );
-    for (final collection in collections) {
-      if (collection.isHidden() ||
-          (excludeArchived && collection.isArchived()) ||
-          collection.isOwner(ownerID)) {
-        continue;
-      }
-      final contactUserId = collection.owner.id;
-      if (contactUserId > 0) {
-        collectionsByUserId
-            .putIfAbsent(contactUserId, () => [])
-            .add(collection);
-      }
-    }
-    return collectionsByUserId;
-  }
-
-  List<GenericSearchResult> _toContactSearchResults(
-    Iterable<MapEntry<User, List<EnteFile>>> entries,
-    Map<int, List<Collection>> collectionsByUserId,
-  ) {
-    return entries.map((entry) {
-      final user = entry.key;
-      final files = entry.value;
-      return GenericSearchResult(
-        ResultType.shared,
-        resolveDisplayName(user),
-        files,
-        hierarchicalSearchFilter: ContactsFilter(
-          user: user,
-          occurrence: kMostRelevantFilter,
-          matchedUploadedIDs: filesToUploadedFileIDs(files),
-        ),
-        params: _contactSearchParams(
-          user,
-          collectionsByUserId[user.id] ?? const [],
-        ),
-      );
-    }).toList();
-  }
-
-  Future<GenericSearchResult?> buildContactSearchResultForUser(
-    User user,
-  ) async {
-    final userId = user.id;
-    if (userId <= 0) {
-      return null;
-    }
-
-    await _warmContactsCacheIfNeeded();
-
-    final allFiles = await getAllFilesForSearch();
-    final files = allFiles.where((file) => file.ownerID == userId).toList();
-    final collections = _collectionService
-        .getCollectionsForUI(includedShared: true, includeCollab: true)
-        .where((collection) => _isVisibleSharedCollectionForContact(collection))
-        .where((collection) => _isSameContactUser(collection.owner, user))
-        .toList();
-
-    return GenericSearchResult(
-      ResultType.shared,
-      resolveDisplayName(user),
-      files,
-      hierarchicalSearchFilter: ContactsFilter(
-        user: user,
-        occurrence: kMostRelevantFilter,
-        matchedUploadedIDs: filesToUploadedFileIDs(files),
-      ),
-      params: _contactSearchParams(user, collections),
-    );
-  }
-
-  bool _isVisibleSharedCollectionForContact(Collection collection) {
-    final ownerID = Configuration.instance.getUserID();
-    return !collection.isHidden() &&
-        ownerID != null &&
-        !collection.isOwner(ownerID);
-  }
-
-  bool _isSameContactUser(User source, User target) {
-    final sourceId = source.id;
-    final targetId = target.id;
-    if (sourceId > 0 && targetId > 0) {
-      return sourceId == targetId;
-    }
-    return source.email == target.email;
   }
 
   Future<List<EnteFile>> getAllFilesForSearch() async {
@@ -485,20 +305,6 @@ class SearchService {
       _cachedFilesForOfflineGallery = filteredFiles;
       return _cachedFilesForOfflineGallery!;
     }
-  }
-
-  Future<List<EnteFile>> getAllFilesForContactPhotoPicker() async {
-    final files = await getAllFilesForSearch();
-    final archivedCollectionIds =
-        (await _collectionService.getArchivedCollection())
-            .map((collection) => collection.id)
-            .toSet();
-    if (archivedCollectionIds.isEmpty) {
-      return files;
-    }
-    return files
-        .where((file) => !archivedCollectionIds.contains(file.collectionID))
-        .toList();
   }
 
   Future<List<EnteFile>> getHiddenFiles() async {
@@ -868,7 +674,6 @@ class SearchService {
     final List<EnteFile> allFiles = await getAllFilesForSearch();
     final List<EnteFile> captionMatch = <EnteFile>[];
     final List<EnteFile> displayNameMatch = <EnteFile>[];
-    final Map<String, List<EnteFile>> uploaderToFile = {};
     final Map<String, List<EnteFile>> cameraMakeToFiles = {};
     final Map<String, List<EnteFile>> cameraModelToFiles = {};
     for (EnteFile eachFile in allFiles) {
@@ -877,13 +682,6 @@ class SearchService {
       }
       if (pattern.hasMatch(eachFile.displayName)) {
         displayNameMatch.add(eachFile);
-      }
-      if (eachFile.uploaderName != null &&
-          pattern.hasMatch(eachFile.uploaderName!)) {
-        if (!uploaderToFile.containsKey(eachFile.uploaderName!)) {
-          uploaderToFile[eachFile.uploaderName!] = [];
-        }
-        uploaderToFile[eachFile.uploaderName!]!.add(eachFile);
       }
       final cameraMake = eachFile.cameraMake;
       if (cameraMake != null && pattern.hasMatch(cameraMake)) {
@@ -924,22 +722,6 @@ class SearchService {
           ),
         ),
       );
-    }
-    if (uploaderToFile.isNotEmpty) {
-      for (MapEntry<String, List<EnteFile>> entry in uploaderToFile.entries) {
-        searchResults.add(
-          GenericSearchResult(
-            ResultType.uploader,
-            entry.key,
-            entry.value,
-            hierarchicalSearchFilter: UploaderFilter(
-              uploaderName: entry.key,
-              occurrence: kMostRelevantFilter,
-              matchedUploadedIDs: filesToUploadedFileIDs(entry.value),
-            ),
-          ),
-        );
-      }
     }
     if (cameraMakeToFiles.isNotEmpty) {
       for (final entry in cameraMakeToFiles.entries) {
@@ -1955,68 +1737,6 @@ class SearchService {
       );
     }
     return searchResults;
-  }
-
-  Future<List<GenericSearchResult>> getContactSearchResults(
-    String query,
-  ) async {
-    if (isLocalGalleryMode) {
-      return <GenericSearchResult>[];
-    }
-    await _warmContactsCacheIfNeeded();
-    final int ownerID = Configuration.instance.getUserID()!;
-    final lowerCaseQuery = query.toLowerCase();
-    final allFiles = await getAllFilesForSearch();
-    final peopleToSharedFiles = _directContactsWithSharedFiles(
-      allFiles,
-      lowerCaseQuery: lowerCaseQuery,
-    );
-    final peopleToSharedAlbums = _incomingContactCollectionsByUserId(
-      ownerID,
-      excludeArchived: false,
-    );
-    return _toContactSearchResults(
-      peopleToSharedFiles.entries,
-      peopleToSharedAlbums,
-    );
-  }
-
-  Future<List<GenericSearchResult>> getAllContactsSearchResults(
-    int? limit,
-  ) async {
-    try {
-      await _warmContactsCacheIfNeeded();
-      final int ownerID = Configuration.instance.getUserID()!;
-      final allFiles = await getAllFilesForSearch();
-      final peopleToSharedFiles = _directContactsWithSharedFiles(allFiles);
-      final peopleToSharedAlbums = _incomingContactCollectionsByUserId(
-        ownerID,
-        excludeArchived: true,
-      );
-
-      final sortedEntries = peopleToSharedFiles.entries.toList();
-      sortedEntries.sort((a, b) {
-        final countComparison = b.value.length.compareTo(a.value.length);
-        if (countComparison != 0) {
-          return countComparison;
-        }
-
-        final aName =
-            a.key.displayName?.toLowerCase() ?? a.key.email.toLowerCase();
-        final bName =
-            b.key.displayName?.toLowerCase() ?? b.key.email.toLowerCase();
-        return aName.compareTo(bName);
-      });
-
-      final limitedEntries = limit == null
-          ? sortedEntries
-          : sortedEntries.take(limit).toList();
-
-      return _toContactSearchResults(limitedEntries, peopleToSharedAlbums);
-    } catch (e) {
-      _logger.severe("Error in getAllContactSearchResults", e);
-      return [];
-    }
   }
 
   List<MonthData> _getMatchingMonths(BuildContext context, String query) {

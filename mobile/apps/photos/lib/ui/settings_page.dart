@@ -1,33 +1,23 @@
 import "package:ente_components/ente_components.dart";
-import "package:ente_lock_screen/local_authentication_service.dart";
+import "package:ente_lock_screen/auth_util.dart";
+import "package:ente_lock_screen/ui/lock_screen_options.dart";
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
-import "package:ente_ui/components/settings/app_engagement_section.dart";
-import "package:ente_ui/components/settings/more_from_ente_footer.dart";
 import "package:ente_ui/pages/settings_search_page.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
+import "package:local_auth/local_auth.dart";
 import "package:photos/core/configuration.dart";
-import "package:photos/emergency/emergency_page.dart";
 import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/ui/filen_account_settings_page.dart';
-import "package:photos/models/user_details.dart";
+import 'package:photos/filen/ui/filen_login_page.dart';
 import "package:photos/service_locator.dart";
-import "package:photos/services/account/user_service.dart";
-import "package:photos/services/review_service.dart";
-import "package:photos/ui/account/email_entry_page.dart";
-import "package:photos/ui/account/login_page.dart";
 import "package:photos/ui/components/banners/offline_settings_banner.dart";
-import "package:photos/ui/growth/referral_screen.dart";
 import "package:photos/ui/notification/toast.dart";
-import "package:photos/ui/notification/update/change_log_page.dart";
 import "package:photos/ui/settings/about/about_us_page.dart";
-import "package:photos/ui/settings/account/account_settings_page.dart";
 import "package:photos/ui/settings/appearance/appearance_settings_page.dart";
 import "package:photos/ui/settings/backup/backup_settings_page.dart";
-import "package:photos/ui/settings/backup/free_space_options.dart";
-import "package:photos/ui/settings/cast/cast_settings_page.dart";
 import "package:photos/ui/settings/debug/debug_settings_page.dart";
 import "package:photos/ui/settings/debug/ml_debug_settings_page.dart";
 import "package:photos/ui/settings/inherited_settings_state.dart";
@@ -35,177 +25,111 @@ import "package:photos/ui/settings/memories_settings_screen.dart";
 import "package:photos/ui/settings/ml/machine_learning_settings_page.dart";
 import "package:photos/ui/settings/notification_settings_screen.dart";
 import "package:photos/ui/settings/search/settings_search_registry.dart";
-import "package:photos/ui/settings/security/security_settings_page.dart";
 import "package:photos/ui/settings/storage_card_widget.dart";
-import "package:photos/ui/settings/streaming/video_streaming_settings_page.dart";
-import "package:photos/ui/settings/support/help_support_page.dart";
 import "package:photos/ui/settings/widget_settings_screen.dart";
-import "package:photos/ui/sharing/verify_identity_dialog.dart";
 import "package:photos/utils/dialog_util.dart";
 
 class SettingsPage extends StatelessWidget {
-  final ValueNotifier<String?> emailNotifier;
-
-  const SettingsPage({super.key, required this.emailNotifier});
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SettingsStateContainer(
-      child: _SettingsBody(emailNotifier: emailNotifier),
-    );
+    return const SettingsStateContainer(child: _SettingsBody());
   }
 }
 
 class _SettingsBody extends StatelessWidget {
-  final ValueNotifier<String?> emailNotifier;
-
-  const _SettingsBody({required this.emailNotifier});
+  const _SettingsBody();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.componentColors;
-    final hasLoggedIn = Configuration.instance.isLoggedIn();
     final hasConfiguredAccount = Configuration.instance.hasConfiguredAccount();
     final showLoginEntry = isLocalGalleryMode && !hasConfiguredAccount;
-    // Filen fork: Ente-only account, billing, sharing and promo entries are hidden for Filen accounts.
-    final isFilen = FilenAccount.isActive;
+    final hasFilenAccount = hasConfiguredAccount && !isLocalGalleryMode;
+    final email = hasFilenAccount
+        ? Configuration.instance.getEmail() ?? ""
+        : "";
+    final title = email.isEmpty ? context.strings.settings : email;
 
-    return AnimatedBuilder(
-      animation: emailNotifier,
-      builder: (context, _) {
-        final email = hasLoggedIn ? emailNotifier.value ?? "" : "";
-        final title = email.isEmpty ? context.strings.settings : email;
-
-        return SettingsPageScaffold(
-          title: title,
-          actions: _buildHeaderActions(context),
-          onTitleDoubleTap: email.isEmpty
-              ? null
-              : () => _showVerifyIdentityDialog(context),
-          onTitleLongPress: email.isEmpty
-              ? null
-              : () => _showVerifyIdentityDialog(context),
-          children: [
-            if (showLoginEntry) ...[
-              OfflineSettingsBanner(
-                onGetStarted: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const EmailEntryPage(
-                        showReferralSourceField: false,
-                        referralSource: "Offline",
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildOfflineLoginCard(context, colors),
-              const SizedBox(height: 8),
-            ],
-            if (hasLoggedIn && !isLocalGalleryMode) ...[
-              const StorageCardWidget(),
-              const SizedBox(height: 16),
-              _buildMenuItem(
-                title: context.strings.account,
-                icon: HugeIcons.strokeRoundedUser,
-                onTap: () async {
-                  await routeToPage(
-                    context,
-                    isFilen
-                        ? const FilenAccountSettingsPage()
-                        : const AccountSettingsPage(),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              _buildMenuItem(
-                title: context.strings.backup,
-                icon: HugeIcons.strokeRoundedCloudUpload,
-                onTap: () async {
-                  await routeToPage(context, const BackupSettingsPage());
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-            _buildMenuItem(
-              title: context.strings.security,
-              icon: HugeIcons.strokeRoundedSecurityCheck,
-              onTap: () async {
-                await routeToPage(context, const SecuritySettingsPage());
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildMenuItem(
-              title: context.strings.appearance,
-              icon: HugeIcons.strokeRoundedPaintBoard,
-              onTap: () async {
-                await routeToPage(context, const AppearanceSettingsPage());
-              },
-            ),
-            const SizedBox(height: 8),
-            if (isLocalGalleryMode || (hasLoggedIn && isFilen)) ...[
-              _buildOfflineFeaturesCard(context),
-              const SizedBox(height: 8),
-            ],
-            if (hasLoggedIn && !isLocalGalleryMode && !isFilen) ...[
-              _buildPersonalFeaturesCard(context),
-              const SizedBox(height: 8),
-              _buildFeaturesAndPlansCard(context),
-              const SizedBox(height: 8),
-            ],
-            if (!isFilen) ...[
-              AppEngagementSection(reviewUrl: ReviewService.url),
-              const SizedBox(height: 8),
-              _buildMenuItem(
-                title: context.strings.helpAndSupport,
-                icon: HugeIcons.strokeRoundedHelpCircle,
-                onTap: () async {
-                  await routeToPage(context, const HelpSupportPage());
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-            _buildMenuItem(
-              title: context.strings.about,
-              icon: HugeIcons.strokeRoundedInformationCircle,
-              onTap: () async {
-                await routeToPage(context, const AboutUsPage());
-              },
-            ),
-            if (hasLoggedIn && !isLocalGalleryMode) ...[
-              const SizedBox(height: 8),
-              _buildLogoutCard(context),
-            ],
-            if (!isFilen)
-              MoreFromEnteFooter(
-                currentApp: ComponentApp.photos,
-                onVersionTap: () => showChangeLogSheet(context),
-              ),
-            if (hasLoggedIn &&
-                !isLocalGalleryMode &&
-                (flagService.flags.internalUser || kDebugMode)) ...[
-              _buildMenuItem(
-                title: "Debug",
-                icon: HugeIcons.strokeRoundedBug02,
-                onTap: () async {
-                  await routeToPage(context, const DebugSettingsPage());
-                },
-              ),
-              const SizedBox(height: 8),
-              _buildMenuItem(
-                title: "ML Debug",
-                icon: HugeIcons.strokeRoundedAiBrain01,
-                onTap: () async {
-                  await routeToPage(context, const MLDebugSettingsPage());
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-            const SizedBox(height: 60),
-          ],
-        );
-      },
+    return SettingsPageScaffold(
+      title: title,
+      actions: _buildHeaderActions(context),
+      children: [
+        if (showLoginEntry) ...[
+          OfflineSettingsBanner(onGetStarted: () => _openFilenLogin(context)),
+          const SizedBox(height: 16),
+          _buildOfflineLoginCard(context, colors),
+          const SizedBox(height: 8),
+        ],
+        if (hasFilenAccount) ...[
+          const StorageCardWidget(),
+          const SizedBox(height: 16),
+          _buildMenuItem(
+            title: context.strings.account,
+            icon: HugeIcons.strokeRoundedUser,
+            onTap: () async {
+              await routeToPage(context, const FilenAccountSettingsPage());
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildMenuItem(
+            title: context.strings.backup,
+            icon: HugeIcons.strokeRoundedCloudUpload,
+            onTap: () async {
+              await routeToPage(context, const BackupSettingsPage());
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+        _buildMenuItem(
+          title: context.strings.appLock,
+          icon: HugeIcons.strokeRoundedSquareLock02,
+          onTap: () async => _onAppLockTap(context),
+        ),
+        const SizedBox(height: 8),
+        _buildMenuItem(
+          title: context.strings.appearance,
+          icon: HugeIcons.strokeRoundedPaintBoard,
+          onTap: () async {
+            await routeToPage(context, const AppearanceSettingsPage());
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildFeaturesCard(context),
+        const SizedBox(height: 8),
+        _buildMenuItem(
+          title: context.strings.about,
+          icon: HugeIcons.strokeRoundedInformationCircle,
+          onTap: () async {
+            await routeToPage(context, const AboutUsPage());
+          },
+        ),
+        if (hasFilenAccount) ...[
+          const SizedBox(height: 8),
+          _buildLogoutCard(context),
+        ],
+        if (hasFilenAccount && (flagService.internalUser || kDebugMode)) ...[
+          const SizedBox(height: 8),
+          _buildMenuItem(
+            title: "Debug",
+            icon: HugeIcons.strokeRoundedBug02,
+            onTap: () async {
+              await routeToPage(context, const DebugSettingsPage());
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildMenuItem(
+            title: "ML Debug",
+            icon: HugeIcons.strokeRoundedAiBrain01,
+            onTap: () async {
+              await routeToPage(context, const MLDebugSettingsPage());
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+        const SizedBox(height: 60),
+      ],
     );
   }
 
@@ -239,7 +163,6 @@ class _SettingsBody extends StatelessWidget {
     String? subtitle,
     Widget? trailing,
     Future<void> Function()? onTap,
-    bool showOnlyLoadingState = false,
     bool isDestructive = false,
   }) {
     return SettingsItem(
@@ -247,17 +170,23 @@ class _SettingsBody extends StatelessWidget {
       subtitle: subtitle,
       icon: icon,
       trailing: trailing,
-      showOnlyLoadingState: showOnlyLoadingState,
       isDestructive: isDestructive,
       onTap: onTap,
     );
   }
 
+  void _openFilenLogin(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const FilenLoginPage()));
+  }
+
+  // Filen fork: the only login is Filen's.
   Widget _buildOfflineLoginCard(BuildContext context, ColorTokens colors) {
     return _buildMenuItem(
-      title: context.strings.alreadyHaveAnAccount,
+      title: "Already have a Filen account?",
       icon: HugeIcons.strokeRoundedLogin01,
-      subtitle: context.strings.loginToEnte,
+      subtitle: "Log in to Filen",
       trailing: Container(
         width: 40,
         height: 40,
@@ -271,13 +200,11 @@ class _SettingsBody extends StatelessWidget {
           size: 20,
         ),
       ),
-      onTap: () async {
-        await routeToPage(context, const LoginPage());
-      },
+      onTap: () async => _openFilenLogin(context),
     );
   }
 
-  Widget _buildOfflineFeaturesCard(BuildContext context) {
+  Widget _buildFeaturesCard(BuildContext context) {
     return MenuGroupComponent(
       items: [
         _buildMenuItem(
@@ -308,132 +235,6 @@ class _SettingsBody extends StatelessWidget {
             await routeToPage(context, const WidgetSettingsScreen());
           },
         ),
-        _buildMapsMenuItem(context),
-      ],
-    );
-  }
-
-  Widget _buildPersonalFeaturesCard(BuildContext context) {
-    return MenuGroupComponent(
-      items: [
-        _buildMenuItem(
-          title: context.strings.legacy,
-          icon: HugeIcons.strokeRoundedFavourite,
-          showOnlyLoadingState: true,
-          onTap: () async {
-            final hasAuthenticated =
-                kDebugMode ||
-                await LocalAuthenticationService.instance
-                    .requestLocalAuthentication(
-                      context,
-                      context.strings.authToManageLegacy,
-                    );
-            if (hasAuthenticated) {
-              if (!context.mounted) return;
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const EmergencyPage();
-                  },
-                ),
-              );
-            }
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.family,
-          icon: HugeIcons.strokeRoundedUserMultiple,
-          showOnlyLoadingState: true,
-          onTap: () async {
-            late final UserDetails userDetails;
-            try {
-              userDetails = await UserService.instance.getUserDetailsV2(
-                memoryCount: false,
-              );
-            } catch (error) {
-              if (!context.mounted) {
-                return;
-              }
-              await showGenericErrorDialog(context: context, error: error);
-              return;
-            }
-            if (!context.mounted) {
-              return;
-            }
-            await billingService.launchFamilyPortal(
-              context,
-              userDetails,
-              refreshOnOpen: false,
-            );
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.referrals,
-          icon: HugeIcons.strokeRoundedTicketStar,
-          showOnlyLoadingState: true,
-          onTap: () async {
-            await openReferralScreen(context);
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturesAndPlansCard(BuildContext context) {
-    return MenuGroupComponent(
-      items: [
-        _buildMenuItem(
-          title: context.strings.freeUpSpace,
-          icon: HugeIcons.strokeRoundedRocket01,
-          showOnlyLoadingState: true,
-          onTap: () async {
-            await routeToPage(context, const FreeUpSpaceOptionsScreen());
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.machineLearning,
-          icon: HugeIcons.strokeRoundedMagicWand01,
-          onTap: () async {
-            await routeToPage(context, const MachineLearningSettingsPage());
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.memories,
-          icon: HugeIcons.strokeRoundedSparkles,
-          onTap: () async {
-            await routeToPage(context, const MemoriesSettingsScreen());
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.notifications,
-          icon: HugeIcons.strokeRoundedNotification01,
-          onTap: () async {
-            await routeToPage(context, const NotificationSettingsScreen());
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.widgets,
-          icon: HugeIcons.strokeRoundedAlignBoxBottomRight,
-          onTap: () async {
-            await routeToPage(context, const WidgetSettingsScreen());
-          },
-        ),
-        _buildMenuItem(
-          title: context.strings.videoStreaming,
-          icon: HugeIcons.strokeRoundedVideoCameraAi,
-          onTap: () async {
-            await routeToPage(context, const VideoStreamingSettingsPage());
-          },
-        ),
-        if (flagService.enableMultiCast)
-          _buildMenuItem(
-            title: context.strings.castSessions,
-            icon: HugeIcons.strokeRoundedTvSmart,
-            showOnlyLoadingState: true,
-            onTap: () async {
-              await openCastSettingsPage(context);
-            },
-          ),
         _buildMapsMenuItem(context),
       ],
     );
@@ -460,6 +261,33 @@ class _SettingsBody extends StatelessWidget {
     );
   }
 
+  Future<void> _onAppLockTap(BuildContext context) async {
+    if (await LocalAuthentication().isDeviceSupported()) {
+      if (!context.mounted) return;
+      final bool result = await requestAuthentication(
+        context,
+        context.strings.authToChangeLockscreenSetting,
+      );
+      if (result) {
+        if (!context.mounted) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return const LockScreenOptions();
+            },
+          ),
+        );
+      }
+    } else {
+      if (!context.mounted) return;
+      await showErrorDialog(
+        context,
+        context.strings.noSystemLockFound,
+        context.strings.toEnableAppLockPleaseSetupDevicePasscodeOrScreen,
+      );
+    }
+  }
+
   Widget _buildLogoutCard(BuildContext context) {
     return _buildMenuItem(
       title: context.strings.logout,
@@ -480,16 +308,8 @@ class _SettingsBody extends StatelessWidget {
       firstButtonLabel: context.strings.yes,
       isCritical: true,
       firstButtonOnTap: () async {
-        await UserService.instance.logout(context);
+        await FilenAccount.instance.logout(context);
       },
-    );
-  }
-
-  Future<void> _showVerifyIdentityDialog(BuildContext context) async {
-    await showVerifyIdentitySheet(
-      context,
-      self: true,
-      title: context.strings.verifyIDLabel,
     );
   }
 }

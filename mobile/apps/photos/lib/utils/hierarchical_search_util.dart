@@ -1,11 +1,9 @@
 import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/constants.dart";
 import "package:photos/db/files_db.dart";
 import "package:photos/db/ml/db.dart";
-import "package:photos/models/api/collection/user.dart";
 import "package:photos/models/file/extensions/file_props.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/models/file/file_type.dart";
@@ -13,7 +11,6 @@ import "package:photos/models/location_tag/location_tag.dart";
 import "package:photos/models/ml/face/person.dart";
 import "package:photos/models/search/hierarchical/album_filter.dart";
 import "package:photos/models/search/hierarchical/camera_filter.dart";
-import "package:photos/models/search/hierarchical/contacts_filter.dart";
 import "package:photos/models/search/hierarchical/face_filter.dart";
 import "package:photos/models/search/hierarchical/file_type_filter.dart";
 import "package:photos/models/search/hierarchical/hierarchical_search_filter.dart";
@@ -21,10 +18,8 @@ import "package:photos/models/search/hierarchical/location_filter.dart";
 import "package:photos/models/search/hierarchical/magic_filter.dart";
 import "package:photos/models/search/hierarchical/only_them_filter.dart";
 import "package:photos/models/search/hierarchical/top_level_generic_filter.dart";
-import "package:photos/models/search/hierarchical/uploader_filter.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/collections_service.dart";
-import "package:photos/services/contacts/contact_identity_resolver.dart";
 import "package:photos/services/filter/db_filters.dart";
 import "package:photos/services/machine_learning/face_ml/face_filtering/face_filtering_constants.dart";
 import "package:photos/services/machine_learning/face_ml/person/person_service.dart";
@@ -236,18 +231,6 @@ Future<void> curateFilters(
     final albumFilters = await _curateAlbumFilters(files);
     final fileTypeFilters = _curateFileTypeFilters(files, l10n);
     final locationFilters = await _curateLocationFilters(files);
-    final currentUserID = Configuration.instance.getUserID();
-    final contactsFilters = currentUserID == null
-        ? <ContactsFilter>[]
-        : curateContactsFilters(
-            files,
-            currentUser: CollectionsService.instance.resolveUserIdentity(
-              currentUserID,
-              null,
-            ),
-            currentUserLabel: l10n.you,
-          );
-    final uploaderFilters = _curateUploaderFilter(files);
     final cameraFilters = _curateCameraFilters(files);
     final faceFilters = await curateFaceFilters(files);
     final magicFilters = await curateMagicFilters(files, l10n);
@@ -258,8 +241,6 @@ Future<void> curateFilters(
       ...magicFilters,
       ...faceFilters,
       ...fileTypeFilters,
-      ...contactsFilters,
-      ...uploaderFilters,
       ...cameraFilters,
       ...albumFilters,
       ...locationFilters,
@@ -406,68 +387,6 @@ Future<List<LocationFilter>> _curateLocationFilters(
   return locationFilters;
 }
 
-List<ContactsFilter> curateContactsFilters(
-  List<EnteFile> files, {
-  required User currentUser,
-  required String currentUserLabel,
-}) {
-  final contactsFilters = <ContactsFilter>[];
-  final ownerIdToOccurrence = <int, int>{};
-  final ownerIdToCollectionIDs = <int, Set<int>>{};
-
-  for (final file in files) {
-    if (file.uploadedFileID == null ||
-        file.uploadedFileID == -1 ||
-        file.ownerID == null) {
-      continue;
-    }
-    final ownerID = file.ownerID!;
-    ownerIdToOccurrence[ownerID] = (ownerIdToOccurrence[ownerID] ?? 0) + 1;
-    if (file.collectionID != null) {
-      ownerIdToCollectionIDs
-          .putIfAbsent(ownerID, () => <int>{})
-          .add(file.collectionID!);
-    }
-  }
-
-  for (final entry in ownerIdToOccurrence.entries) {
-    final ownerID = entry.key;
-    if (ownerID == currentUser.id) {
-      contactsFilters.add(
-        ContactsFilter(
-          user: currentUser,
-          occurrence: entry.value,
-          filterName: currentUserLabel,
-        ),
-      );
-      continue;
-    }
-
-    User? resolvedUser;
-    final collectionIDs = ownerIdToCollectionIDs[ownerID] ?? const <int>{};
-    for (final collectionID in [...collectionIDs, null]) {
-      final user = CollectionsService.instance.resolveUserIdentity(
-        ownerID,
-        collectionID,
-      );
-      final identity = resolveSuggestionIdentity(UserSuggestion.fromUser(user));
-      if (identity.isResolved) {
-        resolvedUser = user;
-        break;
-      }
-    }
-    if (resolvedUser == null) {
-      continue;
-    }
-
-    contactsFilters.add(
-      ContactsFilter(user: resolvedUser, occurrence: entry.value),
-    );
-  }
-
-  return contactsFilters;
-}
-
 List<CameraFilter> _curateCameraFilters(List<EnteFile> files) {
   final cameraFilters = <CameraFilter>[];
   final modelToOccurrence = <String, int>{};
@@ -487,29 +406,6 @@ List<CameraFilter> _curateCameraFilters(List<EnteFile> files) {
   }
 
   return cameraFilters;
-}
-
-List<UploaderFilter> _curateUploaderFilter(List<EnteFile> files) {
-  final uploaderFilter = <UploaderFilter>[];
-  final ownerIdToOccurrence = <String, int>{};
-
-  for (EnteFile file in files) {
-    if (file.uploaderName == null) {
-      continue;
-    }
-    ownerIdToOccurrence[file.uploaderName!] =
-        (ownerIdToOccurrence[file.uploaderName!] ?? 0) + 1;
-  }
-  for (String uploader in ownerIdToOccurrence.keys) {
-    uploaderFilter.add(
-      UploaderFilter(
-        uploaderName: uploader,
-        occurrence: ownerIdToOccurrence[uploader]!,
-      ),
-    );
-  }
-
-  return uploaderFilter;
 }
 
 Future<List<FaceFilter>> curateFaceFilters(List<EnteFile> files) async {
@@ -704,20 +600,6 @@ Map<String, List<HierarchicalSearchFilter>> getFiltersForBottomSheet(
     searchFilterDataProvider.recommendations.whereType<LocationFilter>(),
   );
 
-  final contactsFilters = searchFilterDataProvider.appliedFilters
-      .whereType<ContactsFilter>()
-      .toList();
-  contactsFilters.addAll(
-    searchFilterDataProvider.recommendations.whereType<ContactsFilter>(),
-  );
-
-  final uploaderFilters = searchFilterDataProvider.appliedFilters
-      .whereType<UploaderFilter>()
-      .toList();
-  uploaderFilters.addAll(
-    searchFilterDataProvider.recommendations.whereType<UploaderFilter>(),
-  );
-
   final cameraFilters = searchFilterDataProvider.appliedFilters
       .whereType<CameraFilter>()
       .toList();
@@ -741,8 +623,6 @@ Map<String, List<HierarchicalSearchFilter>> getFiltersForBottomSheet(
     "faceFilters": faceFilters,
     "magicFilters": magicFilters,
     "locationFilters": locationFilters,
-    "contactsFilters": contactsFilters,
-    "uploaderFilters": uploaderFilters,
     "cameraFilters": cameraFilters,
     "albumFilters": albumFilters,
     "fileTypeFilters": fileTypeFilters,
@@ -791,8 +671,6 @@ List<HierarchicalSearchFilter> getRecommendedFiltersForAppBar(
   final faceReccos = <FaceFilter>[];
   final magicReccos = <MagicFilter>[];
   final locationReccos = <LocationFilter>[];
-  final contactsReccos = <ContactsFilter>[];
-  final uploaderReccos = <UploaderFilter>[];
   final cameraReccos = <CameraFilter>[];
   final albumReccos = <AlbumFilter>[];
   final fileTypeReccos = <FileTypeFilter>[];
@@ -807,10 +685,6 @@ List<HierarchicalSearchFilter> getRecommendedFiltersForAppBar(
       magicReccos.add(recommendation);
     } else if (recommendation is LocationFilter) {
       locationReccos.add(recommendation);
-    } else if (recommendation is ContactsFilter) {
-      contactsReccos.add(recommendation);
-    } else if (recommendation is UploaderFilter) {
-      uploaderReccos.add(recommendation);
     } else if (recommendation is CameraFilter) {
       cameraReccos.add(recommendation);
     } else if (recommendation is AlbumFilter) {
@@ -825,8 +699,6 @@ List<HierarchicalSearchFilter> getRecommendedFiltersForAppBar(
     ...faceReccos,
     ...magicReccos,
     ...locationReccos,
-    ...contactsReccos,
-    ...uploaderReccos,
     ...cameraReccos,
     ...albumReccos,
     ...fileTypeReccos,

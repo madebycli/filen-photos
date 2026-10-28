@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
-import 'package:ente_crypto/ente_crypto.dart';
 import 'package:ente_pure_utils/ente_pure_utils.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
@@ -11,41 +9,35 @@ import 'package:photos/db/files_db.dart';
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
-import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/filen_sync.dart';
-import "package:photos/gateways/collections/models/metadata.dart";
-import "package:photos/gateways/files/file_magic_gateway.dart";
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/metadata/common_keys.dart";
 import "package:photos/models/metadata/file_magic.dart";
-import "package:photos/service_locator.dart";
 import 'package:photos/services/sync/remote_sync_service.dart';
-import "package:photos/utils/file_key.dart";
 import "package:synchronized/synchronized.dart";
 
-class _PreparedMagicMetadataUpdate<T> {
-  const _PreparedMagicMetadataUpdate({
+class _MagicMetadataUpdate<T> {
+  const _MagicMetadataUpdate({
     required this.file,
     required this.encodedJson,
     required this.decodedMetadata,
     required this.nextVersion,
-    required this.request,
   });
 
   final EnteFile file;
   final String encodedJson;
   final T decodedMetadata;
   final int nextVersion;
-  final UpdateMagicMetadataRequest request;
 }
 
+/// Edits of the "magic metadata" of photos: archive/hide, caption, edited date, location...
+/// The values are kept in the local database and queued for the app's state folder on Filen
+/// (see `FilenMetaStore`), versioned so that the newest edit wins on every device.
 class FileMagicService {
   final _logger = Logger("FileMagicService");
   final _privateMetadataLock = Lock();
   final _publicMetadataLock = Lock();
   late FilesDB _filesDB;
-
-  FileMagicGateway get _gateway => fileMagicGateway;
 
   FileMagicService._privateConstructor() {
     _filesDB = FilesDB.instance;
@@ -96,7 +88,7 @@ class FileMagicService {
     Map<String, dynamic>? newMetadataUpdate, {
     Map<int, Map<String, dynamic>>? metadataUpdateMap,
   }) async {
-    final updates = <_PreparedMagicMetadataUpdate<PubMagicMetadata>>[];
+    final updates = <_MagicMetadataUpdate<PubMagicMetadata>>[];
     final int ownerID = Configuration.instance.getUserID()!;
     try {
       for (final file in files) {
@@ -112,7 +104,7 @@ class FileMagicService {
             ? 1
             : file.pubMmdVersion;
         updates.add(
-          await _prepareUpdate(
+          _prepareUpdate(
             file: file,
             encodedJson: file.pubMmdEncodedJson,
             currentVersion: currentVersion,
@@ -121,31 +113,17 @@ class FileMagicService {
           ),
         );
       }
-
-      // Filen fork: nothing is sent to a server; the edit is queued for the state folder.
-      if (!FilenAccount.isActive) {
-        await _gateway.updatePublicMagicMetadata(
-          updates.map((update) => update.request).toList(),
-        );
-      }
       for (final update in updates) {
         update.file
           ..pubMmdEncodedJson = update.encodedJson
           ..pubMagicMetadata = update.decodedMetadata
           ..pubMmdVersion = update.nextVersion;
-        if (FilenAccount.isActive) {
-          FilenSyncService.instance.noteFileMeta(update.file);
-        }
+        FilenSyncService.instance.noteFileMeta(update.file);
       }
       await _filesDB.insertMultiple(files);
       RemoteSyncService.instance.sync(silently: true).ignore();
-    } on DioException catch (e) {
-      if (e.response != null && e.response!.statusCode == 409) {
-        RemoteSyncService.instance.sync(silently: true).ignore();
-      }
-      rethrow;
     } catch (e, s) {
-      _logger.severe("failed to sync magic metadata", e, s);
+      _logger.severe("failed to save public metadata", e, s);
       rethrow;
     }
   }
@@ -167,11 +145,11 @@ class FileMagicService {
     final batchedFiles = files.chunks(batchSize);
     try {
       for (final batch in batchedFiles) {
-        final updates = <_PreparedMagicMetadataUpdate<MagicMetadata>>[];
+        final updates = <_MagicMetadataUpdate<MagicMetadata>>[];
         for (final file in batch) {
           _assertCanUpdate(file, ownerID);
           updates.add(
-            await _prepareUpdate(
+            _prepareUpdate(
               file: file,
               encodedJson: file.mMdEncodedJson,
               currentVersion: file.mMdVersion,
@@ -180,32 +158,19 @@ class FileMagicService {
             ),
           );
         }
-
-        if (!FilenAccount.isActive) {
-          await _gateway.updateMagicMetadata(
-            updates.map((update) => update.request).toList(),
-          );
-        }
         for (final update in updates) {
           update.file
             ..mMdEncodedJson = update.encodedJson
             ..magicMetadata = update.decodedMetadata
             ..mMdVersion = update.nextVersion;
-          if (FilenAccount.isActive) {
-            FilenSyncService.instance.noteFileMeta(update.file);
-          }
+          FilenSyncService.instance.noteFileMeta(update.file);
         }
         await _filesDB.insertMultiple(batch);
       }
 
       RemoteSyncService.instance.sync(silently: true).ignore();
-    } on DioException catch (e) {
-      if (e.response != null && e.response!.statusCode == 409) {
-        RemoteSyncService.instance.sync(silently: true).ignore();
-      }
-      rethrow;
     } catch (e, s) {
-      _logger.severe("failed to sync magic metadata", e, s);
+      _logger.severe("failed to save metadata", e, s);
       rethrow;
     }
   }
@@ -218,48 +183,20 @@ class FileMagicService {
     }
   }
 
-  Future<_PreparedMagicMetadataUpdate<T>> _prepareUpdate<T>({
+  _MagicMetadataUpdate<T> _prepareUpdate<T>({
     required EnteFile file,
     required String? encodedJson,
     required int currentVersion,
     required Map<String, dynamic> newMetadata,
     required T Function(dynamic json) decode,
-  }) async {
+  }) {
     final Map<String, dynamic> jsonToUpdate = jsonDecode(encodedJson ?? '{}');
     jsonToUpdate.addAll(newMetadata);
-    final updatedJson = jsonEncode(jsonToUpdate);
-    if (FilenAccount.isActive) {
-      // Filen fork: no file key and no request; the update is stored as plain JSON in the
-      // (end-to-end encrypted) state folder.
-      return _PreparedMagicMetadataUpdate(
-        file: file,
-        encodedJson: updatedJson,
-        decodedMetadata: decode(jsonToUpdate),
-        nextVersion: currentVersion + 1,
-        request: UpdateMagicMetadataRequest(
-          id: file.uploadedFileID!,
-          magicMetadata: null,
-        ),
-      );
-    }
-    final encryptedMMd = await CryptoUtil.encryptChaCha(
-      utf8.encode(updatedJson),
-      getFileKey(file),
-    );
-    return _PreparedMagicMetadataUpdate(
+    return _MagicMetadataUpdate(
       file: file,
-      encodedJson: updatedJson,
+      encodedJson: jsonEncode(jsonToUpdate),
       decodedMetadata: decode(jsonToUpdate),
       nextVersion: currentVersion + 1,
-      request: UpdateMagicMetadataRequest(
-        id: file.uploadedFileID!,
-        magicMetadata: MetadataRequest(
-          version: currentVersion,
-          count: jsonToUpdate.length,
-          data: CryptoUtil.bin2base64(encryptedMMd.encryptedData!),
-          header: CryptoUtil.bin2base64(encryptedMMd.header!),
-        ),
-      ),
     );
   }
 }

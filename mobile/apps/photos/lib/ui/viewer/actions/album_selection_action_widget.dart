@@ -1,26 +1,18 @@
-import "dart:io";
-
 import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/constants.dart";
 import "package:photos/db/files_db.dart";
 import "package:photos/models/collection/collection.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/models/metadata/common_keys.dart";
 import "package:photos/models/selected_albums.dart";
-import "package:photos/service_locator.dart";
 import "package:photos/services/collections_service.dart";
 import "package:photos/ui/actions/collection/collection_sharing_actions.dart";
 import "package:photos/ui/collections/collection_list_page.dart";
-import "package:photos/ui/components/action_sheet_widget.dart";
 import "package:photos/ui/components/bottom_action_bar/selection_action_sheet.dart";
-import "package:photos/ui/components/buttons/button_widget.dart";
-import "package:photos/ui/components/models/button_type.dart";
 import "package:photos/ui/notification/toast.dart";
-import "package:photos/ui/sharing/add_people_sheet.dart";
 import "package:photos/ui/viewer/album_slideshow/album_slideshow.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/magic_util.dart";
@@ -77,34 +69,8 @@ class _AlbumSelectionActionWidgetState
     final hasUnpinnedAlbum = widget.selectedAlbums.albums.any(
       (album) => !album.isPinned,
     );
-    final userID = Configuration.instance.getUserID()!;
-    final isHomeSection = widget.sectionType == UISectionType.homeCollections;
-    final ownsAllSelectedAlbums = widget.selectedAlbums.albums.every(
-      (album) => album.isOwner(userID),
-    );
-    final receivesAllSelectedAlbums = widget.selectedAlbums.albums.every(
-      (album) => !album.isOwner(userID),
-    );
     final showOwnerActions =
-        widget.sectionType == UISectionType.outgoingCollections ||
-        isHomeSection && ownsAllSelectedAlbums;
-    final showReceivedActions =
-        widget.sectionType == UISectionType.incomingCollections ||
-        isHomeSection && receivesAllSelectedAlbums;
-    final showMixedEnteActions =
-        isHomeSection && !ownsAllSelectedAlbums && !receivesAllSelectedAlbums;
-
-    if (showOwnerActions) {
-      items.add(
-        SelectionSheetAction(
-          labelText: context.strings.share,
-          hugeIcon: Platform.isIOS
-              ? HugeIcons.strokeRoundedShare03
-              : HugeIcons.strokeRoundedShare08,
-          onTap: _shareCollection,
-        ),
-      );
-    }
+        widget.sectionType == UISectionType.homeCollections;
 
     items.add(
       SelectionSheetAction(
@@ -150,16 +116,6 @@ class _AlbumSelectionActionWidgetState
       );
     }
 
-    if (showMixedEnteActions) {
-      items.add(
-        SelectionSheetAction(
-          labelText: context.strings.hide,
-          hugeIcon: HugeIcons.strokeRoundedViewOffSlash,
-          onTap: _onHideOrUnHideClick,
-        ),
-      );
-    }
-
     if (widget.sectionType == UISectionType.archivedCollections) {
       items.add(
         SelectionSheetAction(
@@ -174,7 +130,6 @@ class _AlbumSelectionActionWidgetState
           hugeIcon: HugeIcons.strokeRoundedDelete01,
           onTap: _trashCollection,
           isCritical: true,
-          shouldShow: ownsAllSelectedAlbums,
         ),
       );
     } else if (widget.sectionType == UISectionType.hiddenCollections) {
@@ -203,62 +158,12 @@ class _AlbumSelectionActionWidgetState
       );
     }
 
-    if (showReceivedActions) {
-      if (flagService.enableShareePin) {
-        final hasShareePinnedAlbum = widget.selectedAlbums.albums.any(
-          (album) => album.hasShareePinned(),
-        );
-        final hasShareeUnpinnedAlbum = widget.selectedAlbums.albums.any(
-          (album) => !album.hasShareePinned(),
-        );
-
-        items.add(
-          SelectionSheetAction(
-            labelText: context.strings.pin,
-            hugeIcon: HugeIcons.strokeRoundedPin,
-            onTap: _onPinClickForSharee,
-            shouldShow: hasShareeUnpinnedAlbum,
-          ),
-        );
-
-        items.add(
-          SelectionSheetAction(
-            labelText: context.strings.unpin,
-            hugeIcon: HugeIcons.strokeRoundedPinOff,
-            onTap: _onUnpinClickForSharee,
-            shouldShow: hasShareePinnedAlbum,
-          ),
-        );
-      }
-
-      items.add(
-        SelectionSheetAction(
-          labelText: context.strings.hide,
-          hugeIcon: HugeIcons.strokeRoundedViewOffSlash,
-          onTap: _onHideOrUnHideClick,
-        ),
-      );
-
-      items.add(
-        SelectionSheetAction(
-          labelText: context.strings.leaveAlbum,
-          hugeIcon: HugeIcons.strokeRoundedLogout05,
-          onTap: _leaveAlbum,
-        ),
-      );
-    }
-
     return SelectionActionSheet(
       actions: items,
       selectionControls: widget.selectionControls,
       backgroundColor: widget.backgroundColor,
       backgroundScrollController: widget.backgroundScrollController,
     );
-  }
-
-  Future<void> _shareCollection() async {
-    await showAddPeopleSheet(context, widget.selectedAlbums.albums.toList());
-    widget.selectedAlbums.clearAll();
   }
 
   Future<void> _startAlbumSlideshow() async {
@@ -371,35 +276,10 @@ class _AlbumSelectionActionWidgetState
     widget.selectedAlbums.clearAll();
   }
 
-  Future<void> _onPinClickForSharee() async {
-    for (final collection in widget.selectedAlbums.albums) {
-      if (collection.hasShareePinned()) {
-        continue;
-      }
-
-      await updateShareeOrder(context, collection, 1);
-    }
-    widget.selectedAlbums.clearAll();
-  }
-
-  Future<void> _onUnpinClickForSharee() async {
-    for (final collection in widget.selectedAlbums.albums) {
-      if (!collection.hasShareePinned()) {
-        continue;
-      }
-
-      await updateShareeOrder(context, collection, 0);
-    }
-    widget.selectedAlbums.clearAll();
-  }
-
   Future<void> _onHideOrUnHideClick() async {
-    final userID = Configuration.instance.getUserID()!;
-    final hasOwnedFavorites = widget.selectedAlbums.albums.any(
-      (collection) => _isOwnedFavorite(collection, userID),
-    );
+    final hasOwnedFavorites = widget.selectedAlbums.albums.any(_isFavorite);
     final collections = widget.selectedAlbums.albums
-        .where((collection) => !_isOwnedFavorite(collection, userID))
+        .where((collection) => !_isFavorite(collection))
         .toList();
 
     if (collections.isEmpty) {
@@ -411,14 +291,6 @@ class _AlbumSelectionActionWidgetState
     }
 
     final isUnhiding = collections.first.isHidden();
-    if (!await prepareSharedAlbumsForHiding(
-      context,
-      collections.where(
-        (collection) => collection.isOwner(userID) && !collection.isHidden(),
-      ),
-    )) {
-      return;
-    }
     if (!mounted) return;
     final dialog = createProgressDialog(
       context,
@@ -428,7 +300,6 @@ class _AlbumSelectionActionWidgetState
 
     try {
       for (final collection in collections) {
-        final isOwner = collection.isOwner(userID);
         final isHidden = collection.isHidden();
         final int prevVisiblity = isHidden
             ? hiddenVisibility
@@ -443,9 +314,7 @@ class _AlbumSelectionActionWidgetState
           collection: collection,
           newVisibility: newVisiblity,
           prevVisibility: prevVisiblity,
-          isOwner: isOwner,
           showProgressDialog: false,
-          skipSharedAlbumWarning: true,
         );
       }
       if (!mounted) return;
@@ -470,12 +339,9 @@ class _AlbumSelectionActionWidgetState
   }
 
   Future<void> _archiveClick() async {
-    final userID = Configuration.instance.getUserID()!;
-    final hasOwnedFavorites = widget.selectedAlbums.albums.any(
-      (collection) => _isOwnedFavorite(collection, userID),
-    );
+    final hasOwnedFavorites = widget.selectedAlbums.albums.any(_isFavorite);
     final collections = widget.selectedAlbums.albums
-        .where((collection) => !_isOwnedFavorite(collection, userID))
+        .where((collection) => !_isFavorite(collection))
         .toList();
 
     if (collections.isEmpty) {
@@ -486,9 +352,7 @@ class _AlbumSelectionActionWidgetState
       return;
     }
 
-    final isUnarchiving = _usesShareeMetadata(collections.first)
-        ? collections.first.hasShareeArchived()
-        : collections.first.isArchived();
+    final isUnarchiving = collections.first.isArchived();
     final dialog = createProgressDialog(
       context,
       isUnarchiving ? context.strings.unarchiving : context.strings.archiving,
@@ -497,42 +361,22 @@ class _AlbumSelectionActionWidgetState
 
     try {
       for (final collection in collections) {
-        if (_usesShareeMetadata(collection)) {
-          final hasShareeArchived = collection.hasShareeArchived();
-          final int prevVisiblity = hasShareeArchived
-              ? archiveVisibility
-              : visibleVisibility;
-          final int newVisiblity = hasShareeArchived
-              ? visibleVisibility
-              : archiveVisibility;
+        final isArchived = collection.isArchived();
+        final int prevVisiblity = isArchived
+            ? archiveVisibility
+            : visibleVisibility;
+        final int newVisiblity = isArchived
+            ? visibleVisibility
+            : archiveVisibility;
 
-          if (!mounted) return;
-          await changeCollectionVisibility(
-            context,
-            collection: collection,
-            newVisibility: newVisiblity,
-            prevVisibility: prevVisiblity,
-            isOwner: false,
-            showProgressDialog: false,
-          );
-        } else {
-          final isArchived = collection.isArchived();
-          final int prevVisiblity = isArchived
-              ? archiveVisibility
-              : visibleVisibility;
-          final int newVisiblity = isArchived
-              ? visibleVisibility
-              : archiveVisibility;
-
-          if (!mounted) return;
-          await changeCollectionVisibility(
-            context,
-            collection: collection,
-            newVisibility: newVisiblity,
-            prevVisibility: prevVisiblity,
-            showProgressDialog: false,
-          );
-        }
+        if (!mounted) return;
+        await changeCollectionVisibility(
+          context,
+          collection: collection,
+          newVisibility: newVisiblity,
+          prevVisibility: prevVisiblity,
+          showProgressDialog: false,
+        );
       }
       if (!mounted) return;
       showShortToast(
@@ -558,52 +402,8 @@ class _AlbumSelectionActionWidgetState
     widget.selectedAlbums.clearAll();
   }
 
-  bool _isOwnedFavorite(Collection collection, int userID) {
-    return collection.type == CollectionType.favorites &&
-        collection.isOwner(userID);
-  }
-
-  bool _usesShareeMetadata(Collection collection) {
-    return !collection.isOwner(Configuration.instance.getUserID()!);
-  }
-
-  Future<void> _leaveAlbum() async {
-    final actionResult = await showActionSheet(
-      context: context,
-      buttons: [
-        ButtonWidget(
-          buttonType: ButtonType.critical,
-          isInAlert: true,
-          shouldStickToDarkTheme: true,
-          buttonAction: ButtonAction.first,
-          shouldSurfaceExecutionStates: true,
-          labelText: context.strings.leaveAlbum,
-          onTap: () async {
-            for (final collection in widget.selectedAlbums.albums) {
-              await CollectionsService.instance.leaveAlbum(collection);
-            }
-            widget.selectedAlbums.clearAll();
-          },
-        ),
-        ButtonWidget(
-          buttonType: ButtonType.secondary,
-          buttonAction: ButtonAction.cancel,
-          isInAlert: true,
-          shouldStickToDarkTheme: true,
-          labelText: context.strings.cancel,
-        ),
-      ],
-      title: context.strings.leaveSharedAlbum,
-      body: context.strings.photosAddedByYouWillBeRemovedFromTheAlbum,
-    );
-    if (actionResult?.action != null && mounted) {
-      if (actionResult!.action == ButtonAction.error) {
-        await showGenericErrorDialog(
-          context: context,
-          error: actionResult.exception,
-        );
-      }
-    }
+  bool _isFavorite(Collection collection) {
+    return collection.type == CollectionType.favorites;
   }
 
   void _selectionChangedListener() {

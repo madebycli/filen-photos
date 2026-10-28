@@ -8,7 +8,6 @@ import "package:photos/ui/viewer/file/hero_image.dart";
 import 'package:photos/ui/viewer/file/no_thumbnail_widget.dart';
 import 'package:photos/ui/viewer/file/thumbnail_widget.dart';
 import 'package:photos/ui/viewer/people/person_face_widget.dart';
-import "package:photos/ui/viewer/search/contact_avatar_widget.dart";
 
 class SearchThumbnailWidget extends StatefulWidget {
   final EnteFile? file;
@@ -77,32 +76,6 @@ class _SearchThumbnailWidgetState extends State<SearchThumbnailWidget> {
               : const NoThumbnailWidget(addBorder: false),
         ),
       ),
-    );
-  }
-}
-
-class ContactSearchThumbnailWidget extends StatelessWidget {
-  final GenericSearchResult searchResult;
-  final String tagPrefix;
-  final double size;
-  final double borderRadius;
-
-  const ContactSearchThumbnailWidget(
-    this.tagPrefix, {
-    required this.searchResult,
-    this.size = 56,
-    this.borderRadius = 12,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ContactAvatarWidget(
-      contactUserId: searchResult.params[kContactUserId] as int,
-      email: searchResult.params[kContactEmail] as String,
-      personId: searchResult.params[kPersonParamID] as String?,
-      size: size,
-      borderRadius: borderRadius,
     );
   }
 }

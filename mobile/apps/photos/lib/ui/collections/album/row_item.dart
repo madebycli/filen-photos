@@ -1,22 +1,14 @@
-import "dart:math";
-
 import "package:ente_components/ente_components.dart";
 import 'package:ente_pure_utils/ente_pure_utils.dart';
 import "package:ente_strings/ente_strings.dart";
 import "package:figma_squircle/figma_squircle.dart";
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import "package:photos/core/configuration.dart";
-import "package:photos/models/api/collection/user.dart";
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/collection/collection_items.dart';
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/selected_albums.dart";
 import "package:photos/services/collections_service.dart";
 import "package:photos/ui/components/collection_share_badge.dart";
-import "package:photos/ui/sharing/album_share_info_widget.dart";
-import "package:photos/ui/sharing/more_count_badge.dart";
-import "package:photos/ui/sharing/user_avator_widget.dart";
 import 'package:photos/ui/viewer/file/no_thumbnail_widget.dart';
 import 'package:photos/ui/viewer/file/thumbnail_widget.dart';
 import 'package:photos/ui/viewer/gallery/collection_page.dart';
@@ -37,8 +29,6 @@ class AlbumRowItemWidget extends StatelessWidget {
   static const _cornerSmoothing = 0.6;
   static const _overlayPadding = 8.0;
   static const _thumbnailToTextSpacing = 8.0;
-  static const _sharePillPadding = EdgeInsets.all(1);
-  static const _sharedAvatarStrokeWidth = 1.0;
 
   const AlbumRowItemWidget(
     this.c,
@@ -57,27 +47,10 @@ class AlbumRowItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isOwner = c.isOwner(Configuration.instance.getUserID()!);
-    final String tagPrefix =
-        (isOwner ? "collection" : "shared_collection") +
-        tag +
-        "_" +
-        c.id.toString();
+    final String tagPrefix = "collection" + tag + "_" + c.id.toString();
     final componentColors = context.componentColors;
     final externalSelection = isSelected;
-    final bool shouldShowSharePill =
-        topLeftOverlayBuilder == null && isOwner && (c.hasSharees || c.hasLink);
     final topLeftOverlay = topLeftOverlayBuilder?.call(context, c);
-    final Widget? linkIcon = c.hasLink && isOwner
-        ? HugeIcon(
-            icon: HugeIcons.strokeRoundedLink02,
-            color: c.publicURLs.first.isExpired
-                ? componentColors.warning
-                : componentColors.textBase,
-            size: 8,
-            strokeWidth: 2,
-          )
-        : null;
 
     final row = GestureDetector(
       child: Column(
@@ -163,29 +136,6 @@ class AlbumRowItemWidget extends StatelessWidget {
                             top: _overlayPadding,
                             left: _overlayPadding,
                             child: topLeftOverlay,
-                          )
-                        else if (shouldShowSharePill)
-                          Positioned(
-                            top: _overlayPadding,
-                            left: _overlayPadding,
-                            child: Hero(
-                              tag: tagPrefix + "_sharees",
-                              transitionOnUserGestures: true,
-                              child: Container(
-                                padding: _sharePillPadding,
-                                decoration: BoxDecoration(
-                                  color: componentColors.fillLight,
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                                child: SizedBox(
-                                  height: getAvatarSize(AvatarType.xs),
-                                  child: _AlbumRowSharePillContent(
-                                    sharees: c.sharees,
-                                    trailingWidget: linkIcon,
-                                  ),
-                                ),
-                              ),
-                            ),
                           ),
                         Positioned(
                           top: _overlayPadding,
@@ -207,46 +157,10 @@ class AlbumRowItemWidget extends StatelessWidget {
                                 )
                               : const SizedBox.shrink(),
                         ),
-                        if (!isOwner)
-                          Positioned(
-                            right: _overlayPadding,
-                            bottom: _overlayPadding,
-                            child: Hero(
-                              tag: tagPrefix + "_owner_other",
-                              transitionOnUserGestures: true,
-                              child: SizedBox.square(
-                                dimension:
-                                    getAvatarSize(AvatarType.xs) +
-                                    _sharedAvatarStrokeWidth * 2,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    UserAvatarWidget(
-                                      c.owner,
-                                      type: AvatarType.xs,
-                                    ),
-                                    Positioned.fill(
-                                      child: IgnorePointer(
-                                        child: DecoratedBox(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: componentColors.fillLight,
-                                              width: _sharedAvatarStrokeWidth,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
                         Positioned(
                           left: _overlayPadding,
                           bottom: _overlayPadding,
-                          child: _buildAlbumStatusChips(isOwner: isOwner),
+                          child: _buildAlbumStatusChips(),
                         ),
                       ],
                     ),
@@ -368,10 +282,10 @@ class AlbumRowItemWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAlbumStatusChips({required bool isOwner}) {
+  Widget _buildAlbumStatusChips() {
     final bool isFavoriteAlbum = c.type == CollectionType.favorites;
-    final bool showPin = isOwner ? c.isPinned : c.hasShareePinned();
-    final bool showArchive = isOwner ? c.isArchived() : c.hasShareeArchived();
+    final bool showPin = c.isPinned;
+    final bool showArchive = c.isArchived();
 
     final chips = <Widget>[
       if (isFavoriteAlbum) const CollectionFavoriteBadge(),
@@ -389,80 +303,6 @@ class AlbumRowItemWidget extends StatelessWidget {
           chips[i],
         ],
       ],
-    );
-  }
-}
-
-class _AlbumRowSharePillContent extends StatelessWidget {
-  static const _limitCountTo = 2;
-
-  final List<User> sharees;
-  final Widget? trailingWidget;
-
-  const _AlbumRowSharePillContent({required this.sharees, this.trailingWidget});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasMore = sharees.length > _limitCountTo;
-    final displayCount = min(
-      sharees.length,
-      hasMore ? _limitCountTo - 1 : _limitCountTo,
-    );
-    const type = AvatarType.xs;
-    final double avatarSize = getAvatarSize(type);
-    final double overlapPadding = getOverlapPadding(type);
-    final visibleAvatarCount = displayCount + (hasMore ? 1 : 0);
-    final trailingWidgetWidth = trailingWidget == null
-        ? 0.0
-        : visibleAvatarCount == 0
-        ? avatarSize
-        : 14.0;
-    final visibleAvatarsWidth = visibleAvatarCount == 0
-        ? 0.0
-        : avatarSize + (visibleAvatarCount - 1) * overlapPadding;
-    final contentWidth = visibleAvatarsWidth + trailingWidgetWidth;
-
-    final widgets = List<Widget>.generate(
-      displayCount,
-      (index) => Positioned(
-        left: overlapPadding * index,
-        child: UserAvatarWidget(sharees[index], type: type),
-      ),
-    );
-
-    if (hasMore) {
-      widgets.add(
-        Positioned(
-          left: overlapPadding * displayCount,
-          child: MoreCountWidget(
-            sharees.length - displayCount,
-            type: moreCountTypeFromAvatarType(type),
-            thumbnailView: true,
-            backgroundColor: getUserAvatarColor(context, sharees[displayCount]),
-          ),
-        ),
-      );
-    }
-
-    if (trailingWidget != null) {
-      widgets.add(
-        Positioned(
-          left: visibleAvatarsWidth,
-          top: (avatarSize - trailingWidgetWidth) / 2,
-          child: SizedBox.square(
-            dimension: trailingWidgetWidth,
-            child: Center(
-              child: SizedBox.square(dimension: 8, child: trailingWidget!),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      width: contentWidth,
-      height: avatarSize,
-      child: Stack(clipBehavior: Clip.none, children: widgets),
     );
   }
 }

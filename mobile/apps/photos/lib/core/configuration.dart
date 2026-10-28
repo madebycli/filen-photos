@@ -4,8 +4,6 @@ import "dart:io";
 
 import 'package:backup_exclusion/backup_exclusion.dart';
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:ente_account_deletion/account_deletion.dart';
-import 'package:ente_contacts/contacts.dart';
 import "package:ente_crypto/ente_crypto.dart";
 import 'package:ente_lock_screen/lock_screen_host.dart';
 import 'package:ente_pure_utils/ente_pure_utils.dart';
@@ -25,11 +23,8 @@ import 'package:photos/core/errors.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/db/collections_db.dart';
 import 'package:photos/db/files_db.dart';
-import "package:photos/db/gallery_downloads_db.dart";
 import "package:photos/db/memories_db.dart";
-import "package:photos/db/memory_shares_db.dart";
 import "package:photos/db/ml/db.dart";
-import "package:photos/db/social_db.dart";
 import 'package:photos/db/trash_db.dart';
 import 'package:photos/db/upload_locks_db.dart';
 import "package:photos/events/app_mode_changed_event.dart";
@@ -41,7 +36,6 @@ import 'package:photos/gateways/users/models/key_gen_result.dart';
 import 'package:photos/gateways/users/models/private_key_attributes.dart';
 import 'package:photos/module/upload/upload_artifact.dart';
 import 'package:photos/service_locator.dart';
-import 'package:photos/services/authenticated_session.dart';
 import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/favorites_service.dart';
 import "package:photos/services/home_widget_service.dart";
@@ -50,21 +44,15 @@ import "package:photos/services/machine_learning/face_ml/person/person_service.d
 import "package:photos/services/machine_learning/ml_run_control.dart";
 import "package:photos/services/machine_learning/ml_service.dart";
 import "package:photos/services/machine_learning/similar_images_service.dart";
-import "package:photos/services/memory_share_service.dart";
-import 'package:photos/services/notification_key_service.dart';
 import "package:photos/services/notification_service.dart";
-import 'package:photos/services/photos_contacts_service.dart';
 import 'package:photos/services/search_service.dart';
 import 'package:photos/services/sync/sync_service.dart';
-import 'package:photos/services/video_preview_service.dart';
-import 'package:photos/src/rust/third_party/ente_frb_lib/account_deletion.dart'
-    as account_deletion;
 import 'package:photos/utils/validator_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import "package:tuple/tuple.dart";
 import 'package:uuid/uuid.dart';
 
-class Configuration implements LockScreenHost, AccountDeletionHost {
+class Configuration implements LockScreenHost {
   Configuration._privateConstructor();
 
   static final Configuration instance = Configuration._privateConstructor();
@@ -207,7 +195,6 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
     _logger.info("Logging out, autoLogout: $autoLogout");
     MLService.instance.stopActiveRun(MlStopReason.logout);
     if (!autoLogout) {
-      VideoPreviewService.instance.stop('logout');
       if (SyncService.instance.isSyncInProgress()) {
         SyncService.instance.stopSync();
         try {
@@ -220,14 +207,6 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
       }
     }
 
-    if (Platform.isIOS) {
-      try {
-        await NotificationKeyService.setNotificationPrivateKey(null);
-      } on PlatformException catch (e, s) {
-        if (e.code != 'notification_key_store') rethrow;
-        _logger.warning("Could not delete notification key", e, s);
-      }
-    }
     await _clearTempFolderOnLogout();
 
     await _preferences.clear();
@@ -237,29 +216,17 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
     _cachedToken = null;
     _secretKey = null;
     _volatilePassword = null;
-    clearAuthenticatedSession();
 
     await NotificationService.instance.clearAllScheduledNotifications(
       logLines: false,
     );
 
     await FilesDB.instance.clearTable();
-    await GalleryDownloadsDB.instance.clearTable();
     await CollectionsDB.instance.clearTable();
     await MemoriesDB.instance.clearTable();
-    await MemorySharesDB.instance.clearTable();
     await MLDataDB.instance.clearTable();
     await UploadLocksDB.instance.clearTable();
     await TrashDB.instance.clearTable();
-    try {
-      await PhotosContactsService.instance.close().timeout(
-        const Duration(seconds: 5),
-      );
-    } catch (e) {
-      _logger.warning("Failed to close contacts service", e);
-    }
-    await ContactsDatabase().clearTable();
-    await SocialDB.instance.clearAllData();
 
     ThumbnailInMemoryLruCache.clearAll();
     FileLruCache.clearAll();
@@ -279,7 +246,6 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
     await SimilarImagesService.instance.clearCache();
     await IgnoredFilesService.instance.reset();
     unawaited(HomeWidgetService.instance.clearWidget(autoLogout));
-    MemoryShareService.instance.clearCache();
 
     try {
       await magicCacheService.clearMagicCache();
@@ -317,11 +283,6 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
         smartAlbumsService.clearCache();
       } catch (e) {
         _logger.info("SmartAlbumsService not initialized", e);
-      }
-      try {
-        billingService.clearCache();
-      } catch (e) {
-        _logger.info("BillingService not initialized", e);
       }
       Bus.instance.fire(UserLoggedOutEvent());
     } else {
@@ -584,26 +545,6 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
       return KeyAttributes.fromJson(jsonValue);
     }
   }
-
-  @override
-  Future<AccountDeletionSummary?> getDeletionSummary() =>
-      account_deletion.getDeletionSummary(session: authenticatedSession());
-
-  @override
-  Future<String> getDeleteChallenge() =>
-      account_deletion.getDeleteChallenge(session: authenticatedSession());
-
-  @override
-  Future<void> deleteAccount({
-    required String encryptedChallenge,
-    required String reason,
-    String? feedback,
-  }) => account_deletion.deleteAccount(
-    session: authenticatedSession(),
-    encryptedChallenge: encryptedChallenge,
-    reason: reason,
-    feedback: feedback,
-  );
 
   Future<void> setKey(String? key) async {
     _key = key;

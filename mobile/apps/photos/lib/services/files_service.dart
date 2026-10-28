@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:ente_pure_utils/ente_pure_utils.dart';
 import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:latlong2/latlong.dart";
@@ -9,12 +8,10 @@ import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:photos/core/configuration.dart';
 import "package:photos/db/device_files_db.dart";
 import 'package:photos/db/files_db.dart';
-import "package:photos/gateways/files/files_gateway.dart";
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/file_load_result.dart";
 import "package:photos/models/freeable_space_info.dart";
 import "package:photos/models/metadata/file_magic.dart";
-import "package:photos/service_locator.dart";
 import 'package:photos/services/file_magic_service.dart';
 import "package:photos/services/ignored_files_service.dart";
 import "package:photos/ui/components/action_sheet_widget.dart";
@@ -26,8 +23,6 @@ class FilesService {
   late FilesDB _filesDB;
   late Configuration _config;
 
-  FilesGateway get _gateway => filesGateway;
-
   FilesService._privateConstructor() {
     _logger = Logger("FilesService");
     _filesDB = FilesDB.instance;
@@ -37,36 +32,12 @@ class FilesService {
   static final FilesService instance = FilesService._privateConstructor();
 
   Future<int> getFileSize(int uploadedFileID) async {
-    try {
-      return await _gateway.getFilesSize([uploadedFileID]);
-    } catch (e) {
-      _logger.severe(e);
-      rethrow;
-    }
+    final files = await _filesDB.getFilesFromIDs([uploadedFileID]);
+    return files.isEmpty ? 0 : (files.first.fileSize ?? 0);
   }
 
-  Future<bool> hasMigratedSizes() async {
-    try {
-      final List<int> uploadIDsWithMissingSize = await _filesDB
-          .getUploadIDsWithMissingSize(_config.getUserID()!);
-      if (uploadIDsWithMissingSize.isEmpty) {
-        return true;
-      }
-      await backFillSizes(uploadIDsWithMissingSize);
-      return true;
-    } catch (e, s) {
-      _logger.severe("error during has migrated sizes", e, s);
-      return Future.value(false);
-    }
-  }
-
-  Future<void> backFillSizes(List<int> uploadIDsWithMissingSize) async {
-    final batchedFiles = uploadIDsWithMissingSize.chunks(1000);
-    for (final batch in batchedFiles) {
-      final Map<int, int> uploadIdToSize = await getFilesSizeFromInfo(batch);
-      await _filesDB.updateSizeForUploadIDs(uploadIdToSize);
-    }
-  }
+  /// File sizes come with Filen's listing, so there is nothing to back fill.
+  Future<bool> hasMigratedSizes() async => true;
 
   Future<FreeableSpaceInfo> getFreeableSpaceInfo({String? pathID}) async {
     // PhotoManager cannot delete iCloud shared-album assets.
@@ -85,13 +56,7 @@ class FilesService {
         excludeLocalIDs: excludeLocalIDs,
       );
     }
-    late int size;
-    if (hasMigratedSize) {
-      size = ids.localSize;
-    } else {
-      size = await _getFileSize(ids.uploadedIDs);
-    }
-    return FreeableSpaceInfo(ids.localIDs, size);
+    return FreeableSpaceInfo(ids.localIDs, ids.localSize);
   }
 
   Future<List<AssetPathEntity>> _getICloudSharedAlbumPaths() async {
@@ -125,24 +90,6 @@ class FilesService {
   Future<Set<String>> getICloudSharedAlbumPathIDs() async {
     final paths = await _getICloudSharedAlbumPaths();
     return paths.map((p) => p.id).toSet();
-  }
-
-  Future<int> _getFileSize(List<int> fileIDs) async {
-    try {
-      return await _gateway.getFilesSize(fileIDs);
-    } catch (e) {
-      _logger.severe(e);
-      rethrow;
-    }
-  }
-
-  Future<Map<int, int>> getFilesSizeFromInfo(List<int> uploadedFileID) async {
-    try {
-      return await _gateway.getFilesInfo(uploadedFileID);
-    } catch (e, s) {
-      _logger.severe("failed to fetch size from fileInfo", e, s);
-      rethrow;
-    }
   }
 
   Future<void> bulkEditLocationData(

@@ -9,6 +9,7 @@ import "package:path_provider/path_provider.dart";
 import "package:photos/core/constants.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/location_tag_updated_event.dart";
+import "package:photos/filen/filen_assets.dart";
 import "package:photos/gateways/entity/models/type.dart";
 import "package:photos/models/base_location.dart";
 import "package:photos/models/file/file.dart";
@@ -183,6 +184,7 @@ class LocationService {
     final startTime = DateTime.now();
     try {
       final root = (await getApplicationSupportDirectory()).path;
+      await FilenAssets.seedLocation();
       _index = await rust.openLocationIndex(assetRoot: root);
       _logger.info(
         "Loaded location index in ${DateTime.now().difference(startTime).inMilliseconds}ms, reloadingDiscovery: $reloadLocationDiscoverySection",

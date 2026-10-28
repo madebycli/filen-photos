@@ -3,7 +3,6 @@ import "dart:async";
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import "package:hugeicons/hugeicons.dart";
 import "package:local_auth/local_auth.dart";
 import "package:logging/logging.dart";
@@ -12,11 +11,9 @@ import "package:photo_manager/photo_manager.dart";
 import 'package:photos/core/configuration.dart';
 import "package:photos/core/constants.dart";
 import "package:photos/core/event_bus.dart";
-import "package:photos/events/files_updated_event.dart";
 import "package:photos/events/force_reload_trash_page_event.dart";
 import "package:photos/events/guest_view_event.dart";
 import "package:photos/events/people_changed_event.dart";
-import 'package:photos/filen/filen_account.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/device_collection.dart';
 import "package:photos/models/file/extensions/file_props.dart";
@@ -46,7 +43,6 @@ import 'package:photos/ui/components/buttons/button_widget.dart';
 import 'package:photos/ui/components/models/button_type.dart';
 import 'package:photos/ui/notification/toast.dart';
 import "package:photos/ui/tools/collage/collage_creator_page.dart";
-import "package:photos/ui/viewer/actions/suggest_delete_sheet.dart";
 import "package:photos/ui/viewer/date/edit_date_sheet.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/location/update_location_data_widget.dart";
@@ -89,19 +85,9 @@ class _FileSelectionActionsWidgetState
   late int currentUserID;
   late FilesSplit split;
   late CollectionActions collectionActions;
-  late bool isCollectionOwner;
-  // Reuse the link while the selection is unchanged.
-  Collection? _cachedCollectionForSharedLink;
   final GlobalKey shareButtonKey = GlobalKey();
-  final GlobalKey sendLinkButtonKey = GlobalKey();
   final StreamController<double> _progressController =
       StreamController<double>();
-
-  bool get _canRemoveOthersFiles =>
-      widget.collection != null &&
-      CollectionsService.instance.canRemoveFilesFromAllParticipants(
-        widget.collection!,
-      );
 
   @override
   void initState() {
@@ -124,9 +110,6 @@ class _FileSelectionActionsWidgetState
   }
 
   void _selectFileChangeListener() {
-    if (_cachedCollectionForSharedLink != null) {
-      _cachedCollectionForSharedLink = null;
-    }
     split = FilesSplit.split(widget.selectedFiles.files, currentUserID);
     if (mounted) {
       setState(() => {});
@@ -141,15 +124,11 @@ class _FileSelectionActionsWidgetState
     final ownedFilesCount = split.ownedByCurrentUser.length;
     final ownedAndPendingUploadFilesCount =
         ownedFilesCount + split.pendingUploads.length;
-    final bool canRemoveOthersFiles = _canRemoveOthersFiles;
-    final int removeCount =
-        split.ownedByCurrentUser.length +
-        (canRemoveOthersFiles ? split.ownedByOtherUsers.length : 0);
+    final int removeCount = split.ownedByCurrentUser.length;
 
     final bool anyOwnedFiles =
         split.pendingUploads.isNotEmpty || split.ownedByCurrentUser.isNotEmpty;
-    final bool allOwnedFiles =
-        ownedAndPendingUploadFilesCount > 0 && split.ownedByOtherUsers.isEmpty;
+    final bool allOwnedFiles = ownedAndPendingUploadFilesCount > 0;
 
     final bool anyUploadedFiles = split.ownedByCurrentUser.isNotEmpty;
     final bool hasUploadedFileIDs = widget.selectedFiles.files.any(
@@ -161,19 +140,7 @@ class _FileSelectionActionsWidgetState
           (element) => element.fileType == FileType.video,
         );
     final showDownloadOption = hasUploadedFileIDs;
-    final bool isCollectionOwnerOrAdmin =
-        widget.collection != null &&
-        (widget.collection!.isOwner(currentUserID) ||
-            widget.collection!.isAdmin(currentUserID));
-    final bool canSuggestDeleteAction =
-        (widget.type == GalleryType.sharedCollection ||
-            widget.type == GalleryType.ownedCollection) &&
-        isCollectionOwnerOrAdmin &&
-        split.ownedByOtherUsers.isNotEmpty;
 
-    // Filen fork: sharing links, favorites, archive/hide, metadata edits and people tagging are
-    // Ente account features that need Ente's servers; they are not offered for Filen accounts.
-    final bool isFilen = FilenAccount.isActive;
     final List<SelectionSheetAction> items = [];
     if (widget.type == GalleryType.trash) {
       items.add(
@@ -200,65 +167,21 @@ class _FileSelectionActionsWidgetState
           isCritical: true,
         ),
       );
-    } else if (widget.type == GalleryType.deleteSuggestions) {
-      items.add(
-        SelectionSheetAction(
-          hugeIcon: HugeIcons.strokeRoundedDelete01,
-          labelText: context.strings.delete,
-          onTap: split.ownedByCurrentUser.isNotEmpty ? _onDeleteClick : null,
-          isCritical: true,
-        ),
-      );
-      items.add(
-        SelectionSheetAction(
-          hugeIcon: HugeIcons.strokeRoundedCancel01,
-          labelText: context.strings.rejectSuggestions,
-          onTap: widget.selectedFiles.files.isNotEmpty
-              ? _rejectDeleteSuggestions
-              : null,
-        ),
-      );
     } else {
-      if (widget.type != GalleryType.sharedPublicCollection) {
-        items.add(
-          SelectionSheetAction(
-            labelText: context.strings.share,
-            gridOrder: 0,
-            hugeIcon: HugeIcons.strokeRoundedShare08,
-            key: shareButtonKey,
-            onTap: _shareSelectedFiles,
-          ),
-        );
-      }
-
-      if (!isFilen && widget.type.showCreateLink()) {
-        if (_cachedCollectionForSharedLink != null && anyUploadedFiles) {
-          items.add(
-            SelectionSheetAction(
-              hugeIcon: HugeIcons.strokeRoundedCopy01,
-              labelText: context.strings.copyLink,
-              gridOrder: 1,
-              onTap: anyUploadedFiles ? _sendLink : null,
-            ),
-          );
-        } else {
-          items.add(
-            SelectionSheetAction(
-              hugeIcon: HugeIcons.strokeRoundedLink02,
-              labelText: context.strings.sendLink,
-              gridOrder: 1,
-              onTap: anyUploadedFiles ? _onSendLinkTapped : null,
-              shouldShow: ownedFilesCount > 0,
-              key: sendLinkButtonKey,
-            ),
-          );
-        }
-      }
+      items.add(
+        SelectionSheetAction(
+          labelText: context.strings.share,
+          gridOrder: 0,
+          hugeIcon: HugeIcons.strokeRoundedShare08,
+          key: shareButtonKey,
+          onTap: _shareSelectedFiles,
+        ),
+      );
 
       final showUploadIcon =
           widget.type == GalleryType.localFolder &&
           split.ownedByCurrentUser.isEmpty;
-      if (!isFilen && widget.type.showAddToAlbum() && !isLocalGalleryMode) {
+      if (widget.type.showAddToAlbum() && !isLocalGalleryMode) {
         if (showUploadIcon) {
           items.add(
             SelectionSheetAction(
@@ -280,7 +203,7 @@ class _FileSelectionActionsWidgetState
         }
       }
 
-      if (!isFilen && widget.type.showAddtoHiddenAlbum()) {
+      if (widget.type.showAddtoHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageAdd01,
@@ -302,7 +225,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showMovetoHiddenAlbum()) {
+      if (widget.type.showMovetoHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageUpload,
@@ -323,22 +246,12 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showRemoveFromHiddenAlbum()) {
+      if (widget.type.showRemoveFromHiddenAlbum()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedImageDelete01,
             labelText: context.strings.removeFromAlbum,
             onTap: _removeFilesFromHiddenAlbum,
-          ),
-        );
-      }
-
-      if (!isFilen && canSuggestDeleteAction) {
-        items.add(
-          SelectionSheetAction(
-            hugeIcon: HugeIcons.strokeRoundedFlag01,
-            labelText: context.strings.suggestDeletion,
-            onTap: _onSuggestDelete,
           ),
         );
       }
@@ -388,7 +301,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showFavoriteOption()) {
+      if (widget.type.showFavoriteOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedStar,
@@ -398,7 +311,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (!isFilen && widget.type.showUnFavoriteOption()) {
+      } else if (widget.type.showUnFavoriteOption()) {
         items.add(
           SelectionSheetAction(
             iconWidget: const Icon(Icons.star_rounded),
@@ -410,8 +323,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen &&
-          flagService.manualTagFileToPerson &&
+      if (flagService.manualTagFileToPerson &&
           widget.type.showAddToPersonOption()) {
         items.add(
           SelectionSheetAction(
@@ -423,9 +335,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen &&
-          widget.type == GalleryType.peopleTag &&
-          widget.person != null) {
+      if (widget.type == GalleryType.peopleTag && widget.person != null) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedUserRemove01,
@@ -446,9 +356,7 @@ class _FileSelectionActionsWidgetState
         }
       }
 
-      if (!isFilen &&
-          widget.type == GalleryType.cluster &&
-          widget.clusterID != null) {
+      if (widget.type == GalleryType.cluster && widget.clusterID != null) {
         items.add(
           SelectionSheetAction(
             labelText: context.strings.notThisPerson,
@@ -458,18 +366,16 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (widget.type != GalleryType.sharedPublicCollection) {
-        items.add(
-          SelectionSheetAction(
-            hugeIcon: HugeIcons.strokeRoundedGridView,
-            labelText: context.strings.createCollage,
-            onTap: _onCreateCollageClicked,
-            shouldShow: showCollageOption,
-          ),
-        );
-      }
+      items.add(
+        SelectionSheetAction(
+          hugeIcon: HugeIcons.strokeRoundedGridView,
+          labelText: context.strings.createCollage,
+          onTap: _onCreateCollageClicked,
+          shouldShow: showCollageOption,
+        ),
+      );
 
-      if (!isFilen && widget.type.showHideOption()) {
+      if (widget.type.showHideOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedViewOff,
@@ -479,7 +385,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (!isFilen && widget.type.showUnHideOption()) {
+      } else if (widget.type.showUnHideOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedView,
@@ -491,7 +397,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showArchiveOption()) {
+      if (widget.type.showArchiveOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedInboxDownload,
@@ -501,7 +407,7 @@ class _FileSelectionActionsWidgetState
             shouldShow: ownedFilesCount > 0,
           ),
         );
-      } else if (!isFilen && widget.type.showUnArchiveOption()) {
+      } else if (widget.type.showUnArchiveOption()) {
         items.add(
           SelectionSheetAction(
             hugeIcon: HugeIcons.strokeRoundedInboxUpload,
@@ -534,7 +440,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showBulkEditTime()) {
+      if (widget.type.showBulkEditTime()) {
         items.add(
           SelectionSheetAction(
             shouldShow: widget.selectedFiles.files.every(
@@ -555,7 +461,7 @@ class _FileSelectionActionsWidgetState
         );
       }
 
-      if (!isFilen && widget.type.showEditLocation()) {
+      if (widget.type.showEditLocation()) {
         items.add(
           SelectionSheetAction(
             shouldShow: widget.selectedFiles.files.any(
@@ -622,13 +528,9 @@ class _FileSelectionActionsWidgetState
   }
 
   Future<void> _moveFiles() async {
-    if (split.pendingUploads.isNotEmpty || split.ownedByOtherUsers.isNotEmpty) {
+    if (split.pendingUploads.isNotEmpty) {
       widget.selectedFiles.unSelectAll(
         split.pendingUploads.toSet(),
-        skipNotify: true,
-      );
-      widget.selectedFiles.unSelectAll(
-        split.ownedByOtherUsers.toSet(),
         skipNotify: true,
       );
     }
@@ -666,55 +568,6 @@ class _FileSelectionActionsWidgetState
     return showDeleteSheet(context, widget.selectedFiles, split);
   }
 
-  Future<void> _rejectDeleteSuggestions() async {
-    final fileIDs = widget.selectedFiles.files
-        .map((file) => file.uploadedFileID)
-        .whereType<int>()
-        .toSet()
-        .toList();
-    if (fileIDs.isEmpty) {
-      return;
-    }
-    try {
-      await CollectionsService.instance.rejectDeleteSuggestions(fileIDs);
-      widget.selectedFiles.clearAll();
-      Bus.instance.fire(
-        FilesUpdatedEvent(const [], source: "reject-delete-suggestions"),
-      );
-    } catch (e, s) {
-      _logger.warning("Failed to reject delete suggestions", e, s);
-      if (!mounted) return;
-      await showGenericErrorDialog(context: context, error: e);
-    }
-  }
-
-  Future<void> _onSuggestDelete() async {
-    if (widget.collection == null) {
-      return;
-    }
-    final List<EnteFile> filesToSuggest = split.ownedByOtherUsers
-        .where((file) => file.uploadedFileID != null)
-        .toList();
-    if (filesToSuggest.isEmpty) {
-      return;
-    }
-    final didSuggestDelete = await showSuggestDeleteSheet(
-      context: context,
-      onConfirm: () async {
-        await CollectionsService.instance.suggestDeleteFromCollection(
-          widget.collection!.id,
-          filesToSuggest,
-        );
-      },
-    );
-    if (didSuggestDelete) {
-      widget.selectedFiles.clearAll();
-      if (mounted) {
-        setState(() => {});
-      }
-    }
-  }
-
   Future<void> _removeFilesFromAlbum() async {
     if (split.pendingUploads.isNotEmpty) {
       widget.selectedFiles.unSelectAll(
@@ -722,19 +575,10 @@ class _FileSelectionActionsWidgetState
         skipNotify: true,
       );
     }
-    if (!_canRemoveOthersFiles && split.ownedByOtherUsers.isNotEmpty) {
-      widget.selectedFiles.unSelectAll(
-        split.ownedByOtherUsers.toSet(),
-        skipNotify: true,
-      );
-    }
-    final bool removingOthersFile =
-        _canRemoveOthersFiles && split.ownedByOtherUsers.isNotEmpty;
     await collectionActions.showRemoveFromCollectionSheetV2(
       context,
       widget.collection!,
       widget.selectedFiles,
-      removingOthersFile,
     );
   }
 
@@ -743,7 +587,6 @@ class _FileSelectionActionsWidgetState
       context,
       widget.collection!,
       widget.selectedFiles,
-      false,
       isHidden: true,
     );
   }
@@ -904,13 +747,9 @@ class _FileSelectionActionsWidgetState
   }
 
   Future<void> _onUnhideClick() async {
-    if (split.pendingUploads.isNotEmpty || split.ownedByOtherUsers.isNotEmpty) {
+    if (split.pendingUploads.isNotEmpty) {
       widget.selectedFiles.unSelectAll(
         split.pendingUploads.toSet(),
-        skipNotify: true,
-      );
-      widget.selectedFiles.unSelectAll(
-        split.ownedByOtherUsers.toSet(),
         skipNotify: true,
       );
     }
@@ -931,56 +770,15 @@ class _FileSelectionActionsWidgetState
     }
   }
 
-  Future<void> _onSendLinkTapped() async {
-    if (split.ownedByCurrentUser.isEmpty) {
-      showShortToast(
-        context,
-        context.strings.canOnlyCreateLinkForFilesOwnedByYou,
-      );
-      return;
-    }
-    final dialog = createProgressDialog(
-      context,
-      context.strings.creatingLink,
-      isDismissible: true,
-    );
-    await dialog.show();
-    if (!mounted) {
-      await dialog.hide();
-      return;
-    }
-    _cachedCollectionForSharedLink ??= await collectionActions
-        .createSharedCollectionLink(context, split.ownedByCurrentUser);
-
-    if (!mounted) {
-      await dialog.hide();
-      return;
-    }
-    if (_cachedCollectionForSharedLink == null) {
-      await dialog.hide();
-      return;
-    }
-    await dialog.hide();
-    if (!mounted) return;
-    await _sendLink();
-    if (!mounted) return;
-    widget.selectedFiles.clearAll();
-    setState(() => {});
-  }
-
   Future<void> _setPersonCover() async {
     final EnteFile file = widget.selectedFiles.files.first;
-    final result = await PersonService.instance.updateAvatar(
+    final updatedPerson = await PersonService.instance.updateAvatar(
       widget.person!,
       file,
     );
-    final updatedPerson = result.person;
     widget.selectedFiles.clearAll();
     if (mounted) {
       setState(() => {});
-      if (result.contactPictureUpdateFailed) {
-        showShortToast(context, "Failed to update contact picture");
-      }
     }
     Bus.instance.fire(
       PeopleChangedEvent(
@@ -1074,20 +872,6 @@ class _FileSelectionActionsWidgetState
     widget.selectedFiles.clearAll();
     if (mounted) {
       setState(() => {});
-    }
-  }
-
-  Future<void> _sendLink() async {
-    if (_cachedCollectionForSharedLink != null) {
-      final String url = CollectionsService.instance.getPublicUrl(
-        _cachedCollectionForSharedLink!,
-      );
-      unawaited(Clipboard.setData(ClipboardData(text: url)));
-      await shareLinkWithDescription(
-        url,
-        context: context,
-        key: sendLinkButtonKey,
-      );
     }
   }
 
@@ -1224,66 +1008,46 @@ class _FileSelectionActionsWidgetState
       if (!await ensurePhotoLibraryAddPermission(context)) return;
       if (!mounted) return;
 
-      if (flagService.internalUser) {
-        try {
-          final enqueueResult = await galleryDownloadQueueService.enqueueFiles(
-            filesToDownload,
-            persistToFilesDB: widget.type != GalleryType.sharedPublicCollection,
-          );
-          addedToQueueCount = enqueueResult.addedCount;
-        } catch (e) {
-          _logger.warning("Failed to enqueue files for download", e);
-          if (!mounted) return;
-          await showGenericErrorDialog(context: context, error: e);
-          return;
-        }
-      } else {
-        final totalFiles = filesToDownload.length;
-        int downloadedFiles = 0;
-        final downloadingMessage = l10n.downloading;
+      final totalFiles = filesToDownload.length;
+      int downloadedFiles = 0;
+      final downloadingMessage = l10n.downloading;
 
-        final dialog = createProgressDialog(
-          context,
-          "$downloadingMessage ($downloadedFiles/$totalFiles)",
-          isDismissible: true,
-        );
-        final didShowDialog = await dialog.show();
-        try {
-          final taskQueue = SimpleTaskQueue(maxConcurrent: 5);
-          final futures = <Future>[];
-          for (final file in filesToDownload) {
-            futures.add(
-              taskQueue.add(() async {
-                await downloadToGallery(
-                  file,
-                  persistToFilesDB:
-                      widget.type != GalleryType.sharedPublicCollection,
+      final dialog = createProgressDialog(
+        context,
+        "$downloadingMessage ($downloadedFiles/$totalFiles)",
+        isDismissible: true,
+      );
+      final didShowDialog = await dialog.show();
+      try {
+        final taskQueue = SimpleTaskQueue(maxConcurrent: 5);
+        final futures = <Future>[];
+        for (final file in filesToDownload) {
+          futures.add(
+            taskQueue.add(() async {
+              await downloadToGallery(file);
+              downloadedFiles++;
+              if (didShowDialog) {
+                dialog.update(
+                  message: "$downloadingMessage ($downloadedFiles/$totalFiles)",
                 );
-                downloadedFiles++;
-                if (didShowDialog) {
-                  dialog.update(
-                    message:
-                        "$downloadingMessage ($downloadedFiles/$totalFiles)",
-                  );
-                }
-              }),
-            );
-          }
-          await Future.wait(futures);
-          addedToQueueCount = downloadedFiles;
-          if (didShowDialog) {
-            await dialog.hide();
-          }
-        } catch (e, s) {
-          _logger.warning("Failed to save files", e, s);
-          if (didShowDialog) {
-            await dialog.hide();
-          }
-          if (mounted) {
-            await showGenericErrorDialog(context: context, error: e);
-          }
-          return;
+              }
+            }),
+          );
         }
+        await Future.wait(futures);
+        addedToQueueCount = downloadedFiles;
+        if (didShowDialog) {
+          await dialog.hide();
+        }
+      } catch (e, s) {
+        _logger.warning("Failed to save files", e, s);
+        if (didShowDialog) {
+          await dialog.hide();
+        }
+        if (mounted) {
+          await showGenericErrorDialog(context: context, error: e);
+        }
+        return;
       }
     }
 
@@ -1304,9 +1068,7 @@ class _FileSelectionActionsWidgetState
       showToast(context, finalMessage, iosLongToastLengthInSec: 4);
     }
 
-    if (!flagService.internalUser &&
-        skippedFilesCount == 0 &&
-        addedToQueueCount > 0) {
+    if (skippedFilesCount == 0 && addedToQueueCount > 0) {
       showToast(
         context,
         context.strings.filesSavedToGallery,

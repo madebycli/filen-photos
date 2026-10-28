@@ -4,14 +4,12 @@ import "package:ente_components/ente_components.dart";
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
-import "package:logging/logging.dart";
 import "package:photos/models/backup/backup_item.dart";
 import "package:photos/models/backup/backup_item_status.dart";
 import "package:photos/module/upload/service/file_uploader.dart";
 import 'package:photos/theme/ente_theme.dart';
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/file/thumbnail_widget.dart";
-import "package:photos/utils/email_util.dart";
 
 class BackupItemCard extends StatefulWidget {
   const BackupItemCard({super.key, required this.item});
@@ -25,7 +23,6 @@ class BackupItemCard extends StatefulWidget {
 class _BackupItemCardState extends State<BackupItemCard> {
   String? folderName;
   bool showThumbnail = false;
-  final _logger = Logger("BackupItemCard");
 
   @override
   void initState() {
@@ -143,24 +140,6 @@ class _BackupItemCardState extends State<BackupItemCard> {
                         message: context.strings.sorryBackupFailedDesc,
                         illustration: Image.asset("assets/warning-grey.png"),
                         actions: [
-                          ButtonComponent(
-                            label: context.strings.contactSupport,
-                            onTap: () async {
-                              _logger.warning(
-                                "Backup failed for ${widget.item.file.displayName}",
-                                widget.item.error,
-                              );
-                              await sendLogs(
-                                context,
-                                context.strings.contactSupport,
-                                "support@ente.com",
-                                postShare: () {},
-                              );
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                          ),
                           ButtonComponent(
                             label: context.strings.ok,
                             variant: ButtonComponentVariant.secondary,

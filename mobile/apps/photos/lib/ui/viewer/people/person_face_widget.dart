@@ -5,12 +5,10 @@ import "package:ente_ui/components/loading_widget.dart";
 import "package:flutter/foundation.dart" show kDebugMode;
 import "package:flutter/material.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/db/files_db.dart";
 import "package:photos/db/ml/db.dart";
 import "package:photos/db/offline_files_db.dart";
-import "package:photos/events/contacts_changed_event.dart";
 import "package:photos/events/people_changed_event.dart";
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/ml/face/face.dart";
@@ -18,11 +16,8 @@ import "package:photos/models/ml/face/person.dart";
 import "package:photos/service_locator.dart" show isLocalGalleryMode;
 import "package:photos/services/machine_learning/face_ml/person/person_service.dart";
 import "package:photos/services/machine_learning/ml_result.dart";
-import "package:photos/services/photos_contacts_service.dart";
 import "package:photos/services/search_service.dart";
 import "package:photos/theme/ente_theme.dart";
-import "package:photos/utils/avatar_util.dart";
-import "package:photos/utils/contact_string_util.dart";
 import "package:photos/utils/face/face_thumbnail_cache.dart";
 
 final _logger = Logger("PersonFaceWidget");
@@ -68,15 +63,11 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
     with AutomaticKeepAliveClientMixin {
   Future<Uint8List?>? faceCropFuture;
   int? _faceCropFileId;
-  AvatarIdentity? _personIdentity;
   bool _showingFallback = false;
   bool _faceCropFailed = false;
   bool _fallbackEverUsed = false;
-  bool _personHasContactLink = false;
-  int? _linkedContactUserId;
   int _loadGeneration = 0;
   int _faceCropRetryRevision = 0;
-  StreamSubscription<ContactsChangedEvent>? _contactsChangedSubscription;
   StreamSubscription<PeopleChangedEvent>? _peopleChangedSubscription;
 
   bool get isPerson => widget.personId != null;
@@ -87,9 +78,6 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
   @override
   void initState() {
     super.initState();
-    _contactsChangedSubscription = Bus.instance
-        .on<ContactsChangedEvent>()
-        .listen(_onContactsChanged);
     _peopleChangedSubscription = Bus.instance.on<PeopleChangedEvent>().listen((
       event,
     ) {
@@ -106,9 +94,6 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
     if (oldWidget.personId != widget.personId ||
         oldWidget.clusterID != widget.clusterID ||
         oldWidget.useFullFile != widget.useFullFile) {
-      _personHasContactLink = false;
-      _linkedContactUserId = null;
-      _personIdentity = null;
       faceCropFuture = _startFaceCropLoad();
     } else if (widget.retryKey != null &&
         oldWidget.retryKey != widget.retryKey) {
@@ -119,7 +104,6 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
 
   @override
   void dispose() {
-    _contactsChangedSubscription?.cancel();
     _peopleChangedSubscription?.cancel();
     if (_faceCropFileId != null) {
       checkStopTryingToGenerateFaceThumbnails(
@@ -134,22 +118,6 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
       }
     }
     super.dispose();
-  }
-
-  void _onContactsChanged(ContactsChangedEvent event) {
-    if (!isPerson || !mounted) {
-      return;
-    }
-    if (!_personHasContactLink && _linkedContactUserId == null) {
-      return;
-    }
-    if (event.contactUserIds == null ||
-        _linkedContactUserId == null ||
-        event.matchesContactUserId(_linkedContactUserId)) {
-      setState(() {
-        faceCropFuture = _startFaceCropLoad();
-      });
-    }
   }
 
   @override
@@ -217,7 +185,7 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
             "faceCropFuture is null, no cover face found for person or cluster.",
           );
         }
-        return _EmptyPersonThumbnail(identity: _personIdentity);
+        return const _EmptyPersonThumbnail();
       },
     );
   }
@@ -317,35 +285,7 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
         if (!_isCurrentLoad(generation)) {
           return null;
         }
-        _personHasContactLink = _hasContactLink(personEntity);
-        final contactPhotoBytes = await _getLinkedContactPhotoBytes(
-          personEntity,
-          generation: generation,
-        );
-        if (!_isCurrentLoad(generation)) {
-          return null;
-        }
-        final personData = personEntity.data;
-        final contact = PhotosContactsService.instance.getCachedContact(
-          contactUserId: personData.userID,
-          email: personData.email,
-        );
-        _personIdentity = AvatarIdentity.account(
-          label: trimToNull(contact?.name) ?? personData.name,
-          email: trimToNull(contact?.email) ?? personData.email,
-          userID: personData.userID,
-          personID: personEntity.remoteID,
-          currentUserID: Configuration.instance.getUserID(),
-          currentUserEmail: Configuration.instance.getEmail(),
-        );
-        if (contactPhotoBytes != null) {
-          return contactPhotoBytes;
-        }
         fixedFaceID = personEntity.data.avatarFaceID;
-      } else {
-        _personHasContactLink = false;
-        _linkedContactUserId = null;
-        _personIdentity = null;
       }
       final tryInMemoryCachedCrop = checkInMemoryCachedCropForPersonOrClusterID(
         personOrClusterId,
@@ -535,77 +475,21 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
   }
 
   bool _isCurrentLoad(int generation) => _loadGeneration == generation;
-
-  bool _hasContactLink(PersonEntity personEntity) {
-    final userId = personEntity.data.userID;
-    final email = personEntity.data.email?.trim();
-    return (userId != null && userId > 0) ||
-        (email != null && email.isNotEmpty);
-  }
-
-  Future<Uint8List?> _getLinkedContactPhotoBytes(
-    PersonEntity personEntity, {
-    required int generation,
-  }) async {
-    if (!_personHasContactLink) {
-      _linkedContactUserId = null;
-      return null;
-    }
-    final contact = await PhotosContactsService.instance.getContact(
-      contactUserId: personEntity.data.userID,
-      email: personEntity.data.email,
-    );
-    if (!_isCurrentLoad(generation)) {
-      return null;
-    }
-    _linkedContactUserId = contact?.contactUserId ?? personEntity.data.userID;
-    if (contact == null) {
-      return null;
-    }
-    return PhotosContactsService.instance.getProfilePictureBytesByUserId(
-      contact.contactUserId,
-    );
-  }
 }
 
 class _EmptyPersonThumbnail extends StatelessWidget {
-  final AvatarIdentity? identity;
-
-  const _EmptyPersonThumbnail({this.identity});
+  const _EmptyPersonThumbnail();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = getEnteColorScheme(context);
-    final textTheme = getEnteTextTheme(context);
-    final hasIdentity = identity != null;
     return Container(
       decoration: BoxDecoration(
-        color: hasIdentity
-            ? avatarBackgroundColor(context, identity!)
-            : colorScheme.fillFaint,
+        color: colorScheme.fillFaint,
         border: Border.all(color: colorScheme.strokeFaint, width: 1),
       ),
       child: Center(
-        child: hasIdentity
-            ? LayoutBuilder(
-                builder: (context, constraints) {
-                  final shortestSide = constraints.biggest.shortestSide.isFinite
-                      ? constraints.biggest.shortestSide
-                      : 0;
-                  final fontSize = shortestSide > 0
-                      ? shortestSide * 0.42
-                      : textTheme.h2.fontSize ?? 24;
-                  return Text(
-                    identity!.initials,
-                    style: textTheme.h2Bold.copyWith(
-                      color: Colors.white,
-                      fontSize: fontSize,
-                      height: 1,
-                    ),
-                  );
-                },
-              )
-            : Icon(Icons.person_outline, color: colorScheme.strokeMuted),
+        child: Icon(Icons.person_outline, color: colorScheme.strokeMuted),
       ),
     );
   }

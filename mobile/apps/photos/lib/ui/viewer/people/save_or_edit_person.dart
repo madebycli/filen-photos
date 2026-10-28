@@ -5,7 +5,6 @@ import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/ente_theme_data.dart";
 import "package:photos/events/people_changed_event.dart";
@@ -26,9 +25,7 @@ import "package:photos/ui/viewer/people/face_thumbnail_squircle.dart";
 import "package:photos/ui/viewer/people/merge_clusters_to_person_sheet.dart";
 import "package:photos/ui/viewer/people/person_clusters_page.dart";
 import "package:photos/ui/viewer/people/person_face_widget.dart";
-import "package:photos/utils/contact_string_util.dart";
 import "package:photos/utils/dialog_util.dart";
-import "package:photos/utils/person_contact_linking_util.dart";
 
 class SaveOrEditPerson extends StatefulWidget {
   final String? clusterID;
@@ -56,9 +53,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
   String _inputName = "";
   String? _selectedDate;
   bool _isBirthdayValid = true;
-  String? _email;
-  bool _isMe = false;
-  bool _isMeAssignedToAnotherPerson = true;
   bool _isPinned = false;
   bool _hideFromMemories = false;
   bool userAlreadyAssigned = false;
@@ -69,42 +63,12 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
   List<PersonEntity> _allPersons = [];
   List<GenericSearchResult> _mergeablePersons = [];
 
-  String? get _emailToSave => trimToNull(_email);
-
-  int? get _currentUserIDToSave =>
-      currentUserIDForContactLinkEmail(_emailToSave);
-
-  bool get _initiallyIsMe => isCurrentUserContactLink(
-    email: widget.person?.data.email,
-    userID: widget.person?.data.userID,
-  );
-
-  bool get _isMeChanged => widget.isEditing && _isMe != _initiallyIsMe;
-
-  bool get _contactLinkEmailChanged =>
-      widget.isEditing && _emailToSave != trimToNull(person?.data.email);
-
-  bool get _shouldClearContactUserID =>
-      person?.data.userID != null &&
-      ((_isMeChanged && !_isMe) ||
-          (_contactLinkEmailChanged && _currentUserIDToSave == null));
-
-  bool get _shouldSetCurrentUserID =>
-      widget.isEditing &&
-      _currentUserIDToSave != null &&
-      person?.data.userID != _currentUserIDToSave;
-
-  bool get _shouldUpdateContactUserID =>
-      _shouldClearContactUserID || _shouldSetCurrentUserID;
-
   @override
   void initState() {
     super.initState();
     _inputName = widget.person?.data.name ?? "";
     _selectedDate = widget.person?.data.birthDate;
-    _email = widget.person?.data.email;
     person = widget.person;
-    _isMe = _initiallyIsMe;
     _isPinned = widget.person?.data.isPinned ?? false;
     _hideFromMemories = widget.person?.data.hideFromMemories ?? false;
     _nameFocsNode.addListener(_handleNameFocusChange);
@@ -208,18 +172,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
                                       ),
                                     ),
                             ),
-                            if (_showThisIsMe) ...[
-                              const SizedBox(height: Spacing.sm),
-                              LabeledControlComponent(
-                                control: CheckboxComponent(
-                                  selected: _isMe,
-                                  onChanged: _setIsMe,
-                                ),
-                                label: context.strings.thisIsMeExclamation,
-                                foreground: colors.textLighter,
-                                onTap: () => _setIsMe(!_isMe),
-                              ),
-                            ],
                             const SizedBox(height: Spacing.xxl),
                             _buildBirthdayInput(),
                             if (widget.isEditing) ...[
@@ -260,10 +212,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
       ),
     );
   }
-
-  bool get _showThisIsMe =>
-      Configuration.instance.getEmail() != null &&
-      (_isMe || !_isMeAssignedToAnotherPerson);
 
   Widget _buildAvatar() {
     const size = 108.0;
@@ -330,17 +278,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
     );
   }
 
-  void _setIsMe(bool selected) {
-    setState(() {
-      _isMe = selected;
-      _email = selected
-          ? Configuration.instance.getEmail()
-          : _initiallyIsMe
-          ? null
-          : widget.person?.data.email;
-    });
-  }
-
   Future<void> _savePerson() async {
     if (widget.isEditing) {
       final updatedPersonEntity = await updatePerson(context);
@@ -354,7 +291,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
       text: _inputName,
       clusterID: widget.clusterID!,
       birthdate: _selectedDate,
-      email: _email,
     );
     if (newPersonEntity != null && mounted) {
       Navigator.pop(context, newPersonEntity);
@@ -410,14 +346,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
     }
     setState(() {
       _allPersons = persons;
-      _isMeAssignedToAnotherPerson = persons.any(
-        (candidate) =>
-            candidate.remoteID != person?.remoteID &&
-            isCurrentUserContactLink(
-              email: candidate.data.email,
-              userID: candidate.data.userID,
-            ),
-      );
     });
     if (!widget.isEditing) {
       final mergeablePersons = await loadMergeablePersons();
@@ -549,7 +477,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
                   text: _inputName,
                   clusterID: widget.clusterID!,
                   birthdate: _selectedDate,
-                  email: _email,
                 );
               } catch (e) {
                 _logger.severe("Error updating person", e);
@@ -590,24 +517,7 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
     String text = '',
     required String clusterID,
     String? birthdate,
-    String? email,
   }) async {
-    if (email != null && email.isNotEmpty) {
-      final linkedPerson = await findPersonLinkedToEmail(email);
-      if (linkedPerson != null) {
-        _logger.severe(
-          "Failed to addNewPerson, email is already assigned to a person",
-        );
-        if (!context.mounted) return null;
-        await showAlreadyLinkedEmailDialog(
-          context,
-          email,
-          linkedPerson: linkedPerson,
-        );
-        return null;
-      }
-    }
-
     try {
       if (userAlreadyAssigned) {
         return null;
@@ -622,8 +532,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
         isPinned: _isPinned,
         hideFromMemories: _hideFromMemories,
         birthdate: birthdate,
-        email: email,
-        userID: currentUserIDForContactLinkEmail(email),
       );
       final bool extraPhotosFound =
           await ClusterFeedbackService.instance.checkAndDoAutomaticMerges(
@@ -654,8 +562,6 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
   bool get changed => widget.isEditing
       ? (_inputName.trim() != person!.data.name ||
             _selectedDate != person!.data.birthDate ||
-            _emailToSave != trimToNull(person!.data.email) ||
-            _isMeChanged ||
             _isPinned != person!.data.isPinned ||
             _hideFromMemories != person!.data.hideFromMemories)
       : _inputName.trim().isNotEmpty;
@@ -665,46 +571,15 @@ class _SaveOrEditPersonState extends State<SaveOrEditPerson> {
 
   Future<PersonEntity?> updatePerson(BuildContext context) async {
     try {
-      final emailToSave = _emailToSave;
-      if (emailToSave != null &&
-          emailToSave != trimToNull(person!.data.email)) {
-        final linkedPerson = await findPersonLinkedToEmail(
-          emailToSave,
-          excludedPersonId: person!.remoteID,
-        );
-        if (linkedPerson != null) {
-          if (!context.mounted) return null;
-          await showAlreadyLinkedEmailDialog(
-            context,
-            emailToSave,
-            linkedPerson: linkedPerson,
-          );
-          return null;
-        }
-      }
       final String name = _inputName.trim();
       final String? birthDate = _selectedDate;
-      final userIDToSave = _shouldClearContactUserID
-          ? null
-          : _currentUserIDToSave;
-      final personEntity = _shouldUpdateContactUserID
-          ? await PersonService.instance.updateAttributes(
-              person!.remoteID,
-              name: name,
-              birthDate: birthDate,
-              isPinned: _isPinned,
-              hideFromMemories: _hideFromMemories,
-              email: emailToSave,
-              userID: userIDToSave,
-            )
-          : await PersonService.instance.updateAttributes(
-              person!.remoteID,
-              name: name,
-              birthDate: birthDate,
-              isPinned: _isPinned,
-              hideFromMemories: _hideFromMemories,
-              email: emailToSave,
-            );
+      final personEntity = await PersonService.instance.updateAttributes(
+        person!.remoteID,
+        name: name,
+        birthDate: birthDate,
+        isPinned: _isPinned,
+        hideFromMemories: _hideFromMemories,
+      );
 
       Bus.instance.fire(
         PeopleChangedEvent(

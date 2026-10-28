@@ -6,8 +6,6 @@ import "package:flutter/material.dart";
 import "package:logging/logging.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/collection_updated_event.dart";
-import "package:photos/events/contact_relationships_invalidated_event.dart";
-import "package:photos/events/contacts_changed_event.dart";
 import "package:photos/events/event.dart";
 import "package:photos/events/location_tag_updated_event.dart";
 import "package:photos/events/magic_cache_updated_event.dart";
@@ -23,7 +21,6 @@ import "package:photos/ui/viewer/gallery/collection_page.dart";
 import "package:photos/ui/viewer/location/add_location_sheet.dart";
 import "package:photos/ui/viewer/location/pick_center_point_widget.dart";
 import "package:photos/utils/dialog_util.dart";
-import "package:photos/utils/share_util.dart";
 
 const _kSearchPreviewFallbackClusterSize = 3;
 
@@ -31,7 +28,6 @@ enum ResultType {
   collection,
   deviceCollection,
   file,
-  uploader,
   location,
   locationSuggestion,
   month,
@@ -40,7 +36,6 @@ enum ResultType {
   fileExtension,
   fileCaption,
   event,
-  shared,
   faces,
   magic,
   cameraMake,
@@ -54,7 +49,6 @@ enum SectionType {
   wrapped,
   location,
   album,
-  contacts,
   fileTypesAndExtension,
 }
 
@@ -71,8 +65,6 @@ extension SectionTypeExtensions on SectionType {
         return context.strings.locations;
       case SectionType.ritual:
         return context.strings.ritualsTitle;
-      case SectionType.contacts:
-        return context.strings.contacts;
       case SectionType.album:
         return context.strings.albums;
       case SectionType.fileTypesAndExtension:
@@ -92,8 +84,6 @@ extension SectionTypeExtensions on SectionType {
         return context.strings.searchLocationEmptySection;
       case SectionType.ritual:
         return context.strings.ritualSearchEmpty;
-      case SectionType.contacts:
-        return context.strings.searchPeopleEmptySection;
       case SectionType.album:
         return context.strings.searchAlbumsEmptySection;
       case SectionType.fileTypesAndExtension:
@@ -110,7 +100,6 @@ extension SectionTypeExtensions on SectionType {
       case SectionType.fileTypesAndExtension:
         return false;
       case SectionType.location:
-      case SectionType.contacts:
       case SectionType.album:
         return true;
     }
@@ -120,8 +109,7 @@ extension SectionTypeExtensions on SectionType {
       this != SectionType.face &&
       this != SectionType.magic &&
       this != SectionType.wrapped &&
-      this != SectionType.ritual &&
-      this != SectionType.contacts;
+      this != SectionType.ritual;
 
   bool get isEmptyCTAVisible {
     switch (this) {
@@ -132,7 +120,6 @@ extension SectionTypeExtensions on SectionType {
       case SectionType.fileTypesAndExtension:
         return false;
       case SectionType.location:
-      case SectionType.contacts:
       case SectionType.album:
         return true;
     }
@@ -152,8 +139,6 @@ extension SectionTypeExtensions on SectionType {
         return context.strings.addNew;
       case SectionType.ritual:
         return "";
-      case SectionType.contacts:
-        return context.strings.invite;
       case SectionType.album:
         return context.strings.addNew;
       case SectionType.fileTypesAndExtension:
@@ -173,8 +158,6 @@ extension SectionTypeExtensions on SectionType {
         return Icons.add_location_alt_outlined;
       case SectionType.ritual:
         return null;
-      case SectionType.contacts:
-        return Icons.adaptive.share;
       case SectionType.album:
         return Icons.add;
       case SectionType.fileTypesAndExtension:
@@ -184,10 +167,6 @@ extension SectionTypeExtensions on SectionType {
 
   FutureVoidCallback ctaOnTap(BuildContext context) {
     switch (this) {
-      case SectionType.contacts:
-        return () async {
-          await shareText(context.strings.shareTextRecommendUsingEnteForPhotos);
-        };
       case SectionType.location:
         return () async {
           final centerPoint = await showPickCenterPointSheet(context);
@@ -274,9 +253,6 @@ extension SectionTypeExtensions on SectionType {
       case SectionType.ritual:
         return Future.value(const <SearchResult>[]);
 
-      case SectionType.contacts:
-        return SearchService.instance.getAllContactsSearchResults(limit);
-
       case SectionType.album:
         return SearchService.instance.getAllCollectionSearchResults(limit);
 
@@ -300,12 +276,6 @@ extension SectionTypeExtensions on SectionType {
         return [Bus.instance.on<CollectionUpdatedEvent>()];
       case SectionType.face:
         return [Bus.instance.on<PeopleChangedEvent>()];
-      case SectionType.contacts:
-        return [
-          Bus.instance.on<ContactRelationshipsInvalidatedEvent>(),
-          Bus.instance.on<PeopleChangedEvent>(),
-          Bus.instance.on<ContactsChangedEvent>(),
-        ];
       default:
         return [];
     }
@@ -321,12 +291,6 @@ extension SectionTypeExtensions on SectionType {
         return [];
       case SectionType.ritual:
         return [];
-      case SectionType.contacts:
-        return [
-          Bus.instance.on<ContactRelationshipsInvalidatedEvent>(),
-          Bus.instance.on<PeopleChangedEvent>(),
-          Bus.instance.on<ContactsChangedEvent>(),
-        ];
       default:
         return [];
     }

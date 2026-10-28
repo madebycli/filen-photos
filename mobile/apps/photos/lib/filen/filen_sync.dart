@@ -1,6 +1,5 @@
-import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:ente_crypto/ente_crypto.dart';
 import 'package:filen_sdk/filen_sdk.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
@@ -21,7 +20,6 @@ import 'package:photos/filen/filen_state.dart';
 import 'package:photos/filen/state/blob_store.dart';
 import 'package:photos/filen/state/collection_store.dart';
 import 'package:photos/filen/state/meta_store.dart';
-import 'package:photos/gateways/collections/models/create_request.dart';
 import 'package:photos/gateways/trash/models/trash_item_request.dart';
 import 'package:photos/models/api/collection/user.dart';
 import 'package:photos/models/collection/collection.dart';
@@ -48,6 +46,10 @@ class FilenSyncService {
   String? _rootUuid;
   Map<String, FilenFile> _filesByUuid = {};
   final Map<int, String> _collectionUuids = {};
+
+  /// Photos of this device that still wait for their upload, per collection; loaded once per
+  /// listing and used to recognise photos that are on Filen already.
+  Map<int, List<EnteFile>>? _pendingLocals;
 
   /// False when the state folder could not be read in the current sync: then nothing derived from
   /// it (membership, metadata) may be treated as "gone".
@@ -104,6 +106,7 @@ class FilenSyncService {
       'in ${watch.elapsedMilliseconds} ms',
     );
     _tree = tree;
+    _pendingLocals = null;
     _rootUuid = rootUuid;
     _filesByUuid = {for (final f in tree.files) f.uuid: f};
 
@@ -254,53 +257,19 @@ class FilenSyncService {
     return c;
   }
 
-  /// Creates the collection described by one of Ente's create requests. Ente builds them with the
-  /// local master key; here they are only unpacked again, nothing is sent anywhere.
-  Future<Collection> createCollectionFromRequest(CreateRequest req) async {
-    final masterKey = Configuration.instance.getKey()!;
-    final collectionKey = CryptoUtil.decryptSync(
-      CryptoUtil.base642bin(req.encryptedKey),
-      masterKey,
-      CryptoUtil.base642bin(req.keyDecryptionNonce),
+  /// The photo library root as the Uncategorized collection (it always exists).
+  Future<Collection> libraryRootCollection() async {
+    final rootUuid = _rootUuid ?? await FilenAccount.instance.photosRootUuid();
+    final c = filenDirToCollection(
+      uuid: rootUuid,
+      name: kFilenPhotosRootName,
+      isLibraryRoot: true,
+      owner: _owner,
+      updationTime: DateTime.now().microsecondsSinceEpoch,
     );
-    final name = utf8.decode(
-      CryptoUtil.decryptSync(
-        CryptoUtil.base642bin(req.encryptedName),
-        collectionKey,
-        CryptoUtil.base642bin(req.nameDecryptionNonce),
-      ),
-    );
-    String? magicMetadataJson;
-    final mmd = req.magicMetadata;
-    if (mmd != null) {
-      magicMetadataJson = utf8.decode(
-        await CryptoUtil.decryptChaCha(
-          CryptoUtil.base642bin(mmd.data!),
-          collectionKey,
-          CryptoUtil.base642bin(mmd.header!),
-        ),
-      );
-    }
-    if (req.type == CollectionType.uncategorized) {
-      // The library root is the Uncategorized collection and always exists.
-      final rootUuid =
-          _rootUuid ?? await FilenAccount.instance.photosRootUuid();
-      final c = filenDirToCollection(
-        uuid: rootUuid,
-        name: kFilenPhotosRootName,
-        isLibraryRoot: true,
-        owner: _owner,
-        updationTime: DateTime.now().microsecondsSinceEpoch,
-      );
-      _collectionUuids[c.id] = rootUuid;
-      await _cache(c);
-      return c;
-    }
-    return createVirtualCollection(
-      name: name,
-      type: req.type,
-      magicMetadataJson: magicMetadataJson,
-    );
+    _collectionUuids[c.id] = rootUuid;
+    await _cache(c);
+    return c;
   }
 
   /// "Add to album" (and favorites): the photos stay where they are and become members of the
@@ -611,6 +580,7 @@ class FilenSyncService {
     final updated = <EnteFile>[];
     final seen = <int>{};
     var queuedForUpload = 0;
+    var linkedToLocal = 0;
     for (final f in candidates.values) {
       final id = filenUuidToId(f.uuid);
       final existing = existingRows[id];
@@ -623,11 +593,21 @@ class FilenSyncService {
       if (mapped == null) {
         continue;
       }
+      // A photo of this device that was backed up before (reinstall, second sign-in) must not
+      // show up a second time: the Filen file takes over the local row.
+      final EnteFile? local = existing == null
+          ? await _takeLocalMatch(collectionID, f, mapped)
+          : null;
+      if (local != null) {
+        mapped.localID = local.localID;
+        mapped.deviceFolder = local.deviceFolder;
+        linkedToLocal++;
+      }
       if (_statePulled) {
         final rec = reconcileMeta(
-          local: existing == null
-              ? const FileMetaEntry()
-              : metaEntryOf(existing),
+          local: existing != null
+              ? metaEntryOf(existing)
+              : (local != null ? metaEntryOf(local) : const FileMetaEntry()),
           cloud: _state.meta.effective(f.uuid),
         );
         applyMetaEntry(mapped, rec.entry);
@@ -657,6 +637,7 @@ class FilenSyncService {
       _logger.info(
         '[Collection-$collectionID] ${candidates.length} files on Filen, '
         '${updated.length} new or changed, ${deleted.length} gone'
+        '${linkedToLocal > 0 ? ', $linkedToLocal matched to photos of this device' : ''}'
         '${queuedForUpload > 0 ? ', $queuedForUpload metadata records queued for the cloud' : ''}',
       );
     }
@@ -754,10 +735,49 @@ class FilenSyncService {
     Bus.instance.fire(ForceReloadHomeGalleryEvent('restoredFromTrash'));
   }
 
+  /// The not yet uploaded row of this device that is the same photo as [remote]: same name, same
+  /// capture time. Each row is handed out once.
+  Future<EnteFile?> _takeLocalMatch(
+    int collectionID,
+    FilenFile remote,
+    EnteFile mapped,
+  ) async {
+    var byCollection = _pendingLocals;
+    if (byCollection == null) {
+      byCollection = {};
+      for (final row in await FilesDB.instance.getFilesPendingForUpload()) {
+        (byCollection[row.collectionID!] ??= []).add(row);
+      }
+      _pendingLocals = byCollection;
+    }
+    final rows = byCollection[collectionID];
+    if (rows == null) return null;
+    final createdMs = remote.createdMs ?? remote.modifiedMs;
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      if (row.title != remote.name || row.fileType != mapped.fileType) {
+        continue;
+      }
+      final rowMs = (row.creationTime ?? 0) ~/ 1000;
+      if ((rowMs - createdMs).abs() > 2000) continue;
+      rows.removeAt(i);
+      return row;
+    }
+    return null;
+  }
+
   /// Records what only this device knows about a file it just uploaded (hash, GPS, duration...).
-  Future<void> noteUploadedMeta(EnteFile uploaded, FilenFile remote) async {
+  Future<void> noteUploadedMeta(
+    EnteFile uploaded,
+    FilenFile remote, {
+    Uint8List? thumbnail,
+  }) async {
     await _state.ensureInitialized();
     _state.meta.queue(remote.uuid, metaEntryOf(uploaded));
+    if (thumbnail != null && thumbnail.isNotEmpty) {
+      await _state.thumbs.ensureIndexed();
+      await _state.thumbs.put(remote.uuid, thumbnail);
+    }
   }
 }
 

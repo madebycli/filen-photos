@@ -18,15 +18,11 @@ import "package:photos/models/ml/face/face.dart";
 import "package:photos/models/ml/face/person.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/memory_lane/memory_lane_service.dart";
-import "package:photos/services/memory_share_service.dart";
 import "package:photos/theme/colors.dart";
 import "package:photos/theme/effects.dart";
 import "package:photos/theme/ente_theme.dart";
-import "package:photos/ui/notification/toast.dart";
-import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/face/face_thumbnail_cache.dart";
 import "package:photos/utils/face_crop_util.dart";
-import "package:photos/utils/share_util.dart";
 
 class MemoryLanePage extends StatefulWidget {
   final String personId;
@@ -119,10 +115,6 @@ class _MemoryLanePageState extends State<MemoryLanePage>
   int _currentCaptionValue = 0;
   _CaptionType _currentCaptionType = _CaptionType.yearsAgo;
   int _maxCaptionDigits = 1;
-  bool get _showShareAction =>
-      !widget.isCluster &&
-      MemoryLaneService.instance.isFeatureEnabled &&
-      !isLocalGalleryMode;
 
   @override
   void initState() {
@@ -659,28 +651,6 @@ class _MemoryLanePageState extends State<MemoryLanePage>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (_showShareAction)
-                          _buildAppBarActionButton(
-                            context: context,
-                            icon: Icons.share,
-                            tooltip: l10n.shareLink,
-                            onTap: () async {
-                              _pausePlayback();
-                              final shareLinkData =
-                                  await _getOrCreateMemoryLaneLinkData(context);
-                              if (!context.mounted || shareLinkData == null) {
-                                return;
-                              }
-                              await shareText(
-                                formatMemoryShareText(
-                                  l10n.facesTimelineAppBarTitle,
-                                  shareLinkData.$1,
-                                ),
-                                context: context,
-                              );
-                            },
-                          ),
-                        if (_showShareAction) const SizedBox(width: 12),
                         _buildAppBarActionButton(
                           context: context,
                           icon: Icons.close,
@@ -1122,46 +1092,6 @@ class _MemoryLanePageState extends State<MemoryLanePage>
         ),
       ),
     );
-  }
-
-  Future<(String, int)?> _getOrCreateMemoryLaneLinkData(
-    BuildContext context,
-  ) async {
-    final person = widget.person;
-    if (person == null) return null;
-    final l10n = context.strings;
-    final dialog = createProgressDialog(context, l10n.creatingLink);
-    await dialog.show();
-    try {
-      final timeline = await MemoryLaneService.instance.getTimeline(
-        person.remoteID,
-      );
-      if (timeline == null ||
-          !timeline.isEligible ||
-          timeline.entries.isEmpty) {
-        await dialog.hide();
-        if (context.mounted) {
-          showShortToast(context, l10n.somethingWentWrong);
-        }
-        return null;
-      }
-      final shareLinkData = await MemoryShareService.instance
-          .getOrCreateMemoryLaneLink(
-            entries: timeline.entries,
-            title: l10n.facesTimelineAppBarTitle,
-            personId: person.remoteID,
-            personName: person.data.name,
-            birthDate: person.data.birthDate,
-          );
-      await dialog.hide();
-      return shareLinkData;
-    } catch (e) {
-      await dialog.hide();
-      if (context.mounted) {
-        await showGenericErrorBottomSheet(context: context, error: e);
-      }
-      return null;
-    }
   }
 
   void _togglePlayback() {

@@ -41,7 +41,6 @@ import "package:photos/services/sync/local_sync_service.dart";
 import "package:photos/theme/colors.dart";
 import "package:photos/ui/home/memories/all_memories_page.dart";
 import "package:photos/ui/home/memories/full_screen_memory.dart";
-import "package:photos/ui/home/memories/memory_music_session.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/people/people_page.dart";
 import "package:photos/utils/cache_util.dart";
@@ -1536,19 +1535,10 @@ class MemoriesCacheService {
         color: backgroundColorDark,
         width: double.infinity,
         height: double.infinity,
-        child: FullScreenMemory(
-          personMemory.title,
-          0,
-          memoryID: personMemory.id,
-          isActive: true,
-        ),
+        child: FullScreenMemory(personMemory.title, 0, isActive: true),
       ),
     );
-    await _routeToPage(
-      MemoryMusicSession(memoryIDs: <String>[personMemory.id], child: page),
-      context: context,
-      forceCustomPageRoute: true,
-    );
+    await _routeToPage(page, context: context, forceCustomPageRoute: true);
   }
 
   Future<void> _routeToPage(

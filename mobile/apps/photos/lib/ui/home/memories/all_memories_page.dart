@@ -10,7 +10,6 @@ import "package:photos/services/app_navigation_service.dart";
 import "package:photos/theme/colors.dart";
 import "package:photos/ui/home/memories/full_screen_memory.dart";
 import "package:photos/ui/home/memories/memory_cover_util.dart";
-import "package:photos/ui/home/memories/memory_music_session.dart";
 import "package:photos/ui/viewer/people/memory_lane_page_v2.dart";
 
 int getMemoryLaneInsertionIndex(List<SmartMemory> memories) {
@@ -145,7 +144,6 @@ class _AllMemoriesPageState extends State<AllMemoriesPage> {
               child: FullScreenMemory(
                 smartMemory.title,
                 initialMemoryIndex,
-                memoryID: smartMemory.id,
                 isActive: index == _activePageIndex,
                 onMediaInteractionLockChanged: (isLocked) {
                   if (index != _activePageIndex ||
@@ -193,38 +191,35 @@ class _AllMemoriesPageState extends State<AllMemoriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MemoryMusicSession(
-      memoryIDs: _pages.map((page) => page.id).toList(),
-      child: ColoredBox(
-        color: backgroundColorDark,
-        child: PageView.builder(
-          controller: _pageController,
-          physics: _isMediaInteractionLocked
-              ? const NeverScrollableScrollPhysics()
-              : const BouncingScrollPhysics(),
-          hitTestBehavior: HitTestBehavior.translucent,
-          itemCount: _pages.length,
-          onPageChanged: (index) {
-            Bus.instance.fire(PauseVideoEvent());
-            setState(() {
-              _activePageIndex = index;
-              _isMediaInteractionLocked = false;
-            });
-          },
-          itemBuilder: (context, index) => _pages[index].widget(
-            onNextMemory: index < _pages.length - 1
-                ? () => _pageController.nextPage(
-                    duration: const Duration(milliseconds: 675),
-                    curve: Curves.easeOutQuart,
-                  )
-                : null,
-            onPreviousMemory: index > 0
-                ? () => _pageController.previousPage(
-                    duration: const Duration(milliseconds: 675),
-                    curve: Curves.easeOutQuart,
-                  )
-                : null,
-          ),
+    return ColoredBox(
+      color: backgroundColorDark,
+      child: PageView.builder(
+        controller: _pageController,
+        physics: _isMediaInteractionLocked
+            ? const NeverScrollableScrollPhysics()
+            : const BouncingScrollPhysics(),
+        hitTestBehavior: HitTestBehavior.translucent,
+        itemCount: _pages.length,
+        onPageChanged: (index) {
+          Bus.instance.fire(PauseVideoEvent());
+          setState(() {
+            _activePageIndex = index;
+            _isMediaInteractionLocked = false;
+          });
+        },
+        itemBuilder: (context, index) => _pages[index].widget(
+          onNextMemory: index < _pages.length - 1
+              ? () => _pageController.nextPage(
+                  duration: const Duration(milliseconds: 675),
+                  curve: Curves.easeOutQuart,
+                )
+              : null,
+          onPreviousMemory: index > 0
+              ? () => _pageController.previousPage(
+                  duration: const Duration(milliseconds: 675),
+                  curve: Curves.easeOutQuart,
+                )
+              : null,
         ),
       ),
     );

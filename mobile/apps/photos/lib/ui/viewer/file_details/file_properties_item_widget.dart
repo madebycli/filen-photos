@@ -15,12 +15,10 @@ class FilePropertiesItemWidget extends StatefulWidget {
   final EnteFile file;
   final bool isImage;
   final Map<String, dynamic> exifData;
-  final int currentUserID;
   const FilePropertiesItemWidget(
     this.file,
     this.isImage,
-    this.exifData,
-    this.currentUserID, {
+    this.exifData, {
     super.key,
   });
   @override
@@ -45,10 +43,7 @@ class _FilePropertiesItemWidgetState extends State<FilePropertiesItemWidget> {
           path.basenameWithoutExtension(widget.file.displayName) +
           path.extension(widget.file.displayName).toUpperCase(),
       subtitleSection: _subTitleSection(),
-      editOnTap:
-          widget.file.uploadedFileID == null ||
-              widget.file.ownerID != widget.currentUserID ||
-              widget.file.isTrash
+      editOnTap: widget.file.uploadedFileID == null || widget.file.isTrash
           ? null
           : () async {
               await editFilename(context, widget.file);

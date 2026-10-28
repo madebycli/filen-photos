@@ -79,16 +79,11 @@ class _ArchivePageState extends State<ArchivePage> {
     if (!mounted) {
       return;
     }
-    final userID = Configuration.instance.getUserID();
-    bool isPinnedForCurrentUser(Collection collection) =>
-        userID != null && !collection.isOwner(userID)
-        ? collection.hasShareePinned()
-        : collection.isPinned;
     setState(() {
       _archivedCollections
         ..clear()
-        ..addAll(archivedCollections.where(isPinnedForCurrentUser))
-        ..addAll(archivedCollections.where((c) => !isPinnedForCurrentUser(c)));
+        ..addAll(archivedCollections.where((c) => c.isPinned))
+        ..addAll(archivedCollections.where((c) => !c.isPinned));
     });
   }
 

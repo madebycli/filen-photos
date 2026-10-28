@@ -286,7 +286,6 @@ class _BlurredMediaBackgroundState extends State<_BlurredMediaBackground> {
                 fit: BoxFit.cover,
                 rawThumbnail: true,
                 shouldShowSyncStatus: false,
-                shouldShowOwnerAvatar: false,
                 shouldShowFavoriteIcon: false,
                 shouldShowVideoDuration: false,
                 shouldShowVideoOverlayIcon: false,

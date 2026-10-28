@@ -15,9 +15,7 @@ import "package:photos/models/gallery_type.dart";
 import "package:photos/models/selected_files.dart";
 import "package:photos/module/share/picker_result_uri.dart";
 import "package:photos/services/app_lifecycle_service.dart";
-import "package:photos/services/collections_service.dart";
 import "package:photos/ui/common/touch_cross_detector.dart";
-import "package:photos/ui/sharing/user_avator_widget.dart";
 import "package:photos/ui/viewer/actions/select_all_status_icon.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/file/gallery_photo_page_route.dart";
@@ -30,23 +28,6 @@ import "package:photos/ui/viewer/gallery/state/gallery_context_state.dart";
 import "package:photos/ui/viewer/gallery/state/gallery_files_inherited_widget.dart";
 import "package:photos/ui/viewer/gallery/state/gallery_swipe_helper.dart";
 
-Color galleryFileSelectionColor(
-  BuildContext context,
-  EnteFile file,
-  int? currentUserID,
-) {
-  if (file.isUploaded &&
-      file.ownerID != null &&
-      file.ownerID != currentUserID) {
-    final owner = CollectionsService.instance.resolveUserIdentity(
-      file.ownerID!,
-      file.collectionID,
-    );
-    return getUserAvatarColor(context, owner);
-  }
-  return Colors.white;
-}
-
 class GalleryFileWidget extends StatefulWidget {
   final EnteFile file;
   final SelectedFiles? selectedFiles;
@@ -54,7 +35,6 @@ class GalleryFileWidget extends StatefulWidget {
   final String tag;
   final int photoGridSize;
   final int? thumbnailSize;
-  final int? currentUserID;
   const GalleryFileWidget({
     required this.file,
     required this.selectedFiles,
@@ -62,7 +42,6 @@ class GalleryFileWidget extends StatefulWidget {
     required this.tag,
     required this.photoGridSize,
     this.thumbnailSize,
-    required this.currentUserID,
     super.key,
   });
 
@@ -168,10 +147,6 @@ class _GalleryFileWidgetState extends State<GalleryFileWidget> {
       thumbnailSize: effectiveThumbnailSize,
       useRequestedThumbnailSizeForLocalCache: widget.thumbnailSize != null,
       gaplessPlayback: isPhoto,
-      shouldShowOwnerAvatar: !_isFileSelected,
-      ownerAvatarType: widget.photoGridSize < photoGridSizeMax
-          ? AvatarType.small
-          : AvatarType.xs,
       shouldShowVideoDuration: true,
     );
     final thumbnail = ClipRRect(
@@ -226,17 +201,13 @@ class _GalleryFileWidgetState extends State<GalleryFileWidget> {
                     borderRadius: borderRadius,
                   ),
                 ),
-                Positioned(
+                const Positioned(
                   right: 4,
                   top: 4,
                   child: SelectAllStatusIcon(
                     isSelected: true,
                     size: 16,
-                    selectedFillColor: galleryFileSelectionColor(
-                      context,
-                      widget.file,
-                      widget.currentUserID,
-                    ),
+                    selectedFillColor: Colors.white,
                     selectedTickCutsOut: true,
                   ),
                 ),

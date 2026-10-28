@@ -130,10 +130,9 @@ class _AllSectionsExamplesProviderState
         final hasAnySearchableFilesFuture = SearchService.instance
             .hasAnyFilesForSearch();
         for (SectionType sectionType in SectionType.values) {
-          // Albums moved to the Albums tab. Contacts and file types render as
-          // lazy sections in Search so they do not block the section preload.
-          if (sectionType == SectionType.contacts ||
-              sectionType == SectionType.album ||
+          // Albums moved to the Albums tab. File types render as lazy
+          // sections in Search so they do not block the section preload.
+          if (sectionType == SectionType.album ||
               sectionType == SectionType.fileTypesAndExtension) {
             allSectionsExamples.add(Future.value([]));
           } else {

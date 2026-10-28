@@ -7,13 +7,11 @@ import "package:photos/models/file/file.dart";
 import "package:photos/models/file/file_type.dart";
 import "package:photos/module/download/file.dart";
 import "package:photos/service_locator.dart" show isLocalGalleryMode;
-import "package:photos/services/video_preview_service.dart";
 import "package:photos/utils/network_util.dart";
 
 const int kMemoryVideoLookaheadCap = 20;
 const int kMemoryVideoMaxConcurrentPrefetches = 1;
 
-const int kMemoryVideoPreviewMaxBytes = 50 * 1024 * 1024;
 const int kMemoryVideoOriginalMaxBytes = 50 * 1024 * 1024;
 const int kMemoryVideoOriginalMaxDurationSeconds = 30;
 const int kMemoryVideoSessionBudgetBytes = 200 * 1024 * 1024;
@@ -125,25 +123,13 @@ class MemoryVideoPrefetcher {
       if (!await canUseHighBandwidth()) return;
       if (!_isActive(stillActive)) return;
 
-      final didWarmPreview = await VideoPreviewService.instance
-          .prefetchExistingPreview(
-            file,
-            maxPreviewSizeBytes: kMemoryVideoPreviewMaxBytes,
-            tryReserveBytes: (bytes) {
-              return _isActive(stillActive) &&
-                  _tryReserveDownloadBytes(uploadedFileID, bytes);
-            },
-          );
-      if (!_isActive(stillActive)) return;
-      if (!didWarmPreview) {
-        final originalResult = await _prefetchSmallOriginal(
-          file,
-          uploadedFileID: uploadedFileID,
-          stillActive: stillActive,
-        );
-        if (originalResult == _OriginalPrefetchResult.failed) {
-          return;
-        }
+      final originalResult = await _prefetchSmallOriginal(
+        file,
+        uploadedFileID: uploadedFileID,
+        stillActive: stillActive,
+      );
+      if (originalResult == _OriginalPrefetchResult.failed) {
+        return;
       }
       if (!_isActive(stillActive)) return;
       _attemptedIDs.add(uploadedFileID);

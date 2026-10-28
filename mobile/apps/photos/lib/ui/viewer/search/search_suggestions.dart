@@ -273,15 +273,7 @@ class SearchResultsWidgetGenerator extends StatelessWidget {
   }
 }
 
-enum _SearchResultsSection {
-  people,
-  shared,
-  albums,
-  magic,
-  files,
-  locations,
-  moments,
-}
+enum _SearchResultsSection { people, albums, magic, files, locations, moments }
 
 const List<_SearchResultsSection> _defaultSectionOrder = [
   _SearchResultsSection.magic,
@@ -289,7 +281,6 @@ const List<_SearchResultsSection> _defaultSectionOrder = [
   _SearchResultsSection.locations,
   _SearchResultsSection.moments,
   _SearchResultsSection.albums,
-  _SearchResultsSection.shared,
   _SearchResultsSection.files,
 ];
 
@@ -445,8 +436,6 @@ _SearchResultsSection _sectionForResult(SearchResult result) {
   switch (result.type()) {
     case ResultType.faces:
       return _SearchResultsSection.people;
-    case ResultType.shared:
-      return _SearchResultsSection.shared;
     case ResultType.collection:
     case ResultType.deviceCollection:
       return _SearchResultsSection.albums;
@@ -463,7 +452,6 @@ _SearchResultsSection _sectionForResult(SearchResult result) {
     case ResultType.fileType:
     case ResultType.fileExtension:
     case ResultType.fileCaption:
-    case ResultType.uploader:
     case ResultType.cameraMake:
     case ResultType.cameraModel:
       return _SearchResultsSection.files;
@@ -474,8 +462,6 @@ String _sectionTitle(BuildContext context, _SearchResultsSection section) {
   switch (section) {
     case _SearchResultsSection.people:
       return context.strings.people;
-    case _SearchResultsSection.shared:
-      return context.strings.shared;
     case _SearchResultsSection.albums:
       return context.strings.albums;
     case _SearchResultsSection.magic:
@@ -493,8 +479,6 @@ List<List<dynamic>> _sectionIcon(_SearchResultsSection section) {
   switch (section) {
     case _SearchResultsSection.people:
       return HugeIcons.strokeRoundedUserMultiple;
-    case _SearchResultsSection.shared:
-      return HugeIcons.strokeRoundedShare08;
     case _SearchResultsSection.albums:
       return HugeIcons.strokeRoundedImage01;
     case _SearchResultsSection.magic:

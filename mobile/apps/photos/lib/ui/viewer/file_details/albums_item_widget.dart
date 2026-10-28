@@ -21,8 +21,7 @@ import "package:photos/ui/viewer/gallery/collection_page.dart";
 
 class AlbumsItemWidget extends StatefulWidget {
   final EnteFile file;
-  final int currentUserID;
-  const AlbumsItemWidget(this.file, this.currentUserID, {super.key});
+  const AlbumsItemWidget(this.file, {super.key});
 
   @override
   State<AlbumsItemWidget> createState() => _AlbumsItemWidgetState();
@@ -36,7 +35,6 @@ class _AlbumsItemWidgetState extends State<AlbumsItemWidget> {
       chipsFuture = _collectionsListOfFile(
         context,
         FilesDB.instance.getAllCollectionIDsOfFile(widget.file.uploadedFileID!),
-        widget.currentUserID,
       );
     } else {
       chipsFuture = _deviceFoldersListOfFile(
@@ -90,7 +88,6 @@ class _AlbumsItemWidgetState extends State<AlbumsItemWidget> {
   Future<List<Widget>> _collectionsListOfFile(
     BuildContext context,
     Future<Set<int>> allCollectionIDsOfFile,
-    int currentUserID,
   ) async {
     try {
       final colors = context.componentColors;
@@ -149,9 +146,7 @@ class _AlbumsItemWidgetState extends State<AlbumsItemWidget> {
       );
       return chips;
     } catch (e, s) {
-      Logger(
-        "AlbumsItemWidget",
-      ).info("Failed to build shared album chips", e, s);
+      Logger("AlbumsItemWidget").info("Failed to build album chips", e, s);
       return [];
     }
   }
@@ -161,13 +156,7 @@ class _AlbumsItemWidgetState extends State<AlbumsItemWidget> {
         collection.isDefaultHidden()) {
       return false;
     }
-    if (collection.type == CollectionType.favorites) {
-      return collection.isOwner(widget.currentUserID);
-    }
-    return widget.file.ownerID == widget.currentUserID ||
-        CollectionsService.instance.canRemoveFilesFromAllParticipants(
-          collection,
-        );
+    return true;
   }
 
   Future<void> _removeFromFavorites(BuildContext context) async {
@@ -192,16 +181,10 @@ class _AlbumsItemWidgetState extends State<AlbumsItemWidget> {
     final selectedFiles = SelectedFiles();
     selectedFiles.files.add(widget.file);
     final collectionActions = CollectionActions(CollectionsService.instance);
-    final removingOthersFile =
-        widget.file.ownerID != widget.currentUserID &&
-        CollectionsService.instance.canRemoveFilesFromAllParticipants(
-          collection,
-        );
     await collectionActions.showRemoveFromCollectionSheetV2(
       context,
       collection,
       selectedFiles,
-      removingOthersFile,
       isHidden: collection.isHidden(),
       body: context.strings.itemWillBeRemovedFromThisAlbum,
     );

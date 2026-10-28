@@ -14,6 +14,10 @@ it holds status, decisions and the resume point. Fork docs: `filen/README.md`.
 - Keep edits to upstream Ente files tiny and marked `Filen fork:`; put new code under
   `mobile/apps/photos/lib/filen/`, `filen/` or `.github/workflows/filen-*`.
 - No UI that pretends: a Filen feature that does not exist is removed or labelled, not faked.
+- **Ente cloud code is removed, not hidden** (account, server gateways, payments, sharing, cast, family, social,
+  push, remote feature flags). Do not re-add fallbacks to Ente services; consent/map flags are local prefs.
+- Never permanently delete user photos except from the Trash page after explicit confirmation; "empty trash"
+  deletes only the photos/videos shown in the app, never the rest of the Filen trash.
 
 ## Commands (run from `mobile/apps/photos` unless noted)
 
@@ -33,7 +37,7 @@ Host-side Filen tooling needs `RUSTFLAGS=-Zhigher-ranked-assumptions` if the `wi
 
 ## Where things are
 
-- Seams into Ente (search `Filen fork`): `collections_service.dart` (`_fetchCollections`),
-  `diff_fetcher.dart`, `module/download/{file,thumbnail}.dart`, `remote_sync_service.dart`,
-  `configuration.dart` (restore/logout), `landing_page_widget.dart`.
+- Filen-only services: `collections_service.dart`, `diff_fetcher.dart`, `module/download/{file,thumbnail}.dart`,
+  `remote_sync_service.dart`, `entity_service.dart`, `filedata_service.dart`, `file_magic_service.dart`,
+  `trash_sync_service.dart`; cloud state (meta, albums, people, ML, thumbs, settings) in `lib/filen/state/`.
 - Updates: `.github/workflows/filen-sdk-update.yml` = weekly verified Filen SDK bump + pre-release; merge `ente/ente` upstream by hand.

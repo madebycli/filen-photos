@@ -1087,7 +1087,6 @@ class GalleryState extends State<Gallery> with WidgetsBindingObserver {
                       limitSelectionToOne: false,
                       tag: widget.tagPrefix,
                       photoGridSize: photoGridSize,
-                      currentUserID: null,
                     ),
                   ),
                 ),

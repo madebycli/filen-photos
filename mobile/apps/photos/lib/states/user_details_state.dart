@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/events/opened_settings_event.dart';
 import 'package:photos/events/user_details_changed_event.dart';
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/models/user_details.dart';
 import 'package:photos/service_locator.dart';
-import 'package:photos/services/account/user_service.dart';
 
 class UserDetailsStateWidget extends StatefulWidget {
   final Widget child;
@@ -26,7 +26,7 @@ class UserDetailsStateWidgetState extends State<UserDetailsStateWidget> {
 
   @override
   void initState() {
-    _userDetails = UserService.instance.getCachedUserDetails();
+    _userDetails = FilenAccount.instance.getCachedUserDetails();
     _openedSettingsEventSubscription = Bus.instance
         .on<OpenedSettingsEvent>()
         .listen((event) {
@@ -57,10 +57,11 @@ class UserDetailsStateWidgetState extends State<UserDetailsStateWidget> {
 
   void _fetchUserDetails() async {
     if (isLocalGalleryMode) return;
-    _userDetails = await UserService.instance.getUserDetailsV2(
-      memoryCount: true,
-      shouldCache: true,
-    );
+    try {
+      _userDetails = await FilenAccount.instance.getUserDetails();
+    } catch (_) {
+      return; // offline: keep showing what is cached
+    }
     _isCached = false;
     if (mounted) {
       setState(() {});
@@ -68,7 +69,7 @@ class UserDetailsStateWidgetState extends State<UserDetailsStateWidget> {
   }
 
   void _refreshFromCache() {
-    _userDetails = UserService.instance.getCachedUserDetails();
+    _userDetails = FilenAccount.instance.getCachedUserDetails();
     if (mounted) {
       setState(() {});
     }

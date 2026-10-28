@@ -11,7 +11,6 @@ environment:
 dependencies:
   adaptive_theme: 3.7.2
   android_intent_plus: 5.3.0
-  app_links: 6.4.1
   archive: 4.0.9
   audio_session: 0.2.2
   backup_exclusion:
@@ -25,7 +24,6 @@ dependencies:
       ref: 82e365fed8a1a76f6eea0220de98389eed7b0445
   connectivity_plus: 6.1.4
   crypto: 3.0.7
-  cupertino_http: 3.1.0
   cupertino_icons: 1.0.8
   defer_pointer: 0.0.2
   device_info_plus: 11.5.0
@@ -33,17 +31,10 @@ dependencies:
   dio_http2_adapter: 2.8.0
   dotted_border: 3.1.0
   email_validator: 3.0.0
-  encrypt: 5.0.3
-  ente_account_deletion:
-    path: ../../packages/account_deletion
   ente_background_manager:
     path: plugins/ente_background_manager
-  ente_cast:
-    path: plugins/ente_cast
   ente_components:
     path: ../../packages/ente_components
-  ente_contacts:
-    path: ../../packages/contacts
   ente_crypto:
     path: plugins/ente_crypto
   ente_crypto_api:
@@ -57,8 +48,6 @@ dependencies:
   # Filen fork: Android plugin around Filen's official Rust SDK (see /filen)
   filen_sdk:
     path: ../../../filen/plugin
-  ente_install_source:
-    path: ../../packages/install_source
   ente_lock_screen:
     path: ../../packages/lock_screen
   ente_mail:
@@ -73,8 +62,6 @@ dependencies:
     path: ../../packages/ente_pure_utils
   ente_qr:
     path: ../../packages/ente_qr
-  ente_qr_ui:
-    path: ../../packages/qr
   ente_screen_brightness:
     path: ../../packages/ente_screen_brightness
   ente_strings:
@@ -93,8 +80,6 @@ dependencies:
     path: plugins/ffmpeg
   figma_squircle: 0.6.3
   file_saver: 0.3.1
-  firebase_core: 5.0.0
-  firebase_messaging: 17.0.0
   flutter:
     sdk: flutter
   flutter_animate: 4.5.2
@@ -130,8 +115,6 @@ dependencies:
   http: 1.6.0
   hugeicons: 1.1.7
   image: 4.7.0
-  in_app_purchase: 3.3.0
-  in_app_purchase_storekit: 0.4.11+1
   intl: 0.20.3
   just_audio: 0.10.5
   latlong2: 0.9.1
@@ -163,15 +146,12 @@ dependencies:
     path: ../../packages/native_video_editor
   native_video_player: 4.0.1
   package_info_plus: 8.3.1
-  password_strength: 0.2.0
   path: 1.9.1
   path_provider: 2.1.5
   path_provider_foundation: 2.6.0
   permission_handler: 12.0.1
   photo_manager: 3.11.0
   photo_manager_image_provider: 2.2.0
-  pinput: 5.0.2
-  pointycastle: 3.9.1
   pro_image_editor: 13.3.1
   protobuf: 4.2.0
   random_access_source: 4.3.1

@@ -6,11 +6,9 @@ import "package:connectivity_plus/connectivity_plus.dart";
 import "package:ente_components/theme/text_styles.dart" as component;
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/ente_strings.dart";
-import "package:flutter/foundation.dart" show ValueListenable;
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:hugeicons/hugeicons.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/details_sheet_event.dart";
 import "package:photos/events/file_caption_updated_event.dart";
@@ -26,23 +24,17 @@ import "package:photos/models/selected_files.dart";
 import "package:photos/module/download/file.dart";
 import "package:photos/module/download/thumbnail.dart";
 import "package:photos/service_locator.dart";
-import "package:photos/services/memory_share_service.dart";
 import "package:photos/services/smart_memories_service.dart";
 import "package:photos/ui/actions/file/file_actions.dart";
 import "package:photos/ui/collections/collection_action_sheet.dart";
 import "package:photos/ui/home/memories/custom_listener.dart";
-import "package:photos/ui/home/memories/memory_music_session.dart";
 import "package:photos/ui/home/memories/memory_progress_indicator.dart";
-import "package:photos/ui/home/memories/memory_share_sheet.dart";
 import "package:photos/ui/home/memories/memory_video_prefetcher.dart";
 import "package:photos/ui/home/memories/memory_viewer_constants.dart";
-import "package:photos/ui/social/widgets/file_social_overlay.dart";
 import "package:photos/ui/viewer/file/file_widget.dart";
 import "package:photos/ui/viewer/file/thumbnail_widget.dart";
 import "package:photos/ui/viewer/file_details/favorite_widget.dart";
 import "package:photos/ui/viewer/gallery/jump_to_date_gallery.dart";
-import "package:photos/utils/dialog_util.dart";
-import "package:photos/utils/share_util.dart";
 
 const _memoryCaptionHorizontalInset = 16.0;
 const _memoryCaptionActionBarGap = 4.0;
@@ -312,7 +304,6 @@ class FullScreenMemoryData extends InheritedWidget {
 class FullScreenMemory extends StatefulWidget {
   final String title;
   final int initialIndex;
-  final String memoryID;
   final bool isActive;
   final VoidCallback? onNextMemory;
   final VoidCallback? onPreviousMemory;
@@ -321,7 +312,6 @@ class FullScreenMemory extends StatefulWidget {
   const FullScreenMemory(
     this.title,
     this.initialIndex, {
-    required this.memoryID,
     required this.isActive,
     this.onNextMemory,
     this.onPreviousMemory,
@@ -366,9 +356,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
   bool get _isMediaPlaybackActive =>
       widget.isActive && _isRouteCurrent && !_isViewerActionPaused;
   bool _isMediaInteractionLocked = false;
-  final _socialControlsVisible = ValueNotifier<bool>(false);
-  FullScreenMemoryData? _memoryData;
-  ValueNotifier<int>? _itemIndexNotifier;
 
   final hasPointerOnScreenNotifier = ValueNotifier<bool>(false);
   bool hasFinalFileLoaded = false;
@@ -431,17 +418,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
       _isRouteCurrent = isRouteCurrent;
       _syncAnimationState();
     }
-    final memoryData = FullScreenMemoryData.of(context);
-    _memoryData = memoryData;
-    final nextNotifier = memoryData?.indexNotifier;
-    if (identical(nextNotifier, _itemIndexNotifier)) {
-      _activateCurrentItemMusic();
-      return;
-    }
-    _itemIndexNotifier?.removeListener(_activateCurrentItemMusic);
-    _itemIndexNotifier = nextNotifier;
-    _itemIndexNotifier?.addListener(_activateCurrentItemMusic);
-    _activateCurrentItemMusic();
   }
 
   @override
@@ -449,34 +425,14 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive == widget.isActive) return;
     _syncAnimationState();
-    if (widget.isActive) _activateCurrentItemMusic();
   }
 
   @override
   void dispose() {
-    _itemIndexNotifier?.removeListener(_activateCurrentItemMusic);
     hasPointerOnScreenNotifier.removeListener(_hasPointerListener);
     _detailSheetEventSubscription.cancel();
     _captionUpdatedSubscription.cancel();
-    _socialControlsVisible.dispose();
     super.dispose();
-  }
-
-  void _activateCurrentItemMusic() {
-    if (!mounted || !widget.isActive) return;
-    final inheritedData = _memoryData;
-    if (inheritedData == null) return;
-    final index = _clampedMemoryIndex(
-      inheritedData.indexNotifier.value,
-      inheritedData.memories.length,
-    );
-    if (index == null) return;
-    final file = inheritedData.memories[index].file;
-    MemoryAudioScope.maybeOf(context, listen: false)?.activateMusic(
-      widget.memoryID,
-      currentItemIsVideo: file.fileType == FileType.video,
-      viewerActionPaused: _isViewerActionPaused || !_isRouteCurrent,
-    );
   }
 
   void _hasPointerListener() {
@@ -609,7 +565,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
       _onPageChange(inheritedData, currentIndex + 1);
     } else if (widget.onNextMemory != null) {
       _resetAnimation();
-      _setSocialControlsVisible(false);
       widget.onNextMemory!();
     } else {
       isAtFirstOrLastFile = true;
@@ -631,7 +586,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
       _onPageChange(inheritedData, currentIndex - 1);
     } else if (widget.onPreviousMemory != null) {
       _resetAnimation();
-      _setSocialControlsVisible(false);
       widget.onPreviousMemory!();
     } else {
       isAtFirstOrLastFile = true;
@@ -662,12 +616,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
     _resetAnimation();
   }
 
-  void _setSocialControlsVisible(bool visible) {
-    if (_socialControlsVisible.value != visible) {
-      _socialControlsVisible.value = visible;
-    }
-  }
-
   Future<T?> _runWithViewerPaused<T>(Future<T> Function() action) async {
     if (!mounted) return null;
     _pauseViewer();
@@ -681,10 +629,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
   void _pauseViewer() {
     if (!mounted) return;
     setState(() => _isViewerActionPaused = true);
-    MemoryAudioScope.maybeOf(
-      context,
-      listen: false,
-    )?.setMusicViewerActionPaused(true);
     _toggleAnimation(pause: true);
     Bus.instance.fire(PauseVideoEvent());
   }
@@ -696,16 +640,11 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
       Bus.instance.fire(ResumeVideoEvent());
     }
     _toggleAnimation(pause: false);
-    MemoryAudioScope.maybeOf(
-      context,
-      listen: false,
-    )?.setMusicViewerActionPaused(!_isRouteCurrent);
   }
 
   @override
   Widget build(BuildContext context) {
     final inheritedData = FullScreenMemoryData.of(context);
-    final memoryAudio = MemoryAudioScope.maybeOf(context);
     if (inheritedData == null || inheritedData.memories.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -805,7 +744,6 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
                             color: Colors.transparent,
                           ),
                           isFromMemories: true,
-                          isAudioMutedOverride: memoryAudio?.isVideoMuted,
                           shouldDisableScroll: (isLocked) {
                             _isMediaInteractionLocked = isLocked;
                             widget.onMediaInteractionLockChanged?.call(
@@ -843,57 +781,7 @@ class _FullScreenMemoryState extends State<FullScreenMemory> {
                 );
               },
             ),
-            _MemoryViewerScrimsAndCaption(
-              socialControlsVisible: _socialControlsVisible,
-            ),
-            if (memoryAudio != null)
-              Positioned(
-                left:
-                    MediaQuery.paddingOf(context).left +
-                    kMemoryOverlayHorizontalInset,
-                bottom:
-                    MediaQuery.paddingOf(context).bottom +
-                    kMemoryOverlayBottomInset,
-                child: ValueListenableBuilder<int>(
-                  valueListenable: inheritedData.indexNotifier,
-                  builder: (context, index, _) {
-                    final safeIndex = _clampedMemoryIndex(
-                      index,
-                      inheritedData.memories.length,
-                    );
-                    if (safeIndex == null) return const SizedBox.shrink();
-                    return MemoryAudioMuteButton(
-                      memoryAudio,
-                      mutesVideoAudio:
-                          inheritedData.memories[safeIndex].file.fileType ==
-                          FileType.video,
-                    );
-                  },
-                ),
-              ),
-            ValueListenableBuilder<int>(
-              valueListenable: inheritedData.indexNotifier,
-              builder: (context, index, _) {
-                final safeIndex = _clampedMemoryIndex(
-                  index,
-                  inheritedData.memories.length,
-                );
-                if (safeIndex == null) return const SizedBox.shrink();
-                final padding = MediaQuery.paddingOf(context);
-                return Positioned(
-                  right: padding.right + kMemoryOverlayHorizontalInset,
-                  bottom: padding.bottom + kMemoryOverlayBottomInset,
-                  child: FileSocialOverlay(
-                    file: inheritedData.memories[safeIndex].file,
-                    currentUserID: Configuration.instance.getUserID(),
-                    openingCollectionID: null,
-                    onInteractionStart: _pauseViewer,
-                    onInteractionEnd: _resumeViewer,
-                    onVisibilityChanged: _setSocialControlsVisible,
-                  ),
-                );
-              },
-            ),
+            const _MemoryViewerScrimsAndCaption(),
             const BottomIcons(),
             _MemoryTopOverlay(
               title: widget.title,
@@ -931,9 +819,6 @@ class BottomIcons extends StatelessWidget {
     }
     final fullScreenState = context
         .findAncestorStateOfType<_FullScreenMemoryState>();
-    final memoryTitle =
-        context.findAncestorWidgetOfExactType<FullScreenMemory>()?.title ??
-        context.strings.memories;
 
     return Positioned(
       left: 0,
@@ -966,19 +851,6 @@ class BottomIcons extends StatelessWidget {
                 size: 24,
               ),
               onPressed: () => showDetailsSheet(context, currentFile),
-            ),
-            _MemoryActionButton(
-              tooltip: l10n.share,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedShare08,
-                color: Colors.white,
-                size: 24,
-              ),
-              onPressed: () async {
-                await fullScreenState._runWithViewerPaused(
-                  () => _shareMemory(context, inheritedData, memoryTitle),
-                );
-              },
             ),
             if (currentFile.isUploaded && !isHidden)
               _MemoryActionButton(
@@ -1022,7 +894,6 @@ class BottomIcons extends StatelessWidget {
                       context,
                       actionFile,
                       onFileRemoved: (file) {
-                        fullScreenState._setSocialControlsVisible(false);
                         fullScreenState.hasFinalFileLoaded = false;
                         fullScreenState._resetAnimation();
                         inheritedData.removeCurrentMemory();
@@ -1275,9 +1146,7 @@ class _MemoryDateChevronPainter extends CustomPainter {
 }
 
 class _MemoryViewerScrimsAndCaption extends StatelessWidget {
-  final ValueListenable<bool> socialControlsVisible;
-
-  const _MemoryViewerScrimsAndCaption({required this.socialControlsVisible});
+  const _MemoryViewerScrimsAndCaption();
 
   @override
   Widget build(BuildContext context) {
@@ -1326,36 +1195,30 @@ class _MemoryViewerScrimsAndCaption extends StatelessWidget {
             IgnorePointer(
               child: Align(
                 alignment: Alignment.bottomCenter,
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: socialControlsVisible,
-                  builder: (context, socialControlsVisible, _) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      width: double.infinity,
-                      height: socialControlsVisible
-                          ? kMemorySocialScrimHeight
-                          : safePadding.bottom +
-                                kMemoryBottomActionBarHeight +
-                                (captionText == null
-                                    ? 0
-                                    : _memoryCaptionActionBarGap +
-                                          _memoryCaptionLineHeight +
-                                          _memoryCaptionScrimTopPadding),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Color.fromARGB(97, 0, 0, 0),
-                            Color.fromARGB(42, 0, 0, 0),
-                            Colors.transparent,
-                          ],
-                          stops: [0, 0.5, 1],
-                        ),
-                      ),
-                    );
-                  },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  width: double.infinity,
+                  height:
+                      safePadding.bottom +
+                      kMemoryBottomActionBarHeight +
+                      (captionText == null
+                          ? 0
+                          : _memoryCaptionActionBarGap +
+                                _memoryCaptionLineHeight +
+                                _memoryCaptionScrimTopPadding),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Color.fromARGB(97, 0, 0, 0),
+                        Color.fromARGB(42, 0, 0, 0),
+                        Colors.transparent,
+                      ],
+                      stops: [0, 0.5, 1],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1531,79 +1394,5 @@ class _MemoriesZoomWidgetState extends State<MemoriesZoomWidget>
               },
             ),
           );
-  }
-}
-
-Future<void> _shareMemory(
-  BuildContext context,
-  FullScreenMemoryData inheritedData,
-  String memoryTitle,
-) async {
-  if (inheritedData.memories.isEmpty) return;
-  final currentIndex = _clampedMemoryIndex(
-    inheritedData.indexNotifier.value,
-    inheritedData.memories.length,
-  );
-  if (currentIndex == null) return;
-  final canShowMemoryShareLinkOption =
-      !(isLocalGalleryMode && !Configuration.instance.hasConfiguredAccount());
-  final result = await showMemoryShareSelectionSheet(
-    context,
-    memories: inheritedData.memories,
-    initialIndex: currentIndex,
-    canShareMemoryLink: canShowMemoryShareLinkOption,
-  );
-  if (!context.mounted || result == null) {
-    return;
-  }
-
-  switch (result.action) {
-    case MemoryShareSheetAction.shareMemory:
-      final shareLinkData = await _getOrCreateMemoryLink(
-        context,
-        result.selectedMemories,
-        memoryTitle,
-      );
-      if (!context.mounted || shareLinkData == null) {
-        return;
-      }
-      final title = memoryTitle.trim();
-      await shareText(
-        formatMemoryShareText(
-          title.isNotEmpty ? title : context.strings.memories,
-          shareLinkData.$1,
-        ),
-        context: context,
-      );
-      return;
-    case MemoryShareSheetAction.shareItems:
-      await share(context, Memory.filesFromMemories(result.selectedMemories));
-  }
-}
-
-Future<(String, int)?> _getOrCreateMemoryLink(
-  BuildContext context,
-  List<Memory> memories,
-  String memoryTitle,
-) async {
-  if (memories.isEmpty) return null;
-  final l10n = context.strings;
-  final dialog = createProgressDialog(context, l10n.creatingLink);
-  await dialog.show();
-  try {
-    final normalizedTitle = memoryTitle.trim();
-    final shareLinkData = await MemoryShareService.instance
-        .getOrCreateMemoryLink(
-          memories: memories,
-          title: normalizedTitle.isNotEmpty ? normalizedTitle : l10n.memories,
-        );
-    await dialog.hide();
-    return shareLinkData;
-  } catch (e) {
-    await dialog.hide();
-    if (context.mounted) {
-      await showGenericErrorBottomSheet(context: context, error: e);
-    }
-    return null;
   }
 }

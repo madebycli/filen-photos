@@ -3,7 +3,6 @@ import "dart:convert";
 import "dart:developer";
 
 import "package:computer/computer.dart";
-import "package:ente_contacts/contacts.dart" as contacts;
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:flutter/foundation.dart";
 import "package:logging/logging.dart";
@@ -20,10 +19,7 @@ import "package:photos/models/ml/face/person.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/entity_service.dart";
 import "package:photos/services/machine_learning/ml_result.dart";
-import "package:photos/services/photos_contacts_service.dart";
 import "package:photos/settings/local_settings.dart";
-import "package:photos/utils/contact_photo_util.dart";
-import "package:photos/utils/contact_string_util.dart";
 import "package:photos/utils/face/face_thumbnail_cache.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -31,10 +27,6 @@ typedef ManualPersonAssignmentResult = ({
   PersonEntity person,
   List<int> addedFileIds,
   List<int> alreadyAssignedFileIds,
-});
-typedef PersonAvatarUpdateResult = ({
-  PersonEntity person,
-  bool contactPictureUpdateFailed,
 });
 
 class PersonService {
@@ -44,25 +36,14 @@ class PersonService {
   final EntityService entityService;
   final IMLDataDB<int> faceMLDataDB;
   final SharedPreferences prefs;
-  final PhotosContactsService _contactsService;
-  final Future<Uint8List?> Function(PersonEntity) _contactPhotoBuilder;
   final int? Function() _currentUserIDProvider;
-  final _personsByEmail = <String, PersonEntity>{};
-  final _personsByUserId = <int, PersonEntity>{};
-  final _autoContactCreationsByUserId =
-      <int, Future<contacts.ContactRecord?>>{};
 
   PersonService(
     this.entityService,
     this.faceMLDataDB,
     this.prefs, {
-    PhotosContactsService? contactsService,
-    Future<Uint8List?> Function(PersonEntity)? contactPhotoBuilder,
     int? Function()? currentUserIDProvider,
-  }) : _contactsService = contactsService ?? PhotosContactsService.instance,
-       _contactPhotoBuilder =
-           contactPhotoBuilder ?? buildContactPhotoAttachmentBytesFromPerson,
-       _currentUserIDProvider =
+  }) : _currentUserIDProvider =
            currentUserIDProvider ?? Configuration.instance.getUserID;
 
   static PersonService? _instance;
@@ -115,63 +96,7 @@ class PersonService {
     }
   }
 
-  Iterable<String> get cachedLinkedPersonEmails => _personsByEmail.values
-      .map((person) => person.data.email)
-      .whereType<String>();
-
-  PersonEntity? getCachedPersonForUser(int? userID, String email) {
-    final requestedUserID = userID != null && userID > 0 ? userID : null;
-    final userIdMatch = requestedUserID == null
-        ? null
-        : _personsByUserId[requestedUserID];
-    if (userIdMatch != null) return userIdMatch;
-
-    final normalizedEmail = normalizeContactLinkEmail(email);
-    if (normalizedEmail == null) return null;
-    final emailMatch = _personsByEmail[normalizedEmail];
-    return emailMatch != null &&
-            _canUseEmailFallback(emailMatch, requestedUserID)
-        ? emailMatch
-        : null;
-  }
-
-  static PersonEntity? findPersonForUser(
-    Iterable<PersonEntity> persons, {
-    required int? userID,
-    required String? email,
-    String? excludedPersonID,
-  }) {
-    bool include(PersonEntity person) => person.remoteID != excludedPersonID;
-    final requestedUserID = userID != null && userID > 0 ? userID : null;
-    if (requestedUserID != null) {
-      for (final person in persons) {
-        if (include(person) && person.data.userID == requestedUserID) {
-          return person;
-        }
-      }
-    }
-
-    final normalizedEmail = normalizeContactLinkEmail(email);
-    if (normalizedEmail == null) return null;
-    for (final person in persons) {
-      if (include(person) &&
-          _canUseEmailFallback(person, requestedUserID) &&
-          normalizeContactLinkEmail(person.data.email) == normalizedEmail) {
-        return person;
-      }
-    }
-    return null;
-  }
-
-  // When an account ID was requested, email fallback is limited to legacy
-  // persons without one.
-  static bool _canUseEmailFallback(PersonEntity person, int? requestedUserID) {
-    return requestedUserID == null || (person.data.userID ?? 0) <= 0;
-  }
-
   void clearCache() {
-    _personsByEmail.clear();
-    _personsByUserId.clear();
     _invalidatePersonCache();
     _cachedRemoteSyncTime = 0;
   }
@@ -241,19 +166,6 @@ class PersonService {
     _cachedPersonsById = {
       for (final person in persons) person.remoteID: person,
     };
-    _personsByEmail.clear();
-    _personsByUserId.clear();
-    for (PersonEntity person in persons) {
-      final email = normalizeContactLinkEmail(person.data.email);
-      if (email != null) {
-        _personsByEmail[email] = person;
-      }
-      final userID = person.data.userID;
-      if (userID != null && userID > 0) {
-        _personsByUserId[userID] = person;
-      }
-    }
-
     return persons;
   }
 
@@ -738,10 +650,7 @@ class PersonService {
     return changed || hasUnappliedChanges;
   }
 
-  Future<PersonAvatarUpdateResult> updateAvatar(
-    PersonEntity p,
-    EnteFile file,
-  ) async {
+  Future<PersonEntity> updateAvatar(PersonEntity p, EnteFile file) async {
     final Face? face = await faceMLDataDB.getCoverFaceForPerson(
       recentFileID: file.uploadedFileID!,
       personID: p.remoteID,
@@ -753,46 +662,12 @@ class PersonService {
     }
 
     final person = (await getPerson(p.remoteID))!;
-    var contactPictureUpdateFailed = false;
-    try {
-      await _updateLinkedContactAvatarBeforePerson(person, file, face);
-    } catch (e, s) {
-      contactPictureUpdateFailed = true;
-      logger.warning("Failed to update linked contact picture", e, s);
-    }
     final updatedPerson = person.copyWith(
       data: person.data.copyWith(avatarFaceId: face.faceID),
     );
     await updatePerson(updatedPerson);
     await putFaceIdCachedForPersonOrCluster(p.remoteID, face.faceID);
-    return (
-      person: updatedPerson,
-      contactPictureUpdateFailed: contactPictureUpdateFailed,
-    );
-  }
-
-  Future<void> _updateLinkedContactAvatarBeforePerson(
-    PersonEntity person,
-    EnteFile file,
-    Face face,
-  ) async {
-    final contact = await _getLinkedContact(person);
-    if (contact == null) {
-      return;
-    }
-    final Uint8List? bytes = await buildContactPhotoAttachmentBytesFromFace(
-      file: file,
-      face: face,
-    );
-    if (bytes == null) {
-      throw StateError(
-        "Failed to prepare contact avatar for linked person ${person.remoteID}",
-      );
-    }
-    await _contactsService.setProfilePicture(
-      contactId: contact.id,
-      bytes: bytes,
-    );
+    return updatedPerson;
   }
 
   Future<PersonEntity> updateAttributes(
@@ -805,7 +680,6 @@ class PersonService {
     Object? birthDate = _attributeNotProvided,
     Object? email = _attributeNotProvided,
     Object? userID = _attributeNotProvided,
-    bool syncLinkedContactName = true,
   }) async {
     final person = (await getPerson(id))!;
     final trimmedName = name?.trim();
@@ -826,12 +700,6 @@ class PersonService {
       updatedData = updatedData.copyWith(userID: userID as int?);
     }
     final updatedPerson = person.copyWith(data: updatedData);
-    if (syncLinkedContactName &&
-        trimmedName != null &&
-        trimmedName.isNotEmpty &&
-        trimmedName != person.data.name.trim()) {
-      await _updateLinkedContactNameBeforePerson(updatedPerson, trimmedName);
-    }
     await updatePerson(updatedPerson);
     await refreshPersonCache();
     if (hideFromMemories == true && !person.data.hideFromMemories) {
@@ -846,89 +714,6 @@ class PersonService {
     }
     return updatedPerson;
   }
-
-  Future<void> _updateLinkedContactNameBeforePerson(
-    PersonEntity person,
-    String name,
-  ) async {
-    final contact = await _getLinkedContact(person);
-    if (contact == null) {
-      return;
-    }
-    await _contactsService.createOrUpdateContact(
-      contactUserId: contact.contactUserId,
-      name: name,
-    );
-  }
-
-  Future<contacts.ContactRecord?> tryAutoCreateContactForLinkedPerson({
-    required PersonEntity person,
-    required int contactUserId,
-    required String email,
-  }) {
-    return _autoContactCreationsByUserId.putIfAbsent(contactUserId, () {
-      final creation = _tryAutoCreateContactForLinkedPerson(
-        person: person,
-        contactUserId: contactUserId,
-        email: email,
-      );
-      return creation.whenComplete(() {
-        _autoContactCreationsByUserId.remove(contactUserId);
-      });
-    });
-  }
-
-  Future<contacts.ContactRecord?> _tryAutoCreateContactForLinkedPerson({
-    required PersonEntity person,
-    required int contactUserId,
-    required String email,
-  }) async {
-    final ownerUserID = _currentUserIDProvider();
-    if (ownerUserID == null ||
-        contactUserId <= 0 ||
-        contactUserId == ownerUserID) {
-      return null;
-    }
-
-    final personUserID = person.data.userID;
-    final personEmail = normalizeContactLinkEmail(person.data.email);
-    final matchesContact = personUserID != null
-        ? personUserID == contactUserId
-        : personEmail != null &&
-              personEmail == normalizeContactLinkEmail(email);
-    final name = person.data.name.trim();
-    if (!matchesContact ||
-        person.data.isIgnored ||
-        !person.data.hasAvatar() ||
-        name.isEmpty) {
-      return null;
-    }
-
-    try {
-      final bytes = await _contactPhotoBuilder(person);
-      if (bytes == null || _currentUserIDProvider() != ownerUserID) {
-        return null;
-      }
-      return await _contactsService.createContactWithProfilePictureIfAbsent(
-        contactUserId: contactUserId,
-        name: name,
-        bytes: bytes,
-      );
-    } catch (e, s) {
-      logger.warning(
-        "Failed to auto-create contact for linked person ${person.remoteID}",
-        e,
-        s,
-      );
-      return null;
-    }
-  }
-
-  Future<contacts.ContactRecord?> _getLinkedContact(PersonEntity person) =>
-      _contactsService.getContact(
-        contactUserId: person.data.userID,
-        email: person.data.email,
-      );
 
   Future<ManualPersonAssignmentResult> addManualFileAssignments({
     required String personID,

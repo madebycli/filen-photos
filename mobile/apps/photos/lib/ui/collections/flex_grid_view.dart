@@ -7,7 +7,6 @@ import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/clear_album_selections_event.dart";
 import 'package:photos/models/collection/collection.dart';
@@ -165,12 +164,7 @@ class _CollectionsFlexiGridViewWidgetState
 
   Future<void> _navigateToCollectionPage(Collection c) async {
     final thumbnail = await CollectionsService.instance.getCover(c);
-    final bool isOwner = c.isOwner(Configuration.instance.getUserID()!);
-    final String tagPrefix =
-        (isOwner ? "collection" : "shared_collection") +
-        widget.tag +
-        "_" +
-        c.id.toString();
+    final String tagPrefix = "collection" + widget.tag + "_" + c.id.toString();
     final bool hasVerifiedLock =
         widget.sectionType == UISectionType.hiddenCollections;
     if (!mounted) return;

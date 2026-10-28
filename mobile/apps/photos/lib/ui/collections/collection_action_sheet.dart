@@ -8,7 +8,6 @@ import 'package:ente_ui/components/loading_widget.dart';
 import 'package:flutter/material.dart';
 import "package:hugeicons/hugeicons.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/create_new_album_event.dart";
 import 'package:photos/models/collection/collection.dart';
@@ -28,7 +27,6 @@ enum CollectionActionType {
   moveFiles,
   restoreFiles,
   unHide,
-  shareCollection,
   addToHiddenAlbum,
   moveToHiddenCollection,
   autoAddPeople,
@@ -58,9 +56,6 @@ String _actionName(
       break;
     case CollectionActionType.unHide:
       text = context.strings.unhideToAlbum;
-      break;
-    case CollectionActionType.shareCollection:
-      text = context.strings.share;
       break;
     case CollectionActionType.addToHiddenAlbum:
       text = context.strings.addToHiddenAlbum;
@@ -318,35 +313,20 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
               return const SizedBox.shrink();
             } else if (snapshot.hasData) {
               final collections = snapshot.data as List<Collection>;
-              _removeIncomingCollections(collections);
               List<Collection> recentCollections = [];
               if (_searchQuery.isEmpty && !_showOnlyHiddenCollections) {
                 recentCollections = CollectionsService.instance
-                    .getRecentlyUsedCollections()
-                    .where((c) => !c.isQuickLinkCollection())
-                    .toList();
+                    .getRecentlyUsedCollections();
                 final recentIds = recentCollections.map((c) => c.id).toSet();
                 collections.removeWhere((c) => recentIds.contains(c.id));
               }
 
               if (widget.actionType == CollectionActionType.autoAddPeople) {
-                final userID = Configuration.instance.getUserID()!;
-                collections.removeWhere((c) => !c.canAutoAdd(userID));
-                recentCollections.removeWhere((c) => !c.canAutoAdd(userID));
-              }
-
-              List<Collection> sharedCollections = [];
-              if (widget.actionType == CollectionActionType.moveFiles) {
-                sharedCollections = _getSharedCollections();
-                if (_searchQuery.isNotEmpty) {
-                  sharedCollections = sharedCollections
-                      .where(
-                        (c) => c.displayName.toLowerCase().contains(
-                          _searchQuery.toLowerCase(),
-                        ),
-                      )
-                      .toList();
-                }
+                bool cannotAutoAdd(Collection c) =>
+                    c.type == CollectionType.favorites ||
+                    c.type == CollectionType.uncategorized;
+                collections.removeWhere(cannotAutoAdd);
+                recentCollections.removeWhere(cannotAutoAdd);
               }
 
               final searchResults = _searchQuery.isNotEmpty
@@ -360,8 +340,7 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
                   : collections;
               final shouldShowCreateAlbum =
                   widget.showOptionToCreateNewAlbum &&
-                  (_searchQuery.isEmpty ||
-                      (searchResults.isEmpty && sharedCollections.isEmpty));
+                  (_searchQuery.isEmpty || searchResults.isEmpty);
               return LayoutBuilder(
                 builder: (context, constraints) {
                   return OverflowBox(
@@ -383,7 +362,6 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
                             _searchQuery,
                             shouldShowCreateAlbum,
                             recentCollections: recentCollections,
-                            sharedCollections: sharedCollections,
                             enableSelection: _enableSelection,
                             selectedCollections: _selectedCollections,
                             scrollController: _scrollController,
@@ -404,29 +382,6 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
         ),
       ),
     );
-  }
-
-  List<Collection> _getSharedCollections() {
-    final userID = Configuration.instance.getUserID()!;
-    final allCollections = CollectionsService.instance.getCollectionsForUI(
-      includeCollab: true,
-      includeUncategorized: false,
-    );
-    final sharedCollections = allCollections
-        .where(
-          (c) =>
-              !c.isOwner(userID) &&
-              !c.isQuickLinkCollection() &&
-              c.type != CollectionType.favorites,
-        )
-        .toList();
-    sharedCollections.sort((first, second) {
-      return compareAsciiLowerCaseNatural(
-        first.displayName,
-        second.displayName,
-      );
-    });
-    return sharedCollections;
   }
 
   Future<List<Collection>> _getCollections() async {
@@ -452,11 +407,7 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
       return recentlyCreated + hidden;
     } else {
       final List<Collection> collections = CollectionsService.instance
-          .getCollectionsForUI(
-            // Collaborators can only add or remove files.
-            includeCollab: widget.actionType == CollectionActionType.addFiles,
-            includeUncategorized: true,
-          );
+          .getCollectionsForUI(includeUncategorized: true);
       collections.sort((first, second) {
         return compareAsciiLowerCaseNatural(
           first.displayName,
@@ -466,13 +417,10 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
       final List<Collection> pinned = [];
       final List<Collection> unpinned = [];
       final List<Collection> recentlyCreated = [];
-      final userID = Configuration.instance.getUserID()!;
       Collection? uncategorized;
       for (final collection in collections) {
-        if (collection.isQuickLinkCollection() ||
-            collection.type == CollectionType.favorites ||
-            (collection.type == CollectionType.uncategorized &&
-                collection.isOwner(userID))) {
+        if (collection.type == CollectionType.favorites ||
+            collection.type == CollectionType.uncategorized) {
           if (collection.type == CollectionType.uncategorized) {
             uncategorized = collection;
           }
@@ -482,9 +430,7 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
           recentlyCreated.add(collection);
           continue;
         }
-        final bool isPinned =
-            collection.isPinned || collection.hasShareePinned();
-        if (isPinned) {
+        if (collection.isPinned) {
           pinned.add(collection);
         } else {
           unpinned.add(collection);
@@ -494,13 +440,6 @@ class _CollectionActionSheetState extends State<CollectionActionSheet> {
       return uncategorized != null
           ? [uncategorized] + recentlyCreated + pinned + unpinned
           : recentlyCreated + pinned + unpinned;
-    }
-  }
-
-  void _removeIncomingCollections(List<Collection> items) {
-    if (widget.actionType == CollectionActionType.shareCollection) {
-      final ownerID = Configuration.instance.getUserID();
-      items.removeWhere((e) => !e.isOwner(ownerID!));
     }
   }
 }

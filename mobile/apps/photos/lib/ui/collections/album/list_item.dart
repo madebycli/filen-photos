@@ -4,21 +4,17 @@ import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:logging/logging.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/models/collection/collection.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/models/selected_albums.dart";
 import "package:photos/services/collections_service.dart";
 import "package:photos/ui/components/collection_share_badge.dart";
 import "package:photos/ui/components/thumbnail_list_item.dart";
-import "package:photos/ui/sharing/album_share_info_widget.dart";
-import "package:photos/ui/sharing/user_avator_widget.dart";
 import "package:photos/ui/viewer/file/no_thumbnail_widget.dart";
 import "package:photos/ui/viewer/file/thumbnail_widget.dart";
 
 class AlbumListItemWidget extends StatelessWidget {
-  static final double _trailingWidth =
-      getAvatarSize(AvatarType.medium) + getOverlapPadding(AvatarType.medium);
+  static const double _trailingSize = 24;
 
   final Collection collection;
   final String? tag;
@@ -54,20 +50,9 @@ class AlbumListItemWidget extends StatelessWidget {
   }
 
   Widget _buildItem(BuildContext context, {required bool isSelected}) {
-    final bool isOwner = collection.isOwner(
-      Configuration.instance.getUserID() ?? -1,
-    );
-    final bool isOutgoing = isOwner && collection.hasSharees;
-    final bool isIncoming = !isOwner;
-    final bool showSharingIndicator = isOutgoing || isIncoming;
-    final bool showLinkIndicator = isOwner && collection.hasLink;
     final bool isFavoriteAlbum = collection.type == CollectionType.favorites;
-    final bool showPin = isOwner
-        ? collection.isPinned
-        : collection.hasShareePinned();
-    final bool showArchive = isOwner
-        ? collection.isArchived()
-        : collection.hasShareeArchived();
+    final bool showPin = collection.isPinned;
+    final bool showArchive = collection.isArchived();
 
     final colors = context.componentColors;
     return ThumbnailListItem(
@@ -82,17 +67,9 @@ class AlbumListItemWidget extends StatelessWidget {
         collection: collection,
         heroTag: tag == null
             ? null
-            : (isOwner ? "collection" : "shared_collection") +
-                  tag! +
-                  "_" +
-                  collection.id.toString(),
+            : "collection" + tag! + "_" + collection.id.toString(),
       ),
-      title: _buildTitle(
-        context,
-        showSharingIndicator: showSharingIndicator,
-        isOutgoing: isOutgoing,
-        showLinkIndicator: showLinkIndicator,
-      ),
+      title: _buildTitle(context),
       subtitle: FutureBuilder<int>(
         future: CollectionsService.instance.getFileCount(collection),
         initialData: CollectionsService.instance.getCachedFileCount(collection),
@@ -125,8 +102,8 @@ class AlbumListItemWidget extends StatelessWidget {
       trailing: Padding(
         padding: const EdgeInsets.only(right: 8),
         child: SizedBox(
-          width: _trailingWidth,
-          height: getAvatarSize(AvatarType.medium),
+          width: _trailingSize,
+          height: _trailingSize,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             switchInCurve: Curves.easeOut,
@@ -137,51 +114,22 @@ class AlbumListItemWidget extends StatelessWidget {
                 children: [...previousChildren, ?currentChild],
               );
             },
-            child: _buildTrailingIndicator(
-              context,
-              isSelected: isSelected,
-              isOwner: isOwner,
-            ),
+            child: _buildTrailingIndicator(isSelected: isSelected),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTitle(
-    BuildContext context, {
-    required bool showSharingIndicator,
-    required bool isOutgoing,
-    required bool showLinkIndicator,
-  }) {
+  Widget _buildTitle(BuildContext context) {
     final colors = context.componentColors;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Flexible(
-          child: Text(
-            collection.displayName,
-            style: TextStyles.body.copyWith(color: colors.textBase),
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (showSharingIndicator) ...[
-          const SizedBox(width: 6),
-          CollectionShareBadge(
-            isOutgoing: isOutgoing,
-            variant: CollectionShareBadgeVariant.outlined,
-          ),
-        ],
-        if (showLinkIndicator) ...[
-          const SizedBox(width: 4),
-          const CollectionLinkBadge(
-            variant: CollectionShareBadgeVariant.outlined,
-          ),
-        ],
-      ],
+    return Text(
+      collection.displayName,
+      style: TextStyles.body.copyWith(color: colors.textBase),
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -230,43 +178,9 @@ class AlbumListItemWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTrailingIndicator(
-    BuildContext context, {
-    required bool isSelected,
-    required bool isOwner,
-  }) {
-    final double avatarSize = getAvatarSize(AvatarType.medium);
-    final double slotOverlap = getOverlapPadding(AvatarType.medium);
-
+  Widget _buildTrailingIndicator({required bool isSelected}) {
     if (isSelected) {
       return const CollectionSelectedBadge(key: ValueKey("selected"));
-    }
-    if (!isOwner) {
-      return UserAvatarWidget(
-        key: const ValueKey("owner"),
-        collection.owner,
-        type: AvatarType.medium,
-      );
-    }
-    if (collection.hasSharees) {
-      final sharees = collection.sharees;
-      final int total = sharees.length;
-      final int limit = total > 2 ? 1 : 2;
-      final int displayCount = total.clamp(1, limit).toInt();
-      final bool hasMore = total > limit;
-      final double contentWidth =
-          avatarSize + (displayCount - 1 + (hasMore ? 1 : 0)) * slotOverlap;
-      return SizedBox(
-        key: const ValueKey("sharees"),
-        width: contentWidth,
-        height: avatarSize,
-        child: AlbumSharesIcons(
-          sharees: sharees,
-          type: AvatarType.medium,
-          limitCountTo: limit,
-          padding: EdgeInsets.zero,
-        ),
-      );
     }
     return const SizedBox.shrink(key: ValueKey("unselected"));
   }
@@ -305,7 +219,6 @@ class AlbumListItemCover extends StatelessWidget {
             return ThumbnailWidget(
               thumbnail,
               shouldShowFavoriteIcon: false,
-              shouldShowOwnerAvatar: false,
               shouldShowSyncStatus: false,
               key: Key("album_list:${collection.id}:${thumbnail.tag}"),
             );

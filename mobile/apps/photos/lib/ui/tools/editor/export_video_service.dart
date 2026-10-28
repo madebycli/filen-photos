@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:photos/services/ffmpeg_service.dart';
-import 'package:photos/services/video_preview_service.dart';
 import 'package:photos/ui/tools/editor/video_crop_util.dart';
 import 'package:photos/ui/tools/editor/video_editor/video_editor_controller.dart';
 
@@ -103,9 +102,7 @@ class ExportService {
     void Function(double)? onProgress,
     void Function(Object, StackTrace)? onError,
   }) async {
-    final previews = VideoPreviewService.instance;
     try {
-      await previews.pauseForExport();
       return await runFFmpegCommand(
         createPlan(controller: controller, outputPath: outputPath),
         onProgress: onProgress,
@@ -113,8 +110,6 @@ class ExportService {
     } catch (error, stackTrace) {
       onError?.call(error, stackTrace);
       rethrow;
-    } finally {
-      previews.resumeAfterExport();
     }
   }
 

@@ -19,13 +19,11 @@ import "package:photos/services/machine_learning/ml_service.dart";
 import "package:photos/services/machine_learning/semantic_search/semantic_search_service.dart";
 import 'package:photos/services/sync/sync_service.dart';
 import "package:photos/theme/ente_theme.dart";
-import "package:photos/ui/common/web_page.dart";
 import "package:photos/ui/components/alert_bottom_sheet.dart";
 import "package:photos/ui/components/buttons/button_widget_v2.dart";
 import "package:photos/ui/notification/toast.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:rive/rive.dart" as rive;
-import "package:styled_text/styled_text.dart";
 
 class GrantPermissionsWidget extends StatefulWidget {
   const GrantPermissionsWidget({super.key, this.startWithoutAccount = false});
@@ -495,7 +493,6 @@ class _GrantPermissionsWidgetState extends State<GrantPermissionsWidget>
                           onTap: _onTapOfflineGrantPermission,
                         ),
                         const Flexible(child: SizedBox(height: 42)),
-                        _buildOfflineTermsAndPrivacy(context),
                         const Flexible(child: SizedBox(height: 24)),
                       ],
                     ),
@@ -506,55 +503,6 @@ class _GrantPermissionsWidgetState extends State<GrantPermissionsWidget>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildOfflineTermsAndPrivacy(BuildContext context) {
-    final colorScheme = getEnteColorScheme(context);
-    final textStyle = TextStyles.body.copyWith(
-      color: colorScheme.contentLight.withValues(alpha: 0.8),
-    );
-
-    return StyledText(
-      text: context.strings.byAgreeing,
-      textAlign: TextAlign.center,
-      style: textStyle,
-      tags: {
-        'terms': StyledTextActionTag(
-          (String? text, Map<String?, String?> attrs) =>
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return WebPage(
-                      context.strings.termsOfServicesTitle,
-                      "https://ente.com/terms",
-                    );
-                  },
-                ),
-              ),
-          style: textStyle.copyWith(
-            decoration: TextDecoration.underline,
-            decorationColor: textStyle.color,
-          ),
-        ),
-        'policy': StyledTextActionTag(
-          (String? text, Map<String?, String?> attrs) =>
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return WebPage(
-                      context.strings.privacyPolicyTitle,
-                      "https://ente.com/privacy",
-                    );
-                  },
-                ),
-              ),
-          style: textStyle.copyWith(
-            decoration: TextDecoration.underline,
-            decorationColor: textStyle.color,
-          ),
-        ),
-      },
     );
   }
 

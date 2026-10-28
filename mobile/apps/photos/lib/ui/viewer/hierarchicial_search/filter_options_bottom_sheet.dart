@@ -115,7 +115,6 @@ class _FilterOptionsBottomSheetState extends State<FilterOptionsBottomSheet> {
         ..._filters("magicFilters"),
         ..._filters("topLevelGenericFilter"),
       ]),
-      _FilterGroup(l10n.searchResultUploadedBy, _uploadedByFilters),
       _FilterGroup(l10n.camera, _filters("cameraFilters")),
       _FilterGroup(l10n.albums, _filters("albumFilters")),
       _FilterGroup(l10n.locations, _filters("locationFilters")),
@@ -134,10 +133,6 @@ class _FilterOptionsBottomSheetState extends State<FilterOptionsBottomSheet> {
       ...onlyThemFilters.where((filter) => !filter.isApplied),
       ...faceFilters.where((filter) => !filter.isApplied),
     ];
-  }
-
-  List<HierarchicalSearchFilter> get _uploadedByFilters {
-    return [..._filters("contactsFilters"), ..._filters("uploaderFilters")];
   }
 
   List<HierarchicalSearchFilter> _filters(String type) {

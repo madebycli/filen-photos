@@ -14,9 +14,7 @@ import 'package:flutter/services.dart';
 import "package:flutter_svg/flutter_svg.dart";
 import "package:hugeicons/hugeicons.dart";
 import 'package:logging/logging.dart';
-import 'package:photos/core/configuration.dart';
 import 'package:photos/core/constants.dart';
-import 'package:photos/core/errors.dart';
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/file_caption_updated_event.dart";
 import "package:photos/events/guest_view_event.dart";
@@ -28,14 +26,12 @@ import "package:photos/models/gallery_type.dart";
 import 'package:photos/module/download/file.dart';
 import "package:photos/module/download/thumbnail.dart";
 import "package:photos/service_locator.dart";
-import "package:photos/services/collections_service.dart";
 import "package:photos/states/detail_page_state.dart";
 import "package:photos/theme/colors.dart";
 import "package:photos/theme/ente_theme.dart";
 import "package:photos/ui/actions/file/file_actions.dart";
 import "package:photos/ui/common/fast_scroll_physics.dart";
 import 'package:photos/ui/notification/toast.dart';
-import "package:photos/ui/social/widgets/file_social_overlay.dart";
 import "package:photos/ui/tools/editor/image_editor/image_editor_page.dart";
 import "package:photos/ui/tools/editor/video_editor_page.dart";
 import "package:photos/ui/viewer/file/file_app_bar.dart";
@@ -49,12 +45,9 @@ import "package:photos/ui/viewer/file/panorama_viewer_screen.dart";
 import "package:photos/ui/viewer/file/qr_code_detection_helper.dart";
 import "package:photos/ui/viewer/file/qr_code_highlight_overlay.dart";
 import "package:photos/ui/viewer/file/video_control/gallery_video_controls.dart";
-import "package:photos/ui/viewer/file/video_stream_change.dart";
 import 'package:photos/ui/viewer/gallery/gallery.dart';
 import 'package:photos/utils/dialog_util.dart';
 
-const _socialRightInset = 24.0;
-const _socialBottomBarClearance = 98.0;
 const _galleryBottomBarHeight = 60.0;
 const _galleryCaptionGap = 12.0;
 const _galleryCaptionLineHeight = 16.0;
@@ -136,7 +129,6 @@ class DetailPage extends StatefulWidget {
 
 class _DetailPageState extends State<DetailPage> {
   final _enableFullScreenNotifier = ValueNotifier(false);
-  final _isInSharedCollectionNotifier = ValueNotifier(false);
   final _showingThumbnailFallbackNotifier = ValueNotifier<String?>(null);
   final _isZoomedNotifier = ValueNotifier(false);
   final _zoomTransformNotifier = ValueNotifier(ZoomTransform.identity);
@@ -159,7 +151,6 @@ class _DetailPageState extends State<DetailPage> {
   @override
   void dispose() {
     _enableFullScreenNotifier.dispose();
-    _isInSharedCollectionNotifier.dispose();
     _showingThumbnailFallbackNotifier.dispose();
     _isZoomedNotifier.dispose();
     _zoomTransformNotifier.dispose();
@@ -173,7 +164,6 @@ class _DetailPageState extends State<DetailPage> {
     // survives body rebuilds.
     return InheritedDetailPageState(
       enableFullScreenNotifier: _enableFullScreenNotifier,
-      isInSharedCollectionNotifier: _isInSharedCollectionNotifier,
       showingThumbnailFallbackNotifier: _showingThumbnailFallbackNotifier,
       isZoomedNotifier: _isZoomedNotifier,
       zoomTransformNotifier: _zoomTransformNotifier,
@@ -214,8 +204,6 @@ class _BodyState extends State<_Body> {
   final Map<String, File> _renderedFiles = {};
   final _playbackSpeed = ValueNotifier<double>(1.0);
   final Map<EnteFile, int> _fileIndexByIdentity = Map.identity();
-  final Map<EnteFile, VideoStreamChangeController>
-  _videoStreamChangeControllers = Map.identity();
   ValueNotifier<double>? _bottomControlsAdditionalInsetNotifier;
   GalleryFileViewerFilmstripLayout _filmstripLayout =
       GalleryFileViewerFilmstripLayout.compact;
@@ -284,7 +272,6 @@ class _BodyState extends State<_Body> {
         Navigator.maybePop(context).ignore();
         return;
       }
-      _updateSharedCollectionState(selectedFile);
       _evaluateQrIfEligible(selectedFile);
       widget.config.onPageReady?.call(context);
     });
@@ -307,9 +294,6 @@ class _BodyState extends State<_Body> {
     _guestViewEventSubscription.cancel();
     _captionUpdatedSubscription.cancel();
     _filmstripCoordinator.dispose();
-    for (final controller in _videoStreamChangeControllers.values) {
-      controller.dispose();
-    }
     _pageController.dispose();
     _selectedIndexNotifier.dispose();
     _qrHelper?.dispose();
@@ -415,14 +399,10 @@ class _BodyState extends State<_Body> {
                   enableFullScreenNotifier: InheritedDetailPageState.of(
                     context,
                   ).enableFullScreenNotifier,
-                  galleryType: widget.config.galleryType,
                   mode: widget.config.mode,
                   showEditAction: widget.config.showEditAction,
                   onBackPressed: widget.config.onBackPressed,
                   playbackSpeed: _playbackSpeed,
-                  streamChangeController: _videoStreamChangeControllerFor(
-                    _files![selectedIndex],
-                  ),
                 );
               },
               valueListenable: _selectedIndexNotifier,
@@ -470,18 +450,6 @@ class _BodyState extends State<_Body> {
                   );
                 },
                 valueListenable: _selectedIndexNotifier,
-              ),
-              ValueListenableBuilder(
-                valueListenable: _selectedIndexNotifier,
-                builder: (BuildContext context, int selectedIndex, _) {
-                  return _GallerySocialOverlay(
-                    file: _files![selectedIndex],
-                    mode: widget.config.mode,
-                    isGuestView: isGuestView,
-                    hasFilmstrip: _shouldShowFilmstrip,
-                    filmstripLayout: _filmstripLayout,
-                  );
-                },
               ),
               if (_qrHelper != null)
                 ValueListenableBuilder(
@@ -572,7 +540,6 @@ class _BodyState extends State<_Body> {
                       return FileBottomBar(
                         _files![selectedIndex],
                         onFileRemoved: _onFileRemoved,
-                        userID: Configuration.instance.getUserID(),
                         enableFullScreenNotifier: InheritedDetailPageState.of(
                           context,
                         ).enableFullScreenNotifier,
@@ -670,7 +637,6 @@ class _BodyState extends State<_Body> {
               : null,
           qrDetectionsNotifier: _qrHelper?.qrDetectionsNotifier,
           playbackSpeed: _playbackSpeed,
-          streamChangeController: _videoStreamChangeControllerFor(file),
           onTextSelectionStart:
               flagService.ocrOverlayEnabled &&
                   widget.config.mode == DetailPageMode.full &&
@@ -770,7 +736,6 @@ class _BodyState extends State<_Body> {
 
   void _runSelectedFileSideEffects(EnteFile file) {
     Bus.instance.fire(GuestViewEvent(isGuestView, swipeLocked));
-    _updateSharedCollectionState(file);
     _evaluateQrIfEligible(file);
   }
 
@@ -797,17 +762,7 @@ class _BodyState extends State<_Body> {
         : oldSelectedIndex;
     setState(() {
       _shouldDisableScroll = false;
-      final removedFile = files.removeAt(removedIndex);
-      final removedController = _videoStreamChangeControllers.remove(
-        removedFile,
-      );
-      if (removedController != null) {
-        // The outgoing page and app bar detach from this controller while the
-        // removal frame is built. Dispose it only after those widgets unmount.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          removedController.dispose();
-        });
-      }
+      files.removeAt(removedIndex);
       _rebuildFileIndex();
       if (_selectedIndexNotifier.value == nextSelectedIndex) {
         // The item at this index may have changed even though the index did not.
@@ -821,7 +776,6 @@ class _BodyState extends State<_Body> {
     _syncBottomControlsInset();
     final selectedFile = _selectedFile;
     if (selectedFile != null) {
-      unawaited(_updateSharedCollectionState(selectedFile));
       _evaluateQrIfEligible(selectedFile);
     }
 
@@ -856,21 +810,6 @@ class _BodyState extends State<_Body> {
   }
 
   Future<void> _onEditFileRequested(EnteFile file) async {
-    if (file.uploadedFileID != null &&
-        file.ownerID != Configuration.instance.getUserID()) {
-      _logger.severe(
-        "Attempt to edit unowned file",
-        UnauthorizedEditError(),
-        StackTrace.current,
-      );
-      // ignore: unawaited_futures
-      showErrorDialog(
-        context,
-        context.strings.sorry,
-        context.strings.weDontSupportEditingPhotosAndAlbumsThatYouDont,
-      );
-      return;
-    }
     final dialog = createProgressDialog(context, context.strings.pleaseWait);
     await dialog.show();
 
@@ -930,29 +869,6 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Future<void> _updateSharedCollectionState(EnteFile file) async {
-    final fileID = file.uploadedFileID;
-    final notifier = InheritedDetailPageState.maybeOf(
-      context,
-    )?.isInSharedCollectionNotifier;
-
-    if (notifier == null) return;
-
-    if (fileID == null) {
-      notifier.value = false;
-      return;
-    }
-
-    final isShared = await CollectionsService.instance.isFileInSharedCollection(
-      fileID,
-    );
-
-    // Ignore results for a file the user swiped away from while awaiting.
-    if (_selectedFile?.uploadedFileID == fileID) {
-      notifier.value = isShared;
-    }
-  }
-
   EnteFile? get _selectedFile => _fileAt(_selectedIndexNotifier.value);
 
   bool get _shouldShowFilmstrip => shouldShowGalleryFileViewerFilmstrip(
@@ -999,14 +915,6 @@ class _BodyState extends State<_Body> {
     if (key is! ObjectKey) return null;
     final value = key.value;
     return value is EnteFile ? _fileIndexByIdentity[value] : null;
-  }
-
-  VideoStreamChangeController? _videoStreamChangeControllerFor(EnteFile file) {
-    if (file.fileType != FileType.video) return null;
-    return _videoStreamChangeControllers.putIfAbsent(
-      file,
-      VideoStreamChangeController.new,
-    );
   }
 
   void _rebuildFileIndex() {
@@ -1131,59 +1039,6 @@ class _GalleryFileViewerBottomOverlay extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-// This widget returns Positioned, so its parent must be a Stack.
-class _GallerySocialOverlay extends StatelessWidget {
-  final EnteFile file;
-  final DetailPageMode mode;
-  final bool isGuestView;
-  final bool hasFilmstrip;
-  final GalleryFileViewerFilmstripLayout filmstripLayout;
-
-  const _GallerySocialOverlay({
-    required this.file,
-    required this.mode,
-    required this.isGuestView,
-    required this.hasFilmstrip,
-    required this.filmstripLayout,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (mode != DetailPageMode.full || isGuestView || file.isTrash) {
-      return const SizedBox.shrink();
-    }
-
-    final padding = MediaQuery.paddingOf(context);
-    final fullScreenNotifier = InheritedDetailPageState.of(
-      context,
-    ).enableFullScreenNotifier;
-    return Positioned(
-      right: padding.right + _socialRightInset,
-      bottom:
-          padding.bottom +
-          _socialBottomBarClearance +
-          (hasFilmstrip ? filmstripLayout.additionalBottomInset : 0),
-      child: ValueListenableBuilder<bool>(
-        valueListenable: fullScreenNotifier,
-        builder: (context, isFullScreen, child) => IgnorePointer(
-          ignoring: isFullScreen,
-          child: AnimatedOpacity(
-            opacity: isFullScreen ? 0 : 1,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            child: child,
-          ),
-        ),
-        child: FileSocialOverlay(
-          file: file,
-          currentUserID: Configuration.instance.getUserID(),
-          openingCollectionID: file.collectionID,
-        ),
-      ),
     );
   }
 }

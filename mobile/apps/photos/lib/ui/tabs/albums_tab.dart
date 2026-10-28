@@ -32,15 +32,13 @@ import "package:photos/ui/collections/device/device_folders_vertical_grid_view.d
 import "package:photos/ui/collections/flex_grid_view.dart";
 import "package:photos/ui/components/empty_state_component.dart";
 import "package:photos/ui/tabs/albums/albums_manage_sheet.dart";
-import "package:photos/ui/tabs/albums/empty_states/on_ente_empty_state.dart";
-import "package:photos/ui/tabs/albums/empty_states/received_empty_state.dart";
-import "package:photos/ui/tabs/albums/empty_states/shared_empty_state.dart";
+import "package:photos/ui/tabs/albums/empty_states/on_filen_empty_state.dart";
 import "package:photos/ui/viewer/actions/album_selection_overlay_bar.dart";
 import "package:photos/ui/viewer/actions/delete_empty_albums.dart";
 import "package:photos/ui/viewer/gallery/trash_page.dart";
 import "package:photos/utils/device_info.dart";
 
-enum _AlbumsFilter { ente, onDevice, shared, received }
+enum _AlbumsFilter { filen, onDevice }
 
 enum _AlbumsMenuAction { toggleView, name, lastUpdated }
 
@@ -77,13 +75,9 @@ class _AlbumsTabState extends State<AlbumsTab>
   static const double _kContentBottomPadding = 200;
 
   final ValueNotifier<_AlbumsFilter> _filter = ValueNotifier(
-    _AlbumsFilter.ente,
+    _AlbumsFilter.filen,
   );
-  final ValueNotifier<List<Collection>?> _enteCollections = ValueNotifier(null);
-  final ValueNotifier<List<Collection>?> _sharedCollections = ValueNotifier(
-    null,
-  );
-  final ValueNotifier<List<Collection>?> _receivedCollections = ValueNotifier(
+  final ValueNotifier<List<Collection>?> _filenCollections = ValueNotifier(
     null,
   );
   final ValueNotifier<List<Collection>?> _archivedCollections = ValueNotifier(
@@ -175,9 +169,7 @@ class _AlbumsTabState extends State<AlbumsTab>
       _debouncer.run(_loadAll);
     });
     _loggedOutEvent = Bus.instance.on<UserLoggedOutEvent>().listen((_) {
-      _enteCollections.value = null;
-      _sharedCollections.value = null;
-      _receivedCollections.value = null;
+      _filenCollections.value = null;
       _archivedCollections.value = null;
     });
     _tabChangedEvent = Bus.instance.on<TabChangedEvent>().listen(
@@ -241,18 +233,12 @@ class _AlbumsTabState extends State<AlbumsTab>
 
   Future<void> _loadAll() async {
     if (!Configuration.instance.hasConfiguredAccount()) {
-      _enteCollections.value = <Collection>[];
-      _sharedCollections.value = <Collection>[];
-      _receivedCollections.value = <Collection>[];
+      _filenCollections.value = <Collection>[];
       _archivedCollections.value = <Collection>[];
       _shouldShowDeleteEmptyAlbums.value = false;
       return;
     }
-    await Future.wait([
-      _loadEnteCollections(),
-      _loadSharedCollections(),
-      _loadArchivedCollections(),
-    ]);
+    await Future.wait([_loadFilenCollections(), _loadArchivedCollections()]);
   }
 
   _AlbumsFilter get _effectiveFilter =>
@@ -266,15 +252,15 @@ class _AlbumsTabState extends State<AlbumsTab>
     _viewType.value = localSettings.albumViewType();
   }
 
-  Future<void> _loadEnteCollections() async {
+  Future<void> _loadFilenCollections() async {
     final collections = await CollectionsService.instance
-        .getCollectionForOnEnteSection();
+        .getCollectionsForAlbumsTab();
     final shouldShowDeleteEmptyAlbums = await _shouldShowDeleteEmptyAlbumsFor(
       collections,
     );
     if (!mounted) return;
     _shouldShowDeleteEmptyAlbums.value = shouldShowDeleteEmptyAlbums;
-    _enteCollections.value = collections;
+    _filenCollections.value = collections;
   }
 
   Future<bool> _shouldShowDeleteEmptyAlbumsFor(
@@ -294,13 +280,6 @@ class _AlbumsTabState extends State<AlbumsTab>
       return collection.isOwner(userID) && latestTimeCount == null;
     }).length;
     return emptyAlbumCount > 2;
-  }
-
-  Future<void> _loadSharedCollections() async {
-    final shared = await CollectionsService.instance.getSharedCollections();
-    if (!mounted) return;
-    _sharedCollections.value = shared.outgoing;
-    _receivedCollections.value = shared.incoming;
   }
 
   Future<void> _loadArchivedCollections() async {
@@ -475,7 +454,7 @@ class _AlbumsTabState extends State<AlbumsTab>
                 padding: const EdgeInsets.only(top: 8),
                 child: DeleteEmptyAlbums(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  onDeleted: () => _loadEnteCollections(),
+                  onDeleted: () => _loadFilenCollections(),
                 ),
               )
             : const SizedBox.shrink(
@@ -565,40 +544,27 @@ class _AlbumsTabState extends State<AlbumsTab>
       );
     }
 
-    final enteCollections = _enteCollections.value;
-    final sharedCollections = _sharedCollections.value;
-    final receivedCollections = _receivedCollections.value;
+    final enteCollections = _filenCollections.value;
     final archivedCollections = _archivedCollections.value;
     final filteredEnteCollections = enteCollections == null
         ? null
         : _filterCollectionsByQuery(enteCollections);
-    final filteredSharedCollections = sharedCollections == null
-        ? null
-        : _filterCollectionsByQuery(sharedCollections);
-    final filteredReceivedCollections = receivedCollections == null
-        ? null
-        : _filterCollectionsByQuery(receivedCollections);
     final filteredArchivedCollections = archivedCollections == null
         ? null
         : _filterCollectionsByQuery(archivedCollections);
     final hasRemoteCollections =
         (filteredEnteCollections?.isNotEmpty ?? false) ||
-        (filteredSharedCollections?.isNotEmpty ?? false) ||
-        (filteredReceivedCollections?.isNotEmpty ?? false) ||
         (filteredArchivedCollections?.isNotEmpty ?? false);
     final hasFinishedLoadingRemoteCollections =
-        enteCollections != null &&
-        sharedCollections != null &&
-        receivedCollections != null &&
-        archivedCollections != null;
+        enteCollections != null && archivedCollections != null;
     final shouldShowDeviceSearchState =
         hasFinishedLoadingRemoteCollections && !hasRemoteCollections;
 
     return SliverMainAxisGroup(
       slivers: [
         ..._buildCollectionSearchSectionSlivers(
-          title: strings.ente,
-          tag: "album_search_ente",
+          title: "Filen",
+          tag: "album_search_filen",
           collections: filteredEnteCollections,
         ),
         DeviceFolderVerticalGridSliver(
@@ -614,16 +580,6 @@ class _AlbumsTabState extends State<AlbumsTab>
           emptyStateSliver: shouldShowDeviceSearchState
               ? _buildGlobalSearchEmptyStateSliver(strings)
               : null,
-        ),
-        ..._buildCollectionSearchSectionSlivers(
-          title: strings.sharedAlbumsLabel,
-          tag: "album_search_shared",
-          collections: filteredSharedCollections,
-        ),
-        ..._buildCollectionSearchSectionSlivers(
-          title: strings.receivedAlbumsLabel,
-          tag: "album_search_received",
-          collections: filteredReceivedCollections,
         ),
         ..._buildCollectionSearchSectionSlivers(
           title: strings.archive,
@@ -646,18 +602,10 @@ class _AlbumsTabState extends State<AlbumsTab>
     final bool showCreateAlbum;
     final Widget emptyState;
     switch (filter) {
-      case _AlbumsFilter.ente:
-        collections = _enteCollections.value;
+      case _AlbumsFilter.filen:
+        collections = _filenCollections.value;
         showCreateAlbum = true;
-        emptyState = const OnEnteEmptyState();
-      case _AlbumsFilter.shared:
-        collections = _sharedCollections.value;
-        showCreateAlbum = false;
-        emptyState = const SharedEmptyState();
-      case _AlbumsFilter.received:
-        collections = _receivedCollections.value;
-        showCreateAlbum = false;
-        emptyState = const ReceivedEmptyState();
+        emptyState = const OnFilenEmptyState();
       case _AlbumsFilter.onDevice:
         return DeviceFolderVerticalGridSliver(
           searchQuery: _searchQuery.trim(),
@@ -679,7 +627,7 @@ class _AlbumsTabState extends State<AlbumsTab>
       collections: collections,
       showCreateAlbum: showCreateAlbum,
       emptyState: emptyState,
-      leadingSliver: filter == _AlbumsFilter.ente && !_hasSearchQuery
+      leadingSliver: filter == _AlbumsFilter.filen && !_hasSearchQuery
           ? SliverToBoxAdapter(child: _buildDeleteEmptyAlbumsActionSlot())
           : null,
     );
@@ -687,14 +635,8 @@ class _AlbumsTabState extends State<AlbumsTab>
 
   Key _contentStateKey() {
     final contentPhase = switch (_effectiveFilter) {
-      _AlbumsFilter.ente =>
-        _enteCollections.value == null ? "ente_loading" : "ente_ready",
-      _AlbumsFilter.shared =>
-        _sharedCollections.value == null ? "shared_loading" : "shared_ready",
-      _AlbumsFilter.received =>
-        _receivedCollections.value == null
-            ? "received_loading"
-            : "received_ready",
+      _AlbumsFilter.filen =>
+        _filenCollections.value == null ? "filen_loading" : "filen_ready",
       _AlbumsFilter.onDevice => "device",
     };
 
@@ -833,9 +775,7 @@ class _AlbumsTabState extends State<AlbumsTab>
     }
     _retiredScrollControllers.clear();
     _filter.dispose();
-    _enteCollections.dispose();
-    _sharedCollections.dispose();
-    _receivedCollections.dispose();
+    _filenCollections.dispose();
     _archivedCollections.dispose();
     _shouldShowDeleteEmptyAlbums.dispose();
     _viewType.dispose();
@@ -1007,11 +947,11 @@ class _AlbumsTabState extends State<AlbumsTab>
                                             children: [
                                               if (!isLocalGalleryMode) ...[
                                                 _AlbumsFilterChip(
-                                                  filter: _AlbumsFilter.ente,
-                                                  label: strings.ente,
+                                                  filter: _AlbumsFilter.filen,
+                                                  label: "Filen",
                                                   selected:
                                                       effectiveFilter ==
-                                                      _AlbumsFilter.ente,
+                                                      _AlbumsFilter.filen,
                                                   onTap: _selectFilter,
                                                 ),
                                                 const SizedBox(width: 8),
@@ -1024,29 +964,6 @@ class _AlbumsTabState extends State<AlbumsTab>
                                                     _AlbumsFilter.onDevice,
                                                 onTap: _selectFilter,
                                               ),
-                                              if (!isLocalGalleryMode) ...[
-                                                const SizedBox(width: 8),
-                                                _AlbumsFilterChip(
-                                                  filter: _AlbumsFilter.shared,
-                                                  label:
-                                                      strings.sharedAlbumsLabel,
-                                                  selected:
-                                                      effectiveFilter ==
-                                                      _AlbumsFilter.shared,
-                                                  onTap: _selectFilter,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                _AlbumsFilterChip(
-                                                  filter:
-                                                      _AlbumsFilter.received,
-                                                  label: strings
-                                                      .receivedAlbumsLabel,
-                                                  selected:
-                                                      effectiveFilter ==
-                                                      _AlbumsFilter.received,
-                                                  onTap: _selectFilter,
-                                                ),
-                                              ],
                                             ],
                                           ),
                                         ),
@@ -1069,9 +986,7 @@ class _AlbumsTabState extends State<AlbumsTab>
                 child: AnimatedBuilder(
                   animation: Listenable.merge([
                     _filter,
-                    _enteCollections,
-                    _sharedCollections,
-                    _receivedCollections,
+                    _filenCollections,
                     _archivedCollections,
                     _shouldShowDeleteEmptyAlbums,
                     _viewType,
@@ -1124,26 +1039,15 @@ class _AlbumsTabState extends State<AlbumsTab>
         ),
         if (selectedAlbums != null && !_isSearchActive)
           AnimatedBuilder(
-            animation: Listenable.merge([
-              _filter,
-              _enteCollections,
-              _sharedCollections,
-              _receivedCollections,
-            ]),
+            animation: Listenable.merge([_filter, _filenCollections]),
             builder: (context, _) {
               final filter = _effectiveFilter;
               final UISectionType sectionType;
               final List<Collection>? collections;
               switch (filter) {
-                case _AlbumsFilter.ente:
+                case _AlbumsFilter.filen:
                   sectionType = UISectionType.homeCollections;
-                  collections = _enteCollections.value;
-                case _AlbumsFilter.shared:
-                  sectionType = UISectionType.outgoingCollections;
-                  collections = _sharedCollections.value;
-                case _AlbumsFilter.received:
-                  sectionType = UISectionType.incomingCollections;
-                  collections = _receivedCollections.value;
+                  collections = _filenCollections.value;
                 case _AlbumsFilter.onDevice:
                   return const SizedBox.shrink();
               }

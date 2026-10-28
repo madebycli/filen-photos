@@ -10,14 +10,12 @@ import "package:hugeicons/hugeicons.dart";
 import "package:local_auth/local_auth.dart";
 import 'package:logging/logging.dart';
 import 'package:media_extension/media_extension.dart';
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/guest_view_event.dart";
 import "package:photos/models/collection/collection.dart";
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
-import "package:photos/models/gallery_type.dart";
 import "package:photos/models/metadata/common_keys.dart";
 import 'package:photos/models/selected_files.dart';
 import 'package:photos/module/download/file.dart';
@@ -25,17 +23,14 @@ import 'package:photos/module/download/gallery.dart';
 import "package:photos/service_locator.dart";
 import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/hidden_service.dart';
-import "package:photos/services/video_preview_service.dart";
 import "package:photos/states/detail_page_state.dart";
 import "package:photos/theme/colors.dart";
 import "package:photos/ui/actions/file/file_actions.dart";
 import 'package:photos/ui/collections/collection_action_sheet.dart';
 import "package:photos/ui/common/photo_library_add_permission.dart";
 import 'package:photos/ui/notification/toast.dart';
-import 'package:photos/ui/viewer/actions/suggest_delete_sheet.dart';
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/file/video_control/video_speed_bottom_sheet.dart";
-import "package:photos/ui/viewer/file/video_stream_change.dart";
 import "package:photos/ui/viewer/file/viewer_app_bar.dart";
 import "package:photos/ui/viewer/file_details/favorite_widget.dart";
 import "package:photos/ui/viewer/file_details/upload_icon_widget.dart";
@@ -51,24 +46,20 @@ class FileAppBar extends StatefulWidget {
   final Function(EnteFile) onFileRemoved;
   final Function(EnteFile) onEditRequested;
   final ValueNotifier<bool> enableFullScreenNotifier;
-  final GalleryType? galleryType;
   final DetailPageMode mode;
   final bool showEditAction;
   final FutureOr<void> Function(BuildContext context)? onBackPressed;
   final ValueNotifier<double> playbackSpeed;
-  final VideoStreamChangeController? streamChangeController;
 
   const FileAppBar(
     this.file,
     this.onFileRemoved,
     this.onEditRequested, {
     required this.enableFullScreenNotifier,
-    this.galleryType,
     this.mode = DetailPageMode.full,
     this.showEditAction = true,
     this.onBackPressed,
     required this.playbackSpeed,
-    required this.streamChangeController,
     super.key,
   });
 
@@ -88,16 +79,9 @@ class FileAppBarState extends State<FileAppBar> {
   @override
   void didUpdateWidget(FileAppBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.streamChangeController != widget.streamChangeController) {
-      oldWidget.streamChangeController?.removeListener(
-        _onStreamChangeStateChanged,
-      );
-      widget.streamChangeController?.addListener(_onStreamChangeStateChanged);
-    }
     if (detailPageFileIdentifier(oldWidget.file) !=
             detailPageFileIdentifier(widget.file) ||
-        oldWidget.showEditAction != widget.showEditAction ||
-        oldWidget.streamChangeController != widget.streamChangeController) {
+        oldWidget.showEditAction != widget.showEditAction) {
       _getActions();
     }
   }
@@ -112,7 +96,6 @@ class FileAppBarState extends State<FileAppBar> {
         isGuestView = event.isGuestView;
       });
     });
-    widget.streamChangeController?.addListener(_onStreamChangeStateChanged);
   }
 
   @override
@@ -126,12 +109,6 @@ class FileAppBarState extends State<FileAppBar> {
 
   void _onThumbnailFallbackChanged() {
     _requestActionsReload();
-  }
-
-  void _onStreamChangeStateChanged() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestActionsReload();
-    });
   }
 
   void _updateShowingThumbnailFallbackNotifier(
@@ -152,7 +129,6 @@ class FileAppBarState extends State<FileAppBar> {
     _showingThumbnailFallbackNotifier?.removeListener(
       _onThumbnailFallbackChanged,
     );
-    widget.streamChangeController?.removeListener(_onStreamChangeStateChanged);
     _guestViewEventSubscription.cancel();
     super.dispose();
   }
@@ -231,20 +207,15 @@ class FileAppBarState extends State<FileAppBar> {
       );
     }
 
-    final bool isOwnedByUser = widget.file.isOwner;
     final bool isFileUploaded = widget.file.isUploaded;
     final int? collectionID = widget.file.collectionID;
     final Collection? collection = collectionID != null
         ? CollectionsService.instance.getCollectionByID(collectionID)
         : null;
     bool isFileHidden = false;
-    if (isOwnedByUser && isFileUploaded) {
+    if (isFileUploaded) {
       isFileHidden = collection?.isHidden() ?? false;
     }
-    final bool canSuggestDeleteAction = canSuggestDeleteForFile(
-      file: widget.file,
-      collection: collection,
-    );
     if (widget.file.isLiveOrMotionPhoto) {
       _actions.add(
         IconButton(
@@ -263,10 +234,7 @@ class FileAppBarState extends State<FileAppBar> {
         ),
       );
     }
-    if (!isFileHidden &&
-        isFileUploaded &&
-        !widget.file.isTrash &&
-        widget.galleryType != GalleryType.sharedPublicCollection) {
+    if (!isFileHidden && isFileUploaded && !widget.file.isTrash) {
       _actions.add(
         Center(
           child: FavoriteWidget(widget.file, iconSize: 24, tapTargetSize: 48),
@@ -314,7 +282,7 @@ class FileAppBarState extends State<FileAppBar> {
           ),
         );
       }
-      if (isOwnedByUser && !isFileHidden && isFileUploaded) {
+      if (!isFileHidden && isFileUploaded) {
         final bool isArchived =
             widget.file.magicMetadata.visibility == archiveVisibility;
         items.add(
@@ -339,7 +307,7 @@ class FileAppBarState extends State<FileAppBar> {
           ),
         );
       }
-      if (isOwnedByUser && widget.file.isUploaded) {
+      if (widget.file.isUploaded) {
         if (!isFileHidden) {
           items.add(
             _fileMenuOption(
@@ -367,16 +335,6 @@ class FileAppBarState extends State<FileAppBar> {
         ),
       );
 
-      if (canSuggestDeleteAction) {
-        items.add(
-          _fileMenuOption(
-            context.strings.suggestDeletion,
-            value: 13,
-            hugeIcon: HugeIcons.strokeRoundedFlag01,
-          ),
-        );
-      }
-
       items.add(
         _fileMenuOption(
           context.strings.info,
@@ -387,18 +345,6 @@ class FileAppBarState extends State<FileAppBar> {
     }
 
     if (widget.file.isVideo && !restrictFileActions) {
-      final streamChangeState = widget.streamChangeController?.value;
-      if (streamChangeState != null) {
-        items.add(
-          _fileMenuOption(
-            streamChangeState.label(context),
-            value: 15,
-            hugeIcon: HugeIcons.strokeRoundedPlay,
-            enabled: streamChangeState.canChangeStream,
-          ),
-        );
-      }
-
       items.add(
         _fileMenuOption(
           context.strings.playbackSpeed,
@@ -411,26 +357,6 @@ class FileAppBarState extends State<FileAppBar> {
           ),
         ),
       );
-
-      if (_shouldShowCreateStreamOption()) {
-        items.add(
-          _fileMenuOption(
-            context.strings.createStream,
-            value: 8,
-            hugeIcon: HugeIcons.strokeRoundedVideoReplay,
-          ),
-        );
-      }
-
-      if (_shouldShowRecreateStreamOption()) {
-        items.add(
-          _fileMenuOption(
-            context.strings.recreateStream,
-            value: 9,
-            hugeIcon: HugeIcons.strokeRoundedRefresh,
-          ),
-        );
-      }
 
       items.add(
         _fileMenuOption(
@@ -453,7 +379,7 @@ class FileAppBarState extends State<FileAppBar> {
             if (!mounted) {
               return;
             }
-            await _handleFileMenuSelection(selected, collection);
+            await _handleFileMenuSelection(selected);
           },
           child: Tooltip(
             message: MaterialLocalizations.of(context).moreButtonTooltip,
@@ -490,10 +416,7 @@ class FileAppBarState extends State<FileAppBar> {
     );
   }
 
-  Future<void> _handleFileMenuSelection(
-    int value,
-    Collection? collection,
-  ) async {
+  Future<void> _handleFileMenuSelection(int value) async {
     if (value == 1) {
       await _download(widget.file);
     } else if (value == 2) {
@@ -506,23 +429,8 @@ class FileAppBarState extends State<FileAppBar> {
       await _handleUnHideRequest(context);
     } else if (value == 6) {
       await _onTapGuestView();
-    } else if (value == 99) {
-      try {
-        await VideoPreviewService.instance.chunkAndUploadVideo(
-          context,
-          widget.file,
-        );
-      } catch (e) {
-        if (mounted) {
-          await showGenericErrorDialog(context: context, error: e);
-        }
-      }
     } else if (value == 7) {
       _onToggleLoopVideo();
-    } else if (value == 8) {
-      await _handleVideoStream('create');
-    } else if (value == 9) {
-      await _handleVideoStream('recreate');
     } else if (value == 10) {
       await showVideoSpeedBottomSheet(
         context,
@@ -533,32 +441,7 @@ class FileAppBarState extends State<FileAppBar> {
       widget.onEditRequested(widget.file);
     } else if (value == 12) {
       await showDetailsSheet(context, widget.file);
-    } else if (value == 13) {
-      if (collection != null) {
-        await _handleSuggestDelete(collection);
-      }
-    } else if (value == 15) {
-      final state = widget.streamChangeController?.value;
-      if (state?.canChangeStream ?? false) {
-        state!.onStreamChange();
-      }
     }
-  }
-
-  Future<void> _handleSuggestDelete(Collection collection) async {
-    if (widget.file.uploadedFileID == null) {
-      return;
-    }
-    await showSuggestDeleteSheet(
-      context: context,
-      onConfirm: () async {
-        await CollectionsService.instance.suggestDeleteFromCollection(
-          collection.id,
-          [widget.file],
-        );
-        widget.onFileRemoved(widget.file);
-      },
-    );
   }
 
   void _onToggleLoopVideo() {
@@ -632,22 +515,6 @@ class FileAppBarState extends State<FileAppBar> {
     final fileToDownload = !file.isRemoteOnlyFile
         ? (file.copyWith()..localID = null)
         : file;
-    final persistToFilesDB =
-        widget.galleryType != GalleryType.sharedPublicCollection;
-    if (flagService.internalUser) {
-      try {
-        await galleryDownloadQueueService.enqueueFiles([
-          fileToDownload,
-        ], persistToFilesDB: persistToFilesDB);
-      } catch (e) {
-        _logger.warning("Failed to save file", e);
-        if (mounted) {
-          await showGenericErrorDialog(context: context, error: e);
-        }
-      }
-      return;
-    }
-
     if (!mounted) return;
     final dialog = createProgressDialog(
       context,
@@ -656,10 +523,7 @@ class FileAppBarState extends State<FileAppBar> {
     );
     await dialog.show();
     try {
-      await downloadToGallery(
-        fileToDownload,
-        persistToFilesDB: persistToFilesDB,
-      );
+      await downloadToGallery(fileToDownload);
       if (!mounted) {
         await dialog.hide();
         return;
@@ -725,55 +589,6 @@ class FileAppBarState extends State<FileAppBar> {
     if (hasAuthenticated) {
       Bus.instance.fire(GuestViewEvent(false, false));
       await localSettings.setOnGuestView(false);
-    }
-  }
-
-  bool _shouldShowCreateStreamOption() {
-    return _ensureBasicRequirements() &&
-        !fileDataService.previewIds.containsKey(widget.file.uploadedFileID!);
-  }
-
-  bool _shouldShowRecreateStreamOption() {
-    return _ensureBasicRequirements() &&
-        fileDataService.previewIds.containsKey(widget.file.uploadedFileID!);
-  }
-
-  bool _ensureBasicRequirements() {
-    // Skip if sv=1 (server indicates streaming not needed)
-    final userId = Configuration.instance.getUserID();
-    return widget.file.fileType == FileType.video &&
-        widget.file.isUploaded &&
-        widget.file.fileSize != null &&
-        (widget.file.pubMagicMetadata?.sv ?? 0) != 1 &&
-        widget.file.ownerID == userId &&
-        VideoPreviewService.instance.isVideoStreamingEnabled;
-  }
-
-  Future<void> _handleVideoStream(String streamType) async {
-    try {
-      final bool wasAdded = await VideoPreviewService.instance.addToManualQueue(
-        widget.file,
-        streamType,
-      );
-
-      if (!wasAdded) {
-        if (!mounted) return;
-        showToast(context, context.strings.videoAlreadyInQueue);
-        return;
-      }
-
-      if (!mounted) return;
-      showToast(context, context.strings.addedToQueue);
-
-      if (mounted) {
-        setState(() {
-          _reloadActions = true;
-        });
-      }
-    } catch (e, s) {
-      _logger.severe("Failed to $streamType video stream", e, s);
-      if (!mounted) return;
-      await showGenericErrorDialog(context: context, error: e);
     }
   }
 }

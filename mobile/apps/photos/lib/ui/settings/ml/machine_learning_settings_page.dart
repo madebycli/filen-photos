@@ -20,7 +20,6 @@ import "package:photos/services/machine_learning/ml_service.dart";
 import "package:photos/services/wake_lock_service.dart";
 import "package:photos/ui/settings/ml/ml_consent_sheet.dart";
 import "package:photos/ui/settings/ml/ml_user_dev_screen.dart";
-import "package:photos/utils/email_util.dart";
 import "package:photos/utils/ml_util.dart";
 import "package:photos/utils/network_util.dart";
 
@@ -604,51 +603,6 @@ class _MLProcessingIssuesBlurb extends StatelessWidget {
                   Text(
                     context.strings.mlCouldNotProcessItems(count: itemCount),
                     style: TextStyles.bodyBold.copyWith(color: colors.textBase),
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  Text(
-                    context.strings.mlProcessingIssueReachOut,
-                    style: TextStyles.mini.copyWith(color: colors.textLight),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      mlDecryptionRecordStore.logFileIDs();
-                      sendLogs(
-                        context,
-                        context.strings.contactUs,
-                        "support@ente.com",
-                        postShare: () {},
-                        subject: "Machine learning processing issue",
-                        body: context.strings.mlItemsCouldNotBeProcessed(
-                          count: itemCount,
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: Spacing.sm,
-                        bottom: Spacing.lg,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            context.strings.contactUs,
-                            style: TextStyles.bodyBold.copyWith(
-                              color: colors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.xs),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowRight01,
-                            color: colors.primary,
-                            size: 16,
-                            strokeWidth: 1.6,
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ],
               ),

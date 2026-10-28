@@ -1,18 +1,13 @@
 import 'package:logging/logging.dart';
-import 'package:photos/gateways/files/files_gateway.dart';
 import 'package:photos/models/duplicate_files.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/file/file_type.dart";
-import "package:photos/service_locator.dart";
 import "package:photos/services/collections_service.dart";
-import "package:photos/services/files_service.dart";
 import "package:photos/services/search_service.dart";
 
 class DeduplicationService {
   final _logger = Logger("DeduplicationService");
-
-  FilesGateway get _gateway => filesGateway;
 
   DeduplicationService._privateConstructor();
 
@@ -30,12 +25,6 @@ class DeduplicationService {
   }
 
   Future<List<DuplicateFiles>> _getDuplicateFiles() async {
-    Map<int, int> uploadIDToSize = {};
-    final bool hasFileSizes = await FilesService.instance.hasMigratedSizes();
-    if (!hasFileSizes) {
-      final DuplicateFilesResponse dupes = await _fetchDuplicateFileIDs();
-      uploadIDToSize = dupes.toUploadIDToSize();
-    }
     final Set<int> allowedCollectionIDs = CollectionsService.instance
         .nonHiddenOwnedCollections();
 
@@ -48,9 +37,6 @@ class DeduplicationService {
           !file.isOwner ||
           (!allowedCollectionIDs.contains(file.collectionID!))) {
         continue;
-      }
-      if ((file.fileSize ?? 0) <= 0) {
-        file.fileSize = uploadIDToSize[file.uploadedFileID!] ?? 0;
       }
       if ((file.fileSize ?? 0) <= 0) {
         continue;
@@ -108,9 +94,5 @@ class DeduplicationService {
       }
     }
     return dupesByHash;
-  }
-
-  Future<DuplicateFilesResponse> _fetchDuplicateFileIDs() async {
-    return await _gateway.getDuplicates();
   }
 }

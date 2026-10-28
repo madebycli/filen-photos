@@ -2,10 +2,14 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:filen_sdk/filen_sdk.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
+import 'package:photos/core/event_bus.dart';
+import 'package:photos/events/user_details_changed_event.dart';
 import 'package:photos/filen/filen_ids.dart';
+import 'package:photos/filen/filen_settings.dart';
 import 'package:photos/filen/filen_state.dart';
 import 'package:photos/filen/filen_sync.dart';
 import 'package:photos/gateways/billing/models/subscription.dart';
@@ -105,10 +109,33 @@ class FilenAccount {
     );
   }
 
+  UserDetails? _cachedDetails;
+
+  /// Storage figures fetched earlier in this process, or null.
+  UserDetails? getCachedUserDetails() => _cachedDetails;
+
+  /// Fresh storage figures from Filen; remembered for [getCachedUserDetails].
+  Future<UserDetails> getUserDetails() async {
+    final details = await userDetails();
+    _cachedDetails = details;
+    Bus.instance.fire(UserDetailsChangedEvent());
+    return details;
+  }
+
+  /// Signs out of Filen on this device (nothing is deleted from Filen) and returns to the first
+  /// route, which shows the sign-in page again.
+  Future<void> logout(BuildContext context) async {
+    await Configuration.instance.logout();
+    if (!context.mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   /// Drops the in-memory client. [Configuration.logout] already wiped secure storage.
   Future<void> onLogout() async {
     _photosRootUuid = null;
+    _cachedDetails = null;
     FilenState.instance.reset();
+    await FilenSettingsSync.reset();
     FilenSyncService.instance.reset();
     try {
       await _sdk.logout();

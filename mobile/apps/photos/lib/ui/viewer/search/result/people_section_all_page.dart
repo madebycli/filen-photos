@@ -6,7 +6,6 @@ import "package:ente_strings/ente_strings.dart";
 import "package:ente_ui/components/loading_widget.dart";
 import 'package:flutter/material.dart';
 import "package:hugeicons/hugeicons.dart";
-import "package:photos/core/configuration.dart";
 import "package:photos/core/event_bus.dart";
 import "package:photos/events/event.dart";
 import "package:photos/events/people_changed_event.dart";
@@ -22,7 +21,6 @@ import "package:photos/services/machine_learning/face_ml/face_filtering/face_fil
 import "package:photos/services/search_service.dart";
 import "package:photos/settings/local_settings.dart";
 import "package:photos/theme/ente_theme.dart";
-import "package:photos/ui/components/banners/save_faces_banner.dart";
 import "package:photos/ui/components/bottom_action_bar/people_bottom_action_bar_widget.dart";
 import "package:photos/ui/components/collection_share_badge.dart";
 import "package:photos/ui/viewer/actions/select_all_status_icon.dart";
@@ -794,9 +792,6 @@ class _PeopleSectionAllWidgetState extends State<PeopleSectionAllWidget> {
             final showExtraFaces =
                 showAllFaces && filteredExtraFaces.isNotEmpty;
             slivers.addAll([
-              if (isLocalGalleryMode &&
-                  !Configuration.instance.hasConfiguredAccount())
-                const SliverToBoxAdapter(child: SaveFacesBanner()),
               (!userDismissedPersonGallerySuggestion &&
                       !widget.namedOnly &&
                       !_showingIgnoredPeople)

@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:ente_crypto/ente_crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/event_bus.dart';
@@ -10,7 +8,6 @@ import 'package:photos/events/collection_updated_event.dart';
 import "package:photos/events/favorites_service_init_complete_event.dart";
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
-import 'package:photos/gateways/collections/models/create_request.dart';
 import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/services/collections_service.dart';
@@ -299,24 +296,9 @@ class FavoritesService {
     if (_cachedFavoritesCollectionID != null) {
       return _cachedFavoritesCollectionID!;
     }
-    final favoriteCollectionKey = CryptoUtil.generateKey();
-    final encryptedKeyResult = CryptoUtil.encryptSync(
-      favoriteCollectionKey,
-      _config.getKey()!,
-    );
-    final encName = CryptoUtil.encryptSync(
-      utf8.encode("Favorites"),
-      favoriteCollectionKey,
-    );
-    final collection = await _collectionsService.createAndCacheCollection(
-      CreateRequest(
-        encryptedKey: CryptoUtil.bin2base64(encryptedKeyResult.encryptedData!),
-        keyDecryptionNonce: CryptoUtil.bin2base64(encryptedKeyResult.nonce!),
-        encryptedName: CryptoUtil.bin2base64(encName.encryptedData!),
-        nameDecryptionNonce: CryptoUtil.bin2base64(encName.nonce!),
-        type: CollectionType.favorites,
-        attributes: CollectionAttributes(),
-      ),
+    final collection = await _collectionsService.createCollection(
+      name: "Favorites",
+      type: CollectionType.favorites,
     );
     _cachedFavoritesCollectionID = collection.id;
     return collection.id;

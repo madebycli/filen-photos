@@ -15,7 +15,6 @@ import "package:photos/ui/components/buttons/button_widget.dart";
 import "package:photos/ui/components/dialog_widget.dart";
 import "package:photos/ui/components/models/button_type.dart";
 import 'package:photos/ui/settings/backup/backup_folder_selection_page.dart';
-import "package:photos/utils/email_util.dart";
 
 class LoadingPhotosWidget extends StatefulWidget {
   final bool isOnboardingFlow;
@@ -256,16 +255,9 @@ class _LoadingPhotosWidgetState extends State<LoadingPhotosWidget> {
                           buttons: [
                             ButtonWidget(
                               buttonType: ButtonType.primary,
-                              labelText: context.strings.contactSupport,
-                              buttonAction: ButtonAction.second,
-                              onTap: () async {
-                                await sendLogs(
-                                  context,
-                                  context.strings.contactSupport,
-                                  "support@ente.com",
-                                  postShare: () {},
-                                );
-                              },
+                              labelText: context.strings.ok,
+                              buttonAction: ButtonAction.first,
+                              isInAlert: true,
                             ),
                           ],
                         );

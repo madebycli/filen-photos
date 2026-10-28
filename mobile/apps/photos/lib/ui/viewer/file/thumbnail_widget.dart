@@ -17,17 +17,13 @@ import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/models/file/extensions/file_props.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
-import 'package:photos/models/gallery_type.dart';
 import 'package:photos/module/download/file.dart';
 import 'package:photos/module/download/thumbnail.dart';
 import 'package:photos/service_locator.dart';
-import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/favorites_service.dart';
-import "package:photos/ui/sharing/user_avator_widget.dart";
 import 'package:photos/ui/viewer/file/file_icons_widget.dart';
 import 'package:photos/ui/viewer/gallery/component/group/type.dart';
 import 'package:photos/ui/viewer/gallery/state/gallery_context_state.dart';
-import "package:photos/utils/avatar_util.dart";
 
 class ThumbnailWidget extends StatefulWidget {
   final EnteFile file;
@@ -43,8 +39,6 @@ class ThumbnailWidget extends StatefulWidget {
   final bool useRequestedThumbnailSizeForLocalCache;
   final bool useCachedThumbnailAsPlaceholder;
   final bool gaplessPlayback;
-  final bool shouldShowOwnerAvatar;
-  final AvatarType ownerAvatarType;
   final bool shouldShowFavoriteIcon;
   final Color? placeholderColor;
 
@@ -59,8 +53,6 @@ class ThumbnailWidget extends StatefulWidget {
     this.shouldShowSyncStatus = true,
     this.shouldShowLivePhotoOverlay = false,
     this.showFavForAlbumOnly = false,
-    this.shouldShowOwnerAvatar = false,
-    this.ownerAvatarType = AvatarType.small,
     this.diskLoadDeferDuration,
     this.serverLoadDeferDuration,
     this.thumbnailSize = thumbnailSmallSize,
@@ -201,9 +193,6 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
     // If yes, parent thumbnail widget can be stateless
     Widget? content;
     if (image != null) {
-      final shouldShowOwnerAvatar =
-          widget.shouldShowOwnerAvatar &&
-          galleryContext?.galleryType != GalleryType.sharedPublicCollection;
       final List<Widget> contentChildren = [image];
       if (widget.shouldShowFavoriteIcon) {
         if (FavoritesService.instance.isFavoriteCache(
@@ -218,24 +207,6 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
           widget.shouldShowLivePhotoOverlay &&
           widget.file.isLiveOrMotionPhoto) {
         contentChildren.add(const LivePhotoOverlayIcon());
-      }
-      if (shouldShowOwnerAvatar) {
-        if (!widget.file.isOwner) {
-          final owner = CollectionsService.instance.resolveUserIdentity(
-            widget.file.ownerID!,
-            widget.file.collectionID,
-          );
-          contentChildren.add(
-            OwnerAvatarOverlayIcon(owner, type: widget.ownerAvatarType),
-          );
-        } else if (widget.file.isCollect) {
-          contentChildren.add(
-            OwnerAvatarOverlayIcon.identity(
-              AvatarIdentity.publicUploader(widget.file.uploaderName!),
-              type: widget.ownerAvatarType,
-            ),
-          );
-        }
       }
       content = contentChildren.length == 1
           ? contentChildren.first

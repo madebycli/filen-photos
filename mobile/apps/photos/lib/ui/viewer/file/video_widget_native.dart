@@ -12,16 +12,11 @@ import "package:photos/events/guest_view_event.dart";
 import "package:photos/events/pause_video_event.dart";
 import "package:photos/events/resume_video_event.dart";
 import "package:photos/events/seekbar_triggered_event.dart";
-import "package:photos/events/stream_switched_event.dart";
 import "package:photos/events/use_media_kit_for_video.dart";
 import "package:photos/events/video_mute_changed_event.dart";
 import "package:photos/models/file/extensions/file_props.dart";
 import "package:photos/models/file/file.dart";
-import "package:photos/models/preview/playlist_data.dart";
-import 'package:photos/module/download/download_error.dart';
 import "package:photos/module/download/file.dart";
-import "package:photos/module/download/progressive_video_stream.dart";
-import "package:photos/module/download/task.dart";
 import "package:photos/module/metadata/video.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/services/files_service.dart";
@@ -50,8 +45,6 @@ class VideoWidgetNative extends StatefulWidget {
   final bool isFromMemories;
   final bool isActive;
   final bool? isAudioMutedOverride;
-  final PlaylistData? playlistData;
-  final bool selectedPreview;
   final ValueNotifier<double> playbackSpeed;
   final Function({required int memoryDuration})? onFinalFileLoad;
 
@@ -64,9 +57,7 @@ class VideoWidgetNative extends StatefulWidget {
     required this.isActive,
     this.isAudioMutedOverride,
     super.key,
-    this.playlistData,
     this.onFinalFileLoad,
-    required this.selectedPreview,
     required this.playbackSpeed,
   });
 
@@ -95,15 +86,7 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
   late final VideoSeekController _seekController;
   final _debouncer = Debouncer(const Duration(milliseconds: 2000));
   StreamSubscription<PlaybackEvent>? _subscription;
-  StreamSubscription<StreamSwitchedEvent>? _streamSwitchedSubscription;
-  StreamSubscription<DownloadTask>? downloadTaskSubscription;
-  ProgressiveVideoStream? _progressive;
-  Future<void>? _progressiveCleanup;
   int _videoLoad = 0;
-  int _nativePlayerVersion = 0;
-  String? _loadedProgressiveUrl;
-  bool get _isProgressiveSource =>
-      _filePath?.startsWith('http://127.0.0.1:') ?? false;
   final _transformationController = TransformationController();
   bool _isZooming = false;
   OverlayEntry? _longPressSpeedIndicatorEntry;
@@ -136,11 +119,7 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     _seekController.addListener(_syncSeekInteraction);
     WidgetsBinding.instance.addObserver(this);
 
-    if (widget.selectedPreview) {
-      loadPreview();
-    } else {
-      loadOriginal();
-    }
+    loadOriginal();
 
     pauseVideoSubscription = Bus.instance.on<PauseVideoEvent>().listen((event) {
       if (event.fileTag != null && event.fileTag != widget.file.tag) return;
@@ -168,28 +147,6 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
         _isGuestView = event.isGuestView;
       });
     });
-    _streamSwitchedSubscription = Bus.instance.on<StreamSwitchedEvent>().listen(
-      (event) {
-        if (event.fileTag != widget.file.tag ||
-            event.type != PlayerType.nativeVideoPlayer) {
-          return;
-        }
-        if (event.selectedPreview) {
-          loadPreview(update: true);
-        } else {
-          loadOriginal(update: true);
-        }
-      },
-    );
-
-    if (widget.file.isUploaded) {
-      downloadTaskSubscription = downloadManager
-          .watchDownload(widget.file.uploadedFileID!)
-          .listen((event) {
-            _progressNotifier.value = event.progress;
-          });
-    }
-
     wakeLockService.updateWakeLock(
       enable: true,
       wakeLockFor: WakeLockFor.videoPlayback,
@@ -216,11 +173,8 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     }
     final videoSource = VideoSource(
       path: _filePath!,
-      type: _isProgressiveSource
-          ? VideoSourceType.network
-          : VideoSourceType.file,
+      type: VideoSourceType.file,
     );
-    _loadedProgressiveUrl = _isProgressiveSource ? _filePath : null;
     await _controller?.loadVideo(videoSource);
     await _applyVolume();
     await _controller?.setPlaybackSpeed(widget.playbackSpeed.value);
@@ -229,44 +183,18 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     Bus.instance.fire(SeekbarTriggeredEvent(position: 0));
   }
 
-  void loadPreview({bool update = false}) async {
+  void loadOriginal() async {
     final generation = ++_videoLoad;
-    final cleanup = _disposeProgressive();
-    if (cleanup != null) {
-      await cleanup;
-      if (!mounted || generation != _videoLoad) {
-        return;
-      }
-    }
-    final previewPath = widget.playlistData?.preview.path;
-    if (previewPath == null) {
-      loadOriginal(update: true);
-      return;
-    }
-    _setFilePathForNativePlayer(previewPath, update);
-
-    await setVideoSource();
-  }
-
-  void loadOriginal({bool update = false}) async {
-    final generation = ++_videoLoad;
-    final cleanup = _disposeProgressive();
-    if (cleanup != null) {
-      await cleanup;
-      if (!mounted || generation != _videoLoad) {
-        return;
-      }
-    }
     setState(() => _filePath = null);
     if (widget.file.isRemoteOnlyFile) {
-      _loadNetworkVideo(update);
+      _loadNetworkVideo();
       _setFileSizeIfNull();
     } else if (widget.file.isSharedMediaToAppSandbox) {
       final localFile = File(getSharedMediaFilePath(widget.file));
       if (localFile.existsSync()) {
-        _setFilePathForNativePlayer(localFile.path, update);
+        _setFilePathForNativePlayer(localFile.path);
       } else if (widget.file.uploadedFileID != null) {
-        _loadNetworkVideo(update);
+        _loadNetworkVideo();
       }
     } else {
       await widget.file.getAsset.then((asset) async {
@@ -277,7 +205,7 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
         }
         if (asset == null || !(exists || widget.file.isDeviceTrash)) {
           if (widget.file.uploadedFileID != null) {
-            _loadNetworkVideo(update);
+            _loadNetworkVideo();
           }
         } else {
           // ignore: unawaited_futures
@@ -286,19 +214,16 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
               return;
             }
             if (file == null) {
-              _loadNetworkVideo(update);
+              _loadNetworkVideo();
               return;
             }
-            _setFilePathForNativePlayer(file.path, update);
+            _setFilePathForNativePlayer(file.path);
             if (Platform.isIOS) {
               _shouldClearCache = true;
             }
           });
         }
       });
-    }
-    if (update && mounted && generation == _videoLoad) {
-      await setVideoSource();
     }
   }
 
@@ -314,17 +239,11 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
   @override
   void dispose() {
     _videoLoad++;
-    _progressive?.dispose().ignore();
-    _progressive = null;
     _longPressSpeedIndicatorEntry?.remove();
     widget.playbackSpeed.removeListener(_onPlaybackSpeedChanged);
     _subscription?.cancel();
     _controller?.stop().ignore();
     _controller?.dispose();
-    if (downloadTaskSubscription != null) {
-      downloadTaskSubscription!.cancel();
-      downloadManager.pause(widget.file.uploadedFileID!).ignore();
-    }
 
     //https://github.com/fluttercandies/flutter_photo_manager/blob/8afba2745ebaac6af8af75de9cbded9157bc2690/README.md#clear-caches
     if (_shouldClearCache) {
@@ -338,7 +257,6 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
         });
       }
     }
-    _streamSwitchedSubscription?.cancel();
     _guestViewEventSubscription.cancel();
     pauseVideoSubscription.cancel();
     resumeVideoSubscription.cancel();
@@ -435,7 +353,6 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
                               child: AspectRatio(
                                 aspectRatio: aspectRatio ?? 1,
                                 child: NativeVideoPlayerView(
-                                  key: ValueKey(_nativePlayerVersion),
                                   onViewReady: _initializeController,
                                 ),
                               ),
@@ -678,12 +595,6 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
   }
 
   void _onError(String errorMessage) {
-    if (_loadedProgressiveUrl != null) {
-      if (_progressive?.url == _loadedProgressiveUrl) {
-        _progressive?.playbackFailed();
-      }
-      return;
-    }
     _logger.severe(
       "Error in native video player controller for file gen id: ${widget.file.generatedID}",
     );
@@ -693,10 +604,6 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
 
   Future<void> _onPlaybackReady() async {
     if (_isPlaybackReady.value) return;
-    if (_loadedProgressiveUrl != null &&
-        _progressive?.url != _loadedProgressiveUrl) {
-      return;
-    }
     await _applyVolume();
     await _controller?.setPlaybackSpeed(widget.playbackSpeed.value);
     await _syncPlayback();
@@ -736,86 +643,11 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     }
   }
 
-  Future<void>? _disposeProgressive() {
-    final stream = _progressive;
-    _progressive = null;
-    if (stream == null) {
-      return _progressiveCleanup;
-    }
-    return _progressiveCleanup = (_controller?.stop() ?? Future<void>.value())
-        .catchError((Object _) {})
-        .whenComplete(stream.dispose);
-  }
-
-  void _loadNetworkVideo(bool update) {
-    if (flagService.progressiveOriginalVideoPlayback &&
-        widget.file.hasDimensions &&
-        (widget.file.duration ?? 0) > 0) {
-      unawaited(_loadProgressively(update));
-    } else {
-      _loadNetworkVideoFully(update);
-    }
-  }
-
-  Future<void> _loadProgressively(bool update) async {
-    final generation = _videoLoad;
-    bool isCurrent() => mounted && generation == _videoLoad;
-    final stream = ProgressiveVideoStream(
-      widget.file,
-      onProgress: (count, total) {
-        if (isCurrent()) {
-          _progressNotifier.value = count / total;
-        }
-      },
-    );
-    _progressive = stream;
-    try {
-      final url = await stream.open();
-      if (!isCurrent()) {
-        return;
-      }
-      if (url != null) {
-        _setFilePathForNativePlayer(url, update);
-        await stream.failure;
-        return;
-      }
-    } catch (error) {
-      if (isCurrent()) {
-        _logger.info('Progressive playback unavailable (${error.runtimeType})');
-      }
-    }
-    if (!isCurrent()) {
-      return;
-    }
-    _isPlaybackReady.value = false;
-    await _disposeProgressive();
-    if (!isCurrent()) {
-      return;
-    }
-    if (Platform.isIOS && stream.url != null) {
-      _debouncer.cancelDebounceTimer();
-      unawaited(_subscription?.cancel());
-      _subscription = null;
-      _controller?.dispose();
-      _controller = null;
-      _isSeeking.removeListener(_seekListener);
-      setState(() {
-        _filePath = null;
-        _nativePlayerVersion++;
-      });
-    }
-    _loadNetworkVideoFully(
-      update || stream.url != null,
-      generation: generation,
-    );
-  }
-
-  void _loadNetworkVideoFully(bool update, {int? generation}) {
+  void _loadNetworkVideo({int? generation}) {
     bool isCurrent() =>
         mounted && (generation == null || generation == _videoLoad);
     getFileFromServer(
           widget.file,
-          throwOnDecryptionFailure: true,
           progressCallback: (count, total) {
             if (!isCurrent()) {
               return;
@@ -830,22 +662,18 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
         )
         .then((file) {
           if (file != null && isCurrent()) {
-            _setFilePathForNativePlayer(file.path, update);
+            _setFilePathForNativePlayer(file.path);
           }
         })
         .onError((error, stackTrace) {
           if (!mounted || !isCurrent()) {
             return;
           }
-          if (error is DownloadDecryptionError) {
-            showDownloadDecryptionFailedDialog(context: context);
-          } else {
-            showErrorDialog(
-              context,
-              context.strings.error,
-              context.strings.failedToDownloadVideo,
-            );
-          }
+          showErrorDialog(
+            context,
+            context.strings.error,
+            context.strings.failedToDownloadVideo,
+          );
         });
   }
 
@@ -921,7 +749,7 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
     );
   }
 
-  void _setFilePathForNativePlayer(String url, bool update) {
+  void _setFilePathForNativePlayer(String url) {
     if (!mounted) return;
     _isPlaybackReady.value = false;
     setState(() {
@@ -931,32 +759,11 @@ class _VideoWidgetNativeState extends State<VideoWidgetNative>
       if (!mounted) return;
       setState(() {});
     });
-
-    if (update) {
-      setVideoSource();
-    }
   }
 
   Future<void> _setAspectRatioFromVideoProps() async {
-    if (_isProgressiveSource) {
-      aspectRatio = widget.file.width / widget.file.height;
-      duration = secondsToDuration(widget.file.duration!);
-      return;
-    }
     if (aspectRatio != null && duration != null) return;
 
-    if (widget.playlistData != null && widget.selectedPreview) {
-      aspectRatio = widget.playlistData!.width! / widget.playlistData!.height!;
-      if (duration == "0:00" || duration == null) {
-        if ((widget.file.duration ?? 0) > 0) {
-          duration = secondsToDuration(widget.file.duration!);
-        } else if (widget.playlistData!.durationInSeconds != null) {
-          duration = secondsToDuration(widget.playlistData!.durationInSeconds!);
-        }
-      }
-      _logger.info("Getting aspect ratio from preview video");
-      return;
-    }
     if (Platform.isIOS) {
       // FFprobe can crash on some iOS media; use AVPlayer metadata instead.
       if (widget.file.hasDimensions) {

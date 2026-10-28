@@ -1,8 +1,3 @@
-import "dart:convert";
-import "dart:typed_data";
-
-import "package:ente_crypto/ente_crypto.dart";
-import "package:photos/gateways/collections/models/metadata.dart";
 import "package:photos/models/file/file.dart";
 import "package:photos/models/file/file_type.dart";
 import "package:photos/models/metadata/file_magic.dart";
@@ -91,49 +86,4 @@ Map<String, dynamic> _buildPublicMetadata(
     publicMetadata[cameraModelKey] = derivedMetadata.cameraModel;
   }
   return publicMetadata;
-}
-
-class PreparedPublicMetadata {
-  final String encodedJson;
-  final PubMagicMetadata decodedMetadata;
-  final int version;
-  final MetadataRequest request;
-
-  const PreparedPublicMetadata({
-    required this.encodedJson,
-    required this.decodedMetadata,
-    required this.version,
-    required this.request,
-  });
-}
-
-Future<PreparedPublicMetadata> preparePublicMetadata(
-  EnteFile file,
-  Map<String, dynamic> newData,
-  Uint8List fileKey,
-) async {
-  final Map<String, dynamic> jsonToUpdate = jsonDecode(
-    file.pubMmdEncodedJson ?? '{}',
-  );
-  newData.forEach((key, value) {
-    jsonToUpdate[key] = value;
-  });
-
-  final encodedJson = jsonEncode(jsonToUpdate);
-  final encryptedMMd = await CryptoUtil.encryptChaCha(
-    utf8.encode(encodedJson),
-    fileKey,
-  );
-  final version = file.pubMmdVersion == 0 ? 1 : file.pubMmdVersion;
-  return PreparedPublicMetadata(
-    encodedJson: encodedJson,
-    decodedMetadata: PubMagicMetadata.fromJson(jsonToUpdate),
-    version: version,
-    request: MetadataRequest(
-      version: version,
-      count: jsonToUpdate.length,
-      data: CryptoUtil.bin2base64(encryptedMMd.encryptedData!),
-      header: CryptoUtil.bin2base64(encryptedMMd.header!),
-    ),
-  );
 }

@@ -3,16 +3,12 @@ import 'package:ente_pure_utils/ente_pure_utils.dart';
 import "package:ente_strings/ente_strings.dart";
 import "package:ente_ui/components/loading_widget.dart";
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/constants.dart';
 import "package:photos/core/errors.dart";
-import 'package:photos/filen/filen_account.dart';
 import 'package:photos/models/user_details.dart';
-import 'package:photos/service_locator.dart';
 import 'package:photos/states/user_details_state.dart';
 import 'package:photos/theme/colors.dart';
-import 'package:photos/ui/payment/subscription.dart';
 import 'package:photos/ui/settings/storage_progress_widget.dart';
 
 class StorageCardWidget extends StatefulWidget {
@@ -54,8 +50,6 @@ class _DotsPainter extends CustomPainter {
 
 class _StorageCardWidgetState extends State<StorageCardWidget> {
   final _logger = Logger((_StorageCardWidgetState).toString());
-  int? familyMemberStorageLimit;
-  bool showFamilyBreakup = false;
 
   @override
   Widget build(BuildContext context) {
@@ -65,34 +59,7 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
       _logger.severe(msg);
       throw InvalidStateError(msg);
     }
-    final userDetails = inheritedUserDetails.userDetails;
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () async {
-        // Filen fork: plans are managed at Filen, not through Ente's billing.
-        if (FilenAccount.isActive) return;
-        final isFamilyMember =
-            (userDetails?.isPartOfFamily() ?? false) &&
-            !((userDetails?.currentFamilyMember()?.isAdmin) ?? false);
-        if (isFamilyMember) {
-          await billingService.launchFamilyPortal(
-            context,
-            userDetails!,
-            refreshOnOpen: false,
-          );
-          return;
-        }
-        // ignore: unawaited_futures
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (BuildContext context) {
-              return getSubscriptionPage();
-            },
-          ),
-        );
-      },
-      child: containerForUserDetails(userDetails),
-    );
+    return containerForUserDetails(inheritedUserDetails.userDetails);
   }
 
   Widget containerForUserDetails(UserDetails? userDetails) {
@@ -134,18 +101,8 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
   Widget _userDetails(UserDetails userDetails) {
     const hundredMBinBytes = 107374182;
     const oneTBinBytes = 1073741824000;
-    showFamilyBreakup = userDetails.isPartOfFamily();
-    if (showFamilyBreakup) {
-      familyMemberStorageLimit = userDetails.familyMemberStorageLimit();
-      showFamilyBreakup = familyMemberStorageLimit == null;
-    }
-
-    final usedStorageInBytes = familyMemberStorageLimit != null
-        ? userDetails.usage
-        : userDetails.getFamilyOrPersonalUsage();
-    final totalStorageInBytes = familyMemberStorageLimit != null
-        ? familyMemberStorageLimit!
-        : userDetails.getTotalStorage();
+    final usedStorageInBytes = userDetails.usage;
+    final totalStorageInBytes = userDetails.getTotalStorage();
     final freeStorageInBytes = totalStorageInBytes - usedStorageInBytes;
 
     final isMobileScreenSmall =
@@ -208,74 +165,9 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
                 color: Color.fromRGBO(193, 193, 193, 0.11),
                 fractionOfStorage: 1,
               ),
-              showFamilyBreakup
-                  ? StorageProgressWidget(
-                      color: const Color(0xFFF4D93B),
-                      fractionOfStorage:
-                          ((usedStorageInBytes) / totalStorageInBytes),
-                    )
-                  : const SizedBox.shrink(),
               StorageProgressWidget(
                 color: const Color(0xFF08C225),
-                fractionOfStorage: (userDetails.usage / totalStorageInBytes),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              showFamilyBreakup
-                  ? Row(
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFF08C225),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          context.strings.storageBreakupYou,
-                          style: TextStyles.tiny.copyWith(
-                            fontFamily: TextStyles.outfitFontFamily,
-                            fontWeight: FontWeight.w600,
-                            color: textBaseDark,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFFF4D93B),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          context.strings.storageBreakupFamily,
-                          style: TextStyles.tiny.copyWith(
-                            fontFamily: TextStyles.outfitFontFamily,
-                            fontWeight: FontWeight.w600,
-                            color: textBaseDark,
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
-              Text(
-                context.strings.memoryCount(
-                  count: userDetails.fileCount,
-                  formattedCount: NumberFormat().format(userDetails.fileCount),
-                ),
-                style: TextStyles.tiny.copyWith(
-                  fontFamily: TextStyles.outfitFontFamily,
-                  fontWeight: FontWeight.w600,
-                  color: const Color.fromRGBO(165, 165, 165, 0.79),
-                ),
+                fractionOfStorage: (usedStorageInBytes / totalStorageInBytes),
               ),
             ],
           ),

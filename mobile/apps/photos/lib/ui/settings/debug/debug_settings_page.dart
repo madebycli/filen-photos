@@ -9,8 +9,6 @@ import "package:photos/ui/components/settings/settings_grouped_card.dart";
 import "package:photos/ui/components/toggle_switch_widget.dart";
 import "package:photos/ui/home/christmas/christmas_utils.dart";
 import "package:photos/ui/notification/toast.dart";
-import "package:photos/ui/notification/update/change_log_page.dart";
-import "package:photos/ui/settings/debug/social_debug_screen.dart";
 import "package:photos/utils/background_tasks.dart";
 
 class DebugSettingsPage extends StatefulWidget {
@@ -81,36 +79,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                               },
                             ),
                           ),
-                          MenuItemWidgetNew(
-                            title: "Use Cloudflare upload proxy",
-                            leadingIconWidget: _buildIconWidget(
-                              context,
-                              HugeIcons.strokeRoundedUpload04,
-                            ),
-                            trailingWidget: ToggleSwitchWidget(
-                              value: () =>
-                                  localSettings.cfUploadProxyEnabled ??
-                                  flagService.cloudflareUploadWorker,
-                              onChanged: () async {
-                                final newValue =
-                                    !(localSettings.cfUploadProxyEnabled ??
-                                        flagService.cloudflareUploadWorker);
-                                await localSettings.setCFUploadProxyEnabled(
-                                  newValue,
-                                );
-                                if (!mounted) return;
-                                setState(() {});
-                                if (!context.mounted) return;
-                                showShortToast(
-                                  context,
-                                  newValue
-                                      ? "Cloudflare upload proxy enabled."
-                                      : "Cloudflare upload proxy disabled.",
-                                );
-                              },
-                            ),
-                          ),
-                          if (flagService.flags.internalUser)
+                          if (flagService.internalUser)
                             MenuItemWidgetNew(
                               title: "Background sync notification",
                               leadingIconWidget: _buildIconWidget(
@@ -185,39 +154,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      SettingsGroupedCard(
-                        children: [
-                          MenuItemWidgetNew(
-                            title: "Show change log",
-                            leadingIconWidget: _buildIconWidget(
-                              context,
-                              HugeIcons.strokeRoundedInformationCircle,
-                            ),
-                            trailingIcon: Icons.chevron_right_outlined,
-                            trailingIconIsMuted: true,
-                            onTap: () async {
-                              await showChangeLogSheet(context);
-                            },
-                          ),
-                          MenuItemWidgetNew(
-                            title: "Social settings",
-                            leadingIconWidget: _buildIconWidget(
-                              context,
-                              HugeIcons.strokeRoundedShare01,
-                            ),
-                            trailingIcon: Icons.chevron_right_outlined,
-                            trailingIconIsMuted: true,
-                            onTap: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SocialDebugScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                      SettingsGroupedCard(children: []),
                     ],
                   ),
                 ),

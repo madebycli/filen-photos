@@ -4,9 +4,8 @@ import "package:ente_strings/ente_strings.dart";
 import 'package:flutter/material.dart';
 import "package:hugeicons/hugeicons.dart";
 import 'package:photos/core/errors.dart';
-import 'package:photos/ui/payment/subscription.dart';
+import 'package:photos/filen/ui/filen_account_settings_page.dart';
 import "package:photos/ui/settings/backup/free_space_options.dart";
-import 'package:photos/utils/email_util.dart';
 
 class HeaderErrorWidget extends StatelessWidget {
   final Error? _error;
@@ -15,25 +14,7 @@ class HeaderErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_error is NoActiveSubscriptionError) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
-        child: BannerComponent(
-          leadingIcon: HugeIcons.strokeRoundedInformationCircle,
-          title: context.strings.subscribe,
-          subtitle: context.strings.yourSubscriptionHasExpired,
-          state: BannerComponentState.failure,
-          trailingWidget: const Icon(Icons.arrow_forward),
-          onTap: () async {
-            await routeToPage(
-              context,
-              getSubscriptionPage(),
-              forceCustomPageRoute: true,
-            );
-          },
-        ),
-      );
-    } else if (_error is StorageLimitExceededError) {
+    if (_error is StorageLimitExceededError) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: BannerComponent(
@@ -45,7 +26,7 @@ class HeaderErrorWidget extends StatelessWidget {
           onTap: () async {
             await routeToPage(
               context,
-              getSubscriptionPage(),
+              const FilenAccountSettingsPage(),
               forceCustomPageRoute: true,
             );
           },
@@ -77,15 +58,7 @@ class HeaderErrorWidget extends StatelessWidget {
           title: context.strings.backupFailed,
           subtitle: context.strings.couldNotBackUpTryLater,
           state: BannerComponentState.failure,
-          trailingWidget: const Icon(Icons.arrow_forward),
-          onTap: () {
-            sendLogs(
-              context,
-              context.strings.raiseTicket,
-              "support@ente.com",
-              subject: context.strings.backupFailed,
-            );
-          },
+          onTap: () {},
         ),
       );
     }

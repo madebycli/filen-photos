@@ -315,10 +315,6 @@ class SearchWidgetState extends State<SearchWidget> {
       onResultsReceived(magicResults);
     });
 
-    _searchService.getContactSearchResults(query).then((contactResults) {
-      onResultsReceived(contactResults);
-    });
-
     return streamController.stream.asBroadcastStream();
   }
 }

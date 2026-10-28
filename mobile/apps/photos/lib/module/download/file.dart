@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import "package:dio/dio.dart";
+import "package:dio/dio.dart" show ProgressCallback;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:logging/logging.dart';
@@ -17,8 +17,6 @@ import 'package:photos/filen/filen_ids.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
-import 'package:photos/module/download/decrypt.dart';
-import 'package:photos/module/live_photo/download.dart';
 
 final _logger = Logger("FileUtil");
 
@@ -66,8 +64,7 @@ Future<File?> getFile(
     }
   } catch (e, s) {
     _logger.warning("Failed to get file", e, s);
-    if (forGalleryDownload ||
-        (throwOnDecryptionFailure && e is DownloadDecryptionError)) {
+    if (forGalleryDownload || throwOnDecryptionFailure) {
       rethrow;
     }
     return null;
@@ -152,158 +149,92 @@ void removeDownloadCallback(EnteFile file) {
   if (!file.isUploaded) {
     return;
   }
-  String id = file.uploadedFileID.toString() + false.toString();
-  _progressCallbacks.remove(id);
-  if (file.isLivePhoto) {
-    id = file.uploadedFileID.toString() + true.toString();
-    _progressCallbacks.remove(id);
-  }
+  _progressCallbacks.remove(file.uploadedFileID.toString());
 }
 
 Future<File?> getFileFromServer(
   EnteFile file, {
   ProgressCallback? progressCallback,
-  bool liveVideo = false, // only needed in case of live photos
+  bool liveVideo = false,
   bool forGalleryDownload = false,
   bool throwOnDecryptionFailure = false,
 }) async {
-  final cacheManager = (file.fileType == FileType.video || liveVideo)
+  final cacheManager = file.fileType == FileType.video
       ? VideoCacheManager.instance
       : DefaultCacheManager();
   final fileFromCache = await cacheManager.getFileFromCache(file.downloadUrl);
   if (fileFromCache != null) {
     return fileFromCache.file;
   }
-  final downloadID = file.uploadedFileID.toString() + liveVideo.toString();
+  final downloadID = file.uploadedFileID.toString();
 
   if (progressCallback != null) {
     _progressCallbacks[downloadID] = progressCallback;
   }
 
-  final download = _runOncePerKey(_fileDownloadsInProgress, downloadID, () {
-    Future<File?> downloadFuture;
-    if (file.fileType == FileType.livePhoto) {
-      downloadFuture = _getLivePhotoFromServer(
-        file,
-        progressCallback: (count, total) {
-          _progressCallbacks[downloadID]?.call(count, total);
-        },
-        needLiveVideo: liveVideo,
-        forGalleryDownload: forGalleryDownload,
-      );
-    } else {
-      downloadFuture = _downloadAndCache(
-        file,
-        cacheManager,
-        progressCallback: (count, total) {
-          _progressCallbacks[downloadID]?.call(count, total);
-        },
-        forGalleryDownload: forGalleryDownload,
-      );
-    }
-    return downloadFuture;
-  }, onComplete: () => _progressCallbacks.remove(downloadID));
-  return handleDownloadDecryptionFailureForCaller(
-    download,
-    rethrowDecryptionFailure: forGalleryDownload || throwOnDecryptionFailure,
+  return _runOncePerKey(
+    _fileDownloadsInProgress,
+    downloadID,
+    () => _downloadAndCache(
+      file,
+      cacheManager,
+      progressCallback: (count, total) {
+        _progressCallbacks[downloadID]?.call(count, total);
+      },
+    ),
+    onComplete: () => _progressCallbacks.remove(downloadID),
   );
 }
 
 Future<bool> isFileCached(EnteFile file, {bool liveVideo = false}) async {
-  final cacheManager = (file.fileType == FileType.video || liveVideo)
+  final cacheManager = file.fileType == FileType.video
       ? VideoCacheManager.instance
       : DefaultCacheManager();
   final fileInfo = await cacheManager.getFileFromCache(file.downloadUrl);
   return fileInfo != null;
 }
 
-final Map<int, Future<LivePhotoFiles?>> _livePhotoDownloadsTracker =
-    <int, Future<LivePhotoFiles?>>{};
-
-Future<File?> _getLivePhotoFromServer(
-  EnteFile file, {
-  ProgressCallback? progressCallback,
-  required bool needLiveVideo,
-  bool forGalleryDownload = false,
-}) async {
-  final downloadID = file.uploadedFileID!;
-  try {
-    final livePhoto = await _runOncePerKey(
-      _livePhotoDownloadsTracker,
-      downloadID,
-      () => downloadLivePhotoFiles(
-        file,
-        progressCallback: progressCallback,
-        forGalleryDownload: forGalleryDownload,
-      ),
-    );
-    if (livePhoto == null) {
-      return null;
-    }
-    return needLiveVideo ? livePhoto.video : livePhoto.image;
-  } catch (e, s) {
-    _logger.warning("live photo get failed", e, s);
-    if (forGalleryDownload || e is DownloadDecryptionError) {
-      rethrow;
-    }
-    return null;
-  }
-}
-
 Future<File?> _downloadAndCache(
   EnteFile file,
   BaseCacheManager cacheManager, {
   required ProgressCallback progressCallback,
-  bool forGalleryDownload = false,
 }) async {
-  // Filen fork: the Filen SDK downloads and decrypts; Ente's own pipeline does the rest.
-  final Future<File?> download = isFilenFile(file)
-      ? filenDownloadOriginal(file).then<File?>((f) {
-          progressCallback(file.fileSize ?? 0, file.fileSize ?? 0);
-          return f;
-        })
-      : downloadAndDecrypt(
-          file,
-          progressCallback: progressCallback,
-          forceResumableDownload: forGalleryDownload,
-          throwOnFailure: forGalleryDownload,
-        );
-  return download
-      .then((decryptedFile) async {
-        if (decryptedFile == null) {
-          return null;
-        }
-        final decryptedFilePath = decryptedFile.path;
-        String fileExtension = getExtension(file.title ?? '');
-        File outputFile = decryptedFile;
-        if ((fileExtension == "unknown" && file.fileType == FileType.image)) {
-          final compressResult = await FlutterImageCompress.compressAndGetFile(
-            decryptedFilePath,
-            decryptedFilePath + ".jpg",
-            keepExif: true,
-          );
-          if (compressResult == null) {
-            throw Exception("Failed to convert heic to jpg");
-          } else {
-            outputFile = File(compressResult.path);
-            fileExtension = "jpg";
-          }
-          await decryptedFile.delete();
-        }
-        final cachedFile = await cacheManager.putFileStream(
-          file.downloadUrl,
-          outputFile.openRead(),
-          eTag: file.downloadUrl,
-          maxAge: const Duration(days: 365),
-          fileExtension: fileExtension,
-        );
-        await outputFile.delete();
-        return cachedFile;
-      })
-      .catchError((e) {
-        _logger.warning("failed to download file : ${file.tag}", e);
-        throw e;
-      });
+  if (!isFilenFile(file)) {
+    throw StateError('${file.tag} is not stored on Filen');
+  }
+  // The Filen SDK downloads and decrypts the original.
+  final decryptedFile = await filenDownloadOriginal(file);
+  progressCallback(file.fileSize ?? 0, file.fileSize ?? 0);
+  try {
+    final decryptedFilePath = decryptedFile.path;
+    String fileExtension = getExtension(file.title ?? '');
+    File outputFile = decryptedFile;
+    if (fileExtension == "unknown" && file.fileType == FileType.image) {
+      final compressResult = await FlutterImageCompress.compressAndGetFile(
+        decryptedFilePath,
+        decryptedFilePath + ".jpg",
+        keepExif: true,
+      );
+      if (compressResult == null) {
+        throw Exception("Failed to convert heic to jpg");
+      }
+      outputFile = File(compressResult.path);
+      fileExtension = "jpg";
+      await decryptedFile.delete();
+    }
+    final cachedFile = await cacheManager.putFileStream(
+      file.downloadUrl,
+      outputFile.openRead(),
+      eTag: file.downloadUrl,
+      maxAge: const Duration(days: 365),
+      fileExtension: fileExtension,
+    );
+    await outputFile.delete();
+    return cachedFile;
+  } catch (e) {
+    _logger.warning("failed to download file : ${file.tag}", e);
+    rethrow;
+  }
 }
 
 Future<void> removeFromDownloadCache(EnteFile file) async {

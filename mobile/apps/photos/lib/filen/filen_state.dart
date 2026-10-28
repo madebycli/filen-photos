@@ -9,6 +9,7 @@ import 'package:photos/filen/state/entity_store.dart';
 import 'package:photos/filen/state/meta_store.dart';
 import 'package:photos/filen/state/ml_store.dart';
 import 'package:photos/filen/state/rev_doc.dart';
+import 'package:photos/filen/state/thumb_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _PrefsStorage implements StringStorage {
@@ -42,6 +43,7 @@ class FilenState {
   late FilenCollectionStore collections;
   late FilenEntityStore entities;
   late FilenMlStore ml;
+  late FilenThumbStore thumbs;
 
   /// Idempotent; safe to await from anywhere.
   Future<void> ensureInitialized() => _init ??= _initialize();
@@ -71,6 +73,7 @@ class FilenState {
       ownerID: () => Configuration.instance.getUserID() ?? 0,
     );
     ml = FilenMlStore(blobs);
+    thumbs = FilenThumbStore(blobs);
     _logger.info('Filen state ready (writer $writer)');
   }
 
