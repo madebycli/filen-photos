@@ -8,20 +8,17 @@ import "package:flutter/foundation.dart";
 import 'package:flutter/material.dart';
 import "package:photos/app.dart";
 import 'package:photos/core/configuration.dart';
+import 'package:photos/filen/ui/filen_login_page.dart';
 import "package:photos/locale.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/theme/ente_theme.dart";
-import 'package:photos/ui/account/email_entry_page.dart';
-import 'package:photos/ui/account/login_page.dart';
-import 'package:photos/ui/account/password_entry_page.dart';
-import 'package:photos/ui/account/password_reentry_page.dart';
 import 'package:photos/ui/components/buttons/button_widget.dart';
 import 'package:photos/ui/components/dialog_widget.dart';
 import 'package:photos/ui/components/models/button_type.dart';
-import 'package:photos/ui/payment/subscription.dart';
 import "package:photos/ui/settings/developer_settings_tap_area.dart";
 import "package:photos/ui/settings/developer_settings_widget.dart";
 import "package:rive/rive.dart" as rive;
+import 'package:url_launcher/url_launcher_string.dart';
 
 class LandingPageWidget extends StatefulWidget {
   const LandingPageWidget({required this.onStartWithoutAccount, super.key});
@@ -257,50 +254,21 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
     widget.onStartWithoutAccount();
   }
 
+  // Filen fork: accounts live at Filen. Registration happens on Filen's website and the
+  // in-app sign-in talks to Filen only.
   Future<void> _navigateToSignUpPage() async {
     updateService.hideChangeLog().ignore();
-    Widget page;
-    if (Configuration.instance.getEncryptedToken() == null) {
-      page = const EmailEntryPage();
-    } else {
-      if (Configuration.instance.getKeyAttributes() == null) {
-        page = const PasswordEntryPage(mode: PasswordEntryMode.set);
-      } else if (Configuration.instance.getKey() == null) {
-        page = const PasswordReentryPage();
-      } else {
-        page = getSubscriptionPage(isOnBoarding: true);
-      }
-    }
-    unawaited(
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (BuildContext context) {
-            return page;
-          },
-        ),
-      ),
+    await launchUrlString(
+      "https://app.filen.io/#/register",
+      mode: LaunchMode.externalApplication,
     );
   }
 
   void _navigateToSignInPage() {
     updateService.hideChangeLog().ignore();
-    Widget page;
-    if (Configuration.instance.getEncryptedToken() == null) {
-      page = const LoginPage();
-    } else {
-      if (Configuration.instance.getKeyAttributes() == null) {
-        page = const PasswordEntryPage(mode: PasswordEntryMode.set);
-      } else if (Configuration.instance.getKey() == null) {
-        page = const PasswordReentryPage();
-      } else {
-        page = getSubscriptionPage(isOnBoarding: true);
-      }
-    }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (BuildContext context) {
-          return page;
-        },
+        builder: (BuildContext context) => const FilenLoginPage(),
       ),
     );
   }

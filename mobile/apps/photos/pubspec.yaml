@@ -54,6 +54,9 @@ dependencies:
     path: ../../packages/frb
   ente_icons:
     path: ../../packages/ente_icons
+  # Filen fork: Android plugin around Filen's official Rust SDK (see /filen)
+  filen_sdk:
+    path: ../../../filen/plugin
   ente_install_source:
     path: ../../packages/install_source
   ente_lock_screen:

@@ -19,6 +19,7 @@ import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
 import 'package:photos/extensions/logger_extension.dart';
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/main.dart' show isProcessBg;
 import 'package:photos/models/device_collection.dart';
 import 'package:photos/models/file/extensions/file_props.dart';
@@ -111,6 +112,9 @@ class RemoteSyncService {
         "Deferring remote sync until first gallery import completes",
       );
       return;
+    }
+    if (FilenAccount.isActive) {
+      return _syncFilen(silently: silently);
     }
     if (_existingSync != null) {
       _logger.info("Remote sync already in progress, skipping");
@@ -224,6 +228,30 @@ class RemoteSyncService {
 
   bool isFirstRemoteSyncDone() {
     return _prefs.containsKey(_isFirstRemoteSyncDone);
+  }
+
+  /// Filen fork: mirror the Filen photo library into the local gallery database.
+  /// Upload of device photos to Filen is not implemented yet, so nothing is queued or sent.
+  Future<void> _syncFilen({bool silently = false}) async {
+    if (_existingSync != null) {
+      return _existingSync?.future;
+    }
+    _existingSync = Completer<void>();
+    _isExistingSyncSilent = silently;
+    try {
+      await _pullDiff();
+      await _prefs.setBool(_isFirstRemoteSyncDone, true);
+      Bus.instance.fire(SyncStatusUpdate(SyncStatus.completedBackup));
+    } catch (e, s) {
+      _logger.severe("Filen sync failed", e, s);
+      Bus.instance.fire(
+        SyncStatusUpdate(SyncStatus.error, error: e is Error ? e : null),
+      );
+      rethrow;
+    } finally {
+      _existingSync?.complete();
+      _existingSync = null;
+    }
   }
 
   Future<bool> whiteListVideoForUpload(EnteFile file) async {

@@ -25,6 +25,8 @@ import 'package:photos/events/contact_relationships_invalidated_event.dart';
 import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_sync.dart';
 import "package:photos/gateways/collections/collection_share_gateway.dart";
 import 'package:photos/gateways/collections/models/collection_file_item.dart';
 import "package:photos/gateways/collections/models/collection_share.dart";
@@ -1579,6 +1581,10 @@ class CollectionsService {
   }
 
   Future<List<Collection>> _fetchCollections(int sinceTime) async {
+    // Filen fork: collections come from the Filen drive, not from Ente's server.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.fetchCollections();
+    }
     try {
       final response = await collectionsGateway.getAll(
         sinceTime: sinceTime,

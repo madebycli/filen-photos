@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/db/files_db.dart';
+import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_sync.dart';
 import 'package:photos/models/file/extensions/file_props.dart';
 import 'package:photos/models/file/file.dart';
 import "package:photos/models/metadata/file_magic.dart";
@@ -115,6 +117,10 @@ class DiffFetcher {
   }
 
   Future<Diff> getEncryptedFilesDiff(int collectionID, int sinceTime) async {
+    // Filen fork: the diff is computed against the Filen drive listing.
+    if (FilenAccount.isActive) {
+      return FilenSyncService.instance.getDiff(collectionID);
+    }
     try {
       final response = await collectionsGateway.getDiff(
         collectionID: collectionID,

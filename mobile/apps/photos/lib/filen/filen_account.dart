@@ -1,0 +1,93 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:filen_sdk/filen_sdk.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logging/logging.dart';
+import 'package:photos/core/configuration.dart';
+import 'package:photos/filen/filen_ids.dart';
+
+/// Filen session handling for the fork. The SDK performs the login (including all key
+/// derivation); this class only persists the resulting session in the platform keystore-backed
+/// secure storage and tells Ente's [Configuration] that an account exists.
+///
+/// The user's password is never stored.
+class FilenAccount {
+  FilenAccount._();
+  static final FilenAccount instance = FilenAccount._();
+
+  static const _sessionKey = 'filen_session_v1';
+  static final _logger = Logger('FilenAccount');
+
+  final FilenSdk _sdk = FilenSdk.instance;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String? _photosRootUuid;
+
+  /// True when the signed-in account is a Filen account.
+  static bool get isActive =>
+      Configuration.instance.getToken() == kFilenTokenMarker;
+
+  /// Re-attaches the persisted session to the SDK (local only, no network access).
+  /// Called on every process start, UI and background alike.
+  Future<void> restoreSession() async {
+    if (!isActive) return;
+    try {
+      final session = await _storage.read(key: _sessionKey);
+      if (session == null) {
+        _logger.warning('Filen account active but no stored session');
+        return;
+      }
+      await _sdk.restore(session);
+    } catch (e, s) {
+      // Keep the account: a transient failure must not look like a logout.
+      _logger.severe('Failed to restore Filen session', e, s);
+    }
+  }
+
+  /// Throws [FilenException] (e.g. TWO_FACTOR_REQUIRED, BAD_CREDENTIALS).
+  Future<FilenUserInfo> signIn({
+    required String email,
+    required String password,
+    String? twoFactorCode,
+  }) async {
+    final session = await _sdk.login(
+      email: email.trim(),
+      password: password,
+      twoFactorCode: twoFactorCode,
+    );
+    await _storage.write(key: _sessionKey, value: session);
+    final info = await _sdk.userInfo();
+
+    final config = Configuration.instance;
+    await config.setEmail(info.email);
+    await config.setUserID(info.userId);
+    // Ente expects a local master key to exist. Filen derives and holds its own keys inside
+    // the SDK; this random key only satisfies Ente's "account is configured" checks.
+    await config.setKey(base64.encode(_randomBytes(32)));
+    // Last: setting the token flips the app into the signed-in state.
+    await config.setToken(kFilenTokenMarker);
+    return info;
+  }
+
+  /// Drops the in-memory client. [Configuration.logout] already wiped secure storage.
+  Future<void> onLogout() async {
+    _photosRootUuid = null;
+    try {
+      await _sdk.logout();
+    } catch (e, s) {
+      _logger.warning('Filen SDK logout failed', e, s);
+    }
+  }
+
+  /// UUID of the photo library folder, created on first use.
+  Future<String> photosRootUuid() async {
+    return _photosRootUuid ??= await _sdk.findOrCreateRootChild(
+      kFilenPhotosRootName,
+    );
+  }
+
+  static List<int> _randomBytes(int n) {
+    final r = Random.secure();
+    return List<int>.generate(n, (_) => r.nextInt(256));
+  }
+}

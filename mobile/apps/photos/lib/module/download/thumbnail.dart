@@ -17,6 +17,8 @@ import 'package:photos/core/configuration.dart';
 import 'package:photos/core/constants.dart';
 import 'package:photos/core/errors.dart';
 import 'package:photos/core/network/network.dart';
+import 'package:photos/filen/filen_file_access.dart';
+import 'package:photos/filen/filen_ids.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
@@ -301,6 +303,19 @@ void _downloadItem(_ThumbnailDownload item) async {
 
 Future<void> _downloadAndDecryptThumbnail(_ThumbnailDownload item) async {
   final file = item.file;
+  // Filen fork: thumbnails are produced by the Filen SDK, not downloaded from Ente.
+  if (isFilenFile(file)) {
+    final data = await filenThumbnail(file);
+    if (!_isCurrent(item)) {
+      return;
+    }
+    ThumbnailInMemoryLruCache.put(item.file, data);
+    unawaited(_writeCachedThumbnail(cachedThumbnailPath(item.file), data));
+    if (!item.completer.isCompleted) {
+      item.completer.complete(data);
+    }
+    return;
+  }
   Uint8List encryptedThumbnail;
   try {
     if (CollectionsService.instance.isSharedPublicLink(file.collectionID!)) {

@@ -35,6 +35,7 @@ import 'package:photos/db/upload_locks_db.dart';
 import "package:photos/events/app_mode_changed_event.dart";
 import 'package:photos/events/signed_in_event.dart';
 import 'package:photos/events/user_logged_out_event.dart';
+import 'package:photos/filen/filen_account.dart';
 import 'package:photos/gateways/users/models/key_attributes.dart';
 import 'package:photos/gateways/users/models/key_gen_result.dart';
 import 'package:photos/gateways/users/models/private_key_attributes.dart';
@@ -142,6 +143,7 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
           await logout(autoLogout: true);
         }
         await _migrateSecurityStorageToFirstUnlock();
+        await FilenAccount.instance.restoreSession();
       }
       SuperLogging.setUserID(await _getOrCreateAnonymousUserID()).ignore();
       _logger.info('User ID: ${getUserID()}');
@@ -230,6 +232,7 @@ class Configuration implements LockScreenHost, AccountDeletionHost {
 
     await _preferences.clear();
     await _secureStorage.deleteAll();
+    await FilenAccount.instance.onLogout();
     _key = null;
     _cachedToken = null;
     _secretKey = null;

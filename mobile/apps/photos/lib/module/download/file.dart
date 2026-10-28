@@ -12,6 +12,8 @@ import 'package:photos/core/cache/thumbnail_in_memory_cache.dart';
 import 'package:photos/core/cache/video_cache_manager.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/constants.dart';
+import 'package:photos/filen/filen_file_access.dart';
+import 'package:photos/filen/filen_ids.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
@@ -254,12 +256,19 @@ Future<File?> _downloadAndCache(
   required ProgressCallback progressCallback,
   bool forGalleryDownload = false,
 }) async {
-  return downloadAndDecrypt(
-        file,
-        progressCallback: progressCallback,
-        forceResumableDownload: forGalleryDownload,
-        throwOnFailure: forGalleryDownload,
-      )
+  // Filen fork: the Filen SDK downloads and decrypts; Ente's own pipeline does the rest.
+  final Future<File?> download = isFilenFile(file)
+      ? filenDownloadOriginal(file).then<File?>((f) {
+          progressCallback(file.fileSize ?? 0, file.fileSize ?? 0);
+          return f;
+        })
+      : downloadAndDecrypt(
+          file,
+          progressCallback: progressCallback,
+          forceResumableDownload: forGalleryDownload,
+          throwOnFailure: forGalleryDownload,
+        );
+  return download
       .then((decryptedFile) async {
         if (decryptedFile == null) {
           return null;
