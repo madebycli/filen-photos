@@ -13,6 +13,7 @@ import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/trash_updated_event.dart';
 import 'package:photos/filen/filen_account.dart';
+import 'package:photos/filen/filen_compress.dart';
 import 'package:photos/filen/filen_ids.dart';
 import 'package:photos/filen/filen_media_mapper.dart';
 import 'package:photos/filen/filen_meta_overlay.dart';
@@ -677,6 +678,7 @@ class FilenSyncService {
   /// its trash, so the whole (top level) trash is compared with the local trash table. Anything
   /// that is not a photo or video is ignored and never touched.
   Future<TrashDiff> trashDiff() async {
+    await _state.ensureInitialized();
     final items = await FilenSdk.instance.listTrash();
     final ownerID = Configuration.instance.getUserID()!;
     final current = <int, EnteTrashFile>{};
@@ -687,6 +689,10 @@ class FilenSyncService {
       }
       // The trash table needs a collection id; Filen does not say which album a photo came from.
       mapped.collectionID = -1;
+      // The device identity of the photo (local id, folder) lives in the state folder; with it a
+      // trashed photo is not uploaded again from the phone it came from (Ente's ignore list).
+      final meta = _state.meta.effective(f.uuid);
+      if (meta != null) applyMetaEntry(mapped, meta);
       final trashedAt = f.modifiedMs * 1000;
       current[mapped.uploadedFileID!] = EnteTrashFile.from(
         mapped,
@@ -783,7 +789,8 @@ class FilenSyncService {
     final createdMs = remote.createdMs ?? remote.modifiedMs;
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
-      if (row.title != remote.name || row.fileType != mapped.fileType) {
+      if (!sameUploadName(row.title, remote.name) ||
+          row.fileType != mapped.fileType) {
         continue;
       }
       final rowMs = (row.creationTime ?? 0) ~/ 1000;

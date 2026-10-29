@@ -18,6 +18,7 @@ import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
+import 'package:photos/filen/filen_battery.dart';
 import 'package:photos/filen/filen_settings.dart';
 import 'package:photos/filen/filen_state.dart';
 import 'package:photos/filen/filen_upload_progress.dart';
@@ -130,7 +131,8 @@ class RemoteSyncService {
         _logger.warning("Could not sync the app settings with Filen", e, s);
       }
       await _prefs.setBool(_isFirstRemoteSyncDone, true);
-      if (!isProcessBg || await canUseHighBandwidth()) {
+      if ((!isProcessBg || await canUseHighBandwidth()) &&
+          !await backupBlockedByBattery()) {
         await syncDeviceCollectionFilesForUpload();
         final hasUploadedFiles = await _uploadFiles(
           await _getFilesToBeUploaded(),

@@ -161,8 +161,9 @@ class FakeFilenDrive {
         return null;
       case 'thumbnail':
         thumbnailRequests++;
-        if (thumbnailDelay > Duration.zero)
+        if (thumbnailDelay > Duration.zero) {
           await Future<void>.delayed(thumbnailDelay);
+        }
         // A real thumbnail is a few KB read from the start of the file.
         return Uint8List(4096);
       case 'streamUrl':

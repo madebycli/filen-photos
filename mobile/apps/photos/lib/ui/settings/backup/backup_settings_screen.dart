@@ -60,6 +60,39 @@ class BackupSettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _BackupOnlyNewPhotosToggle(debouncer: _onlyNewToggleDebouncer),
+        // Filen fork: the upload options of Filen's own camera upload.
+        const SizedBox(height: 8),
+        _toggleItem(
+          context,
+          title: l10n.filenCompressUploads,
+          subtitle: l10n.filenCompressUploadsHint,
+          value: () => backupSettings.shouldCompressUploads(),
+          onChanged: () async => backupSettings.setCompressUploads(
+            !backupSettings.shouldCompressUploads(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _toggleItem(
+          context,
+          title: l10n.filenBackupOnLowBattery,
+          subtitle: l10n.filenBackupOnLowBatteryHint,
+          value: () => backupSettings.shouldBackupOnLowBattery(),
+          onChanged: () async {
+            final value = !backupSettings.shouldBackupOnLowBattery();
+            await backupSettings.setBackupOnLowBattery(value);
+            if (value) SyncService.instance.sync().ignore();
+          },
+        ),
+        const SizedBox(height: 8),
+        _toggleItem(
+          context,
+          title: l10n.filenReuploadDeleted,
+          subtitle: l10n.filenReuploadDeletedHint,
+          value: () => backupSettings.shouldReuploadDeleted(),
+          onChanged: () async => backupSettings.setReuploadDeleted(
+            !backupSettings.shouldReuploadDeleted(),
+          ),
+        ),
         if (Platform.isIOS) ...[
           const SizedBox(height: 24),
           SettingsItem(
@@ -82,11 +115,13 @@ class BackupSettingsScreen extends StatelessWidget {
   MenuComponent _toggleItem(
     BuildContext context, {
     required String title,
+    String? subtitle,
     required bool Function() value,
     required Future<void> Function() onChanged,
   }) {
     return MenuComponent(
       title: title,
+      subtitle: subtitle,
       trailing: ToggleSwitchComponent.async(value: value, onChanged: onChanged),
     );
   }

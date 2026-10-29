@@ -11,6 +11,7 @@ import 'package:photos/gateways/trash/models/trash_item_request.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/trash_file.dart';
 import 'package:photos/models/ignored_file.dart';
+import 'package:photos/service_locator.dart';
 import 'package:photos/services/ignored_files_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,6 +61,8 @@ class TrashSyncService {
   }
 
   Future<void> _updateIgnoredFiles(TrashDiff diff) async {
+    // Filen's own camera upload uploads a deleted photo again; Ente remembers and skips it.
+    if (backupSettings.shouldReuploadDeleted()) return;
     final ignoredFiles = <IgnoredFile>[];
     for (final t in diff.trashedFiles) {
       final file = IgnoredFile.fromTrashItem(t);

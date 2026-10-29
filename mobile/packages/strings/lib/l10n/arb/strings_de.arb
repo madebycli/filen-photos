@@ -4889,5 +4889,11 @@
     }
   },
   "notEnoughStorageTitle": "Zu wenig Speicherplatz",
-  "notEnoughStorageBody": "Du hast nicht genug freien Speicherplatz auf Filen, um neue Fotos hinzuzufügen. Gib Speicherplatz frei oder führe ein Upgrade durch, um weitere hinzuzufügen."
+  "notEnoughStorageBody": "Du hast nicht genug freien Speicherplatz auf Filen, um neue Fotos hinzuzufügen. Gib Speicherplatz frei oder führe ein Upgrade durch, um weitere hinzuzufügen.",
+  "filenCompressUploads": "Fotos vor dem Hochladen komprimieren",
+  "filenCompressUploadsHint": "Spart Platz: JPEG- und HEIC-Fotos werden als JPEG (Qualität 80) neu gespeichert, wenn das kleiner ist. Datum, Ort und Kameradaten bleiben erhalten.",
+  "filenBackupOnLowBattery": "Auch bei niedrigem Akku sichern",
+  "filenBackupOnLowBatteryHint": "Aus: Die Sicherung pausiert unter 15 % Akku.",
+  "filenReuploadDeleted": "Gelöschte Fotos erneut hochladen",
+  "filenReuploadDeletedHint": "Aus: Ein Foto, das du aus Filen löschst, wird von diesem Handy nicht erneut hochgeladen."
 }
