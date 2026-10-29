@@ -199,7 +199,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -309,8 +309,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Zabudli ste váš kľúč obnovenia?",
-  "free10GB": "10GB zadarmo na <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "O 10% lacnejšie <bold-green>ente</bold-green> fotky",
+  "free10GB": "10GB zadarmo na <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "O 10% lacnejšie <bold-green>Filen</bold-green> fotky",
   "freeStorageOfferDescription": "Použite kód „AUTH“ a dostanete zľavu 10% na váš prvý rok",
   "general": "Všeobecné",
   "generatingEncryptionKeys": "Generovanie šifrovacích kľúčov...",
@@ -807,7 +807,7 @@
   "submit": "Odoslať",
   "suggestFeatures": "Navrhnúť funkcionalitu",
   "support": "Podpora",
-  "supportEnte": "Podpora <bold-green>ente</bold-green>",
+  "supportEnte": "Podpora <bold-green>Filen</bold-green>",
   "systemTheme": "Systémová",
   "tags": "Tagy",
   "tapToUnlock": "Ťuknutím odomknete",

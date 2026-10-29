@@ -732,7 +732,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Пожалуйста, свяжитесь с нами по адресу support@ente.com для управления вашей подпиской {provider}.",
+  "contactToManageSubscription": "Пожалуйста, свяжитесь с нами по адресу support@filen.io для управления вашей подпиской {provider}.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1153,7 +1153,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1678,8 +1678,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Забыли ключ восстановления?",
-  "free10GB": "10ГБ бесплатно в <bold-green>ente</bold-green> Фото",
-  "freeStorageOffer": "Скидка 10% на <bold-green>ente</bold-green> фото",
+  "free10GB": "10ГБ бесплатно в <bold-green>Filen</bold-green> Фото",
+  "freeStorageOffer": "Скидка 10% на <bold-green>Filen</bold-green> фото",
   "freeStorageOfferDescription": "Используйте код \"AUTH\", чтобы получить скидку 10% в первый год",
   "freeTrial": "Бесплатный пробный период",
   "freeUpAmount": "Освободить {sizeInMBorGB}",
@@ -2475,7 +2475,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2858,7 +2858,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Пожалуйста, свяжитесь с support@ente.com, и мы будем рады помочь!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Пожалуйста, свяжитесь с support@filen.io, и мы будем рады помочь!",
   "pleaseContactSupportIfTheProblemPersists": "Пожалуйста, обратитесь в поддержку, если проблема сохраняется",
   "pleaseEmailUsAt": "Пожалуйста, напишите нам на {toEmail}",
   "@pleaseEmailUsAt": {
@@ -3676,7 +3676,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3759,7 +3759,7 @@
   "shareKey": "Поделиться ключом",
   "shareLink": "Поделиться ссылкой",
   "shareMemory": "Поделиться воспоминаниями",
-  "shareMyVerificationID": "Вот мой идентификатор подтверждения: {verificationID} для ente.com.",
+  "shareMyVerificationID": "Вот мой идентификатор подтверждения: {verificationID} для filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -3767,16 +3767,16 @@
   },
   "shareNotSupportedForSharedFiles": "Нельзя делиться общими файлами",
   "shareStorageWith5Members": "Поделиться хранилищем с 5 участниками",
-  "shareTextConfirmOthersVerificationID": "Привет, можешь подтвердить, что это твой идентификатор подтверждения ente.com: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Привет, можешь подтвердить, что это твой идентификатор подтверждения filen.io: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Скачайте Filen, чтобы мы могли легко обмениваться файлами оригинального качества\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Скачай Filen, чтобы я мог добавить тебя в свой семейный тариф\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Скачай Filen, чтобы мы могли легко делиться фото и видео в оригинальном качестве\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Получите 20 Гб бесплатно с помощью Filen Photos! Скачайте приложение по ссылке https://ente.com/invite and use code {referralCode}.",
+  "shareTextRecommendUsingEnte": "Скачайте Filen, чтобы мы могли легко обмениваться файлами оригинального качества\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Скачай Filen, чтобы я мог добавить тебя в свой семейный тариф\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Скачай Filen, чтобы мы могли легко делиться фото и видео в оригинальном качестве\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Получите 20 Гб бесплатно с помощью Filen Photos! Скачайте приложение по ссылке https://filen.io/invite and use code {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -4001,7 +4001,7 @@
   "suggestions": "Предложения",
   "sunrise": "На горизонте",
   "support": "Поддержка",
-  "supportEnte": "Поддержка <bold-green>ente</bold-green>",
+  "supportEnte": "Поддержка <bold-green>Filen</bold-green>",
   "syncing": "Синхронизация...",
   "syncProgress": "{completed}/{total} воспоминаний сохранено",
   "@syncProgress": {
@@ -4641,7 +4641,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

@@ -771,7 +771,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Silakan hubungi kami di support@ente.com untuk mengelola langganan {provider} Anda.",
+  "contactToManageSubscription": "Silakan hubungi kami di support@filen.io untuk mengelola langganan {provider} Anda.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1199,7 +1199,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1831,7 +1831,7 @@
   "forgotPasswordPrompt": "Lupa kata sandi?",
   "forgotRecoveryKey": "Lupa kunci pemulihan?",
   "free10GB": "10 GB gratis di <bold-green>Filen</bold-green> Photos",
-  "freeStorageOffer": "Potongan 10% di <bold-green>ente</bold-green> photos",
+  "freeStorageOffer": "Potongan 10% di <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Gunakan kode \"AUTH\" untuk mendapatkan potongan 10% untuk tahun pertama",
   "free": "Gratis",
   "freeTrial": "Percobaan gratis",
@@ -2808,7 +2808,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3195,7 +3195,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Hubungi support@ente.com, kami akan dengan senang hati membantu!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Hubungi support@filen.io, kami akan dengan senang hati membantu!",
   "pleaseContactSupportIfTheProblemPersists": "Silakan hubungi tim bantuan jika masalah terus terjadi",
   "pleaseEmailUsAt": "Silakan kirimi kami email di {toEmail}",
   "@pleaseEmailUsAt": {
@@ -4059,7 +4059,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -4171,7 +4171,7 @@
     "description": "Subtitle for sending a viewing link to the current photo or video from the file viewer"
   },
   "shareMemory": "Bagikan kenangan",
-  "shareMyVerificationID": "Ini ID verifikasi saya: {verificationID} untuk ente.com.",
+  "shareMyVerificationID": "Ini ID verifikasi saya: {verificationID} untuk filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -4179,16 +4179,16 @@
   },
   "shareNotSupportedForSharedFiles": "Berbagi tidak didukung untuk file bersama",
   "shareStorageWith5Members": "Bagikan penyimpanan dengan 5 anggota",
-  "shareTextConfirmOthersVerificationID": "Hai, bisakah Anda mengonfirmasi bahwa ini ID verifikasi ente.com Anda: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hai, bisakah Anda mengonfirmasi bahwa ini ID verifikasi filen.io Anda: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Unduh Filen agar kita dapat berbagi file dengan kualitas asli dengan mudah\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Unduh Filen agar saya dapat menambahkan Anda ke paket keluarga saya\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Unduh Filen agar kita dapat berbagi foto dan video dengan kualitas asli dengan mudah\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Dapatkan 20 GB gratis dengan Filen Photos! Unduh aplikasinya di https://ente.com/invite dan gunakan kode {referralCode}.",
+  "shareTextRecommendUsingEnte": "Unduh Filen agar kita dapat berbagi file dengan kualitas asli dengan mudah\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Unduh Filen agar saya dapat menambahkan Anda ke paket keluarga saya\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Unduh Filen agar kita dapat berbagi foto dan video dengan kualitas asli dengan mudah\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Dapatkan 20 GB gratis dengan Filen Photos! Unduh aplikasinya di https://filen.io/invite dan gunakan kode {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -4417,7 +4417,7 @@
   "suggestions": "Saran",
   "sunrise": "Cahaya fajar di cakrawala",
   "support": "Dukungan",
-  "supportEnte": "Dukung <bold-green>ente</bold-green>",
+  "supportEnte": "Dukung <bold-green>Filen</bold-green>",
   "syncing": "Menyinkronkan...",
   "syncProgress": "{completed}/{total} memori tersimpan",
   "@syncProgress": {
@@ -5090,7 +5090,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

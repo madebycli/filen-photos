@@ -911,7 +911,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1253,7 +1253,7 @@
   },
   "forgotRecoveryKey": "¿Olvidaste la llave de recuperación?",
   "free10GB": "10 GB gratis en <bold-green>Filen</bold-green> Fotos",
-  "freeStorageOffer": "10% de descuento en <bold-green>ente</bold-green> fotos",
+  "freeStorageOffer": "10% de descuento en <bold-green>Filen</bold-green> fotos",
   "freeStorageOfferDescription": "Usa el cupón \"AUTH\" para obtener un 10% de descuento en el primer año",
   "freeTrial": "Prueba gratuita",
   "freeUpAmount": "Liberar {sizeInMBorGB}",
@@ -2818,7 +2818,7 @@
   "suggestions": "Sugerencias",
   "sunrise": "Sobre el horizonte",
   "support": "Soporte",
-  "supportEnte": "Apoya a <bold-green>ente</bold-green>",
+  "supportEnte": "Apoya a <bold-green>Filen</bold-green>",
   "syncing": "Sincronizando...",
   "syncProgress": "{completed}/{total} recuerdos conservados",
   "@syncProgress": {

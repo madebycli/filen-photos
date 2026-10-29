@@ -562,7 +562,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -823,8 +823,8 @@
   "font": "Fonte",
   "food": "Culinária saborosa",
   "forgotRecoveryKey": "Esqueceu a chave de recuperação?",
-  "free10GB": "10GB grátis em <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "10% de desconto em <bold-green>ente</bold-green> photos",
+  "free10GB": "10GB grátis em <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "10% de desconto em <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Usa o código \"AUTH\" para obter 10% de desconto no primeiro ano",
   "freeTrial": "Teste grátis",
   "freeUpAmount": "Libertar {sizeInMBorGB}",
@@ -1819,15 +1819,15 @@
   "sharedWith": "Compartilhado com",
   "shareKey": "Partilhar chave",
   "shareLink": "Partilhar link",
-  "shareMyVerificationID": "Aqui está o meu ID de verificação: {verificationID} para ente.com",
+  "shareMyVerificationID": "Aqui está o meu ID de verificação: {verificationID} para filen.io",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "Partilhe armazenamento com 5 membros",
-  "shareTextRecommendUsingEnteForFamily": "Transfira Filen para poder adicioná-lo ao meu plano de família\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Transfira Filen para podermos partilhar facilmente fotos e vídeos com qualidade original\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Transfira Filen para poder adicioná-lo ao meu plano de família\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Transfira Filen para podermos partilhar facilmente fotos e vídeos com qualidade original\n\nhttps://filen.io",
   "shareThisLink": "Este link permite que qualquer pessoa que o receba acesse seu item. Você pode remover o acesso a qualquer momento excluindo o link.",
   "shareWithNonenteUsers": "Compartilhar com usuários que não usam Filen",
   "shareYourSubscription": "Partilhe a sua subscrição para entes queridos",
@@ -1918,7 +1918,7 @@
   "successfullyUnhid": "Reexibido com sucesso",
   "sunrise": "No horizonte",
   "support": "Suporte",
-  "supportEnte": "Mostre suporte ao <bold-green>ente</bold-green>",
+  "supportEnte": "Mostre suporte ao <bold-green>Filen</bold-green>",
   "syncing": "Sincronizando...",
   "syncProgress": "{completed}/{total} memórias preservadas",
   "@syncProgress": {

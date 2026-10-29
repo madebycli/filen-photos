@@ -530,7 +530,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -800,8 +800,8 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "free10GB": "10 ГБ бясплатнай прасторы на <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "Скідка ў памеры 10% на <bold-green>ente</bold-green> Photos",
+  "free10GB": "10 ГБ бясплатнай прасторы на <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "Скідка ў памеры 10% на <bold-green>Filen</bold-green> Photos",
   "freeStorageOfferDescription": "Выкарыстоўвайце код «AUTH», каб атрымаць скідку ў памеры 10% за першы год",
   "freeTrial": "Бясплатная пробны перыяд",
   "freeUpAmount": "Вызваліць {sizeInMBorGB}",
@@ -2029,7 +2029,7 @@
   "suggestFeatures": "Прапанаваць функцыю",
   "sunrise": "На гарызонце",
   "support": "Падтрымка",
-  "supportEnte": "Падтрымка <bold-green>ente</bold-green>",
+  "supportEnte": "Падтрымка <bold-green>Filen</bold-green>",
   "syncing": "Сінхранізацыя...",
   "syncProgress": "{completed}/{total} успамінаў захавана",
   "@syncProgress": {

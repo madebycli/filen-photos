@@ -771,7 +771,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Bitte kontaktiere uns über support@ente.com, um dein {provider}-Abo zu verwalten.",
+  "contactToManageSubscription": "Bitte kontaktiere uns über support@filen.io, um dein {provider}-Abo zu verwalten.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1202,7 +1202,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1738,8 +1738,8 @@
   },
   "forgotPasswordPrompt": "Passwort vergessen?",
   "forgotRecoveryKey": "Wiederherstellungsschlüssel vergessen?",
-  "free10GB": "10GB kostenlos auf <bold-green>ente</bold-green> Fotos",
-  "freeStorageOffer": "10% Rabatt für <bold-green>ente</bold-green> Photos",
+  "free10GB": "10GB kostenlos auf <bold-green>Filen</bold-green> Fotos",
+  "freeStorageOffer": "10% Rabatt für <bold-green>Filen</bold-green> Photos",
   "freeStorageOfferDescription": "Verwende den Code \"AUTH\", um 10% im ersten Jahr zu sparen",
   "free": "Kostenlos",
   "freeTrial": "Kostenlose Testphase",
@@ -2641,7 +2641,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3012,7 +3012,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Bitte kontaktiere support@ente.com und wir helfen dir gerne!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Bitte kontaktiere support@filen.io und wir helfen dir gerne!",
   "pleaseContactSupportIfTheProblemPersists": "Bitte wenden Sie sich an den Support, falls das Problem weiterhin besteht",
   "pleaseEmailUsAt": "Bitte sende uns eine E-Mail an {toEmail}",
   "@pleaseEmailUsAt": {
@@ -3872,7 +3872,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3984,7 +3984,7 @@
     "description": "Subtitle for sending a viewing link to the current photo or video from the file viewer"
   },
   "shareMemory": "Erinnerung teilen",
-  "shareMyVerificationID": "Hier ist meine Verifizierungs-ID: {verificationID} für ente.com.",
+  "shareMyVerificationID": "Hier ist meine Verifizierungs-ID: {verificationID} für filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -3992,16 +3992,16 @@
   },
   "shareNotSupportedForSharedFiles": "Freigabe wird für freigegebene Dateien nicht unterstützt",
   "shareStorageWith5Members": "Teile Speicher mit 5 Mitgliedern",
-  "shareTextConfirmOthersVerificationID": "Hey, kannst du bestätigen, dass dies deine ente.com Verifizierungs-ID ist: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hey, kannst du bestätigen, dass dies deine filen.io Verifizierungs-ID ist: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Laden Sie Filen herunter, damit wir problemlos Dateien in Originalqualität freigeben können https://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Lade Filen herunter, damit ich dich zu meinem Familientarif hinzufügen kann\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Hol dir Filen, damit wir ganz einfach Fotos und Videos in Originalqualität teilen können\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Erhalte 20 GB kostenlos mit Filen Photos! Lade die App unter https://ente.com/invite herunter und nutze den Code {referralCode}.",
+  "shareTextRecommendUsingEnte": "Laden Sie Filen herunter, damit wir problemlos Dateien in Originalqualität freigeben können https://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Lade Filen herunter, damit ich dich zu meinem Familientarif hinzufügen kann\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Hol dir Filen, damit wir ganz einfach Fotos und Videos in Originalqualität teilen können\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Erhalte 20 GB kostenlos mit Filen Photos! Lade die App unter https://filen.io/invite herunter und nutze den Code {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -4230,7 +4230,7 @@
   "suggestions": "Vorschläge",
   "sunrise": "Am Horizont",
   "support": "Kundenbetreuung",
-  "supportEnte": "Unterstütze <bold-green>ente</bold-green>",
+  "supportEnte": "Unterstütze <bold-green>Filen</bold-green>",
   "syncing": "Synchronisiere …",
   "syncProgress": "{completed}/{total} Erinnerungsstücke gesichert",
   "@syncProgress": {

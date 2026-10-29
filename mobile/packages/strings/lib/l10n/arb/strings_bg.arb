@@ -678,7 +678,7 @@
   "@contactSupport": {
     "description": "Contact support button label"
   },
-  "contactToManageSubscription": "Please contact us at support@ente.com to manage your {provider} subscription.",
+  "contactToManageSubscription": "Please contact us at support@filen.io to manage your {provider} subscription.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1094,7 +1094,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1659,8 +1659,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Забравен ключ за възстановяване?",
-  "free10GB": "10GB free on <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "10% отстъпка в <bold-green>ente</bold-green> Photos",
+  "free10GB": "10GB free on <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "10% отстъпка в <bold-green>Filen</bold-green> Photos",
   "freeStorageOfferDescription": "Използвайте промокод „AUTH“, за да получите 10% отстъпка през първата година",
   "freeTrial": "Free trial",
   "freeUpAmount": "Free up {sizeInMBorGB}",
@@ -2400,7 +2400,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2761,7 +2761,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Please contact support@ente.com and we will be happy to help!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Please contact support@filen.io and we will be happy to help!",
   "pleaseContactSupportIfTheProblemPersists": "Please contact support if the problem persists",
   "pleaseEmailUsAt": "Please email us at {toEmail}",
   "@pleaseEmailUsAt": {
@@ -3591,7 +3591,7 @@
   "shareLegacyDescription": "Send each card to the person it's for. No single card works alone.",
   "shareLink": "Share link",
   "shareMemory": "Share memory",
-  "shareMyVerificationID": "Here's my verification ID: {verificationID} for ente.com.",
+  "shareMyVerificationID": "Here's my verification ID: {verificationID} for filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -3599,15 +3599,15 @@
   },
   "shareNotSupportedForSharedFiles": "Share is not supported for shared files",
   "shareStorageWith5Members": "Share storage with 5 members",
-  "shareTextConfirmOthersVerificationID": "Hey, can you confirm that this is your ente.com verification ID: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hey, can you confirm that this is your filen.io verification ID: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Download Filen so we can easily share original quality files\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Download Filen so I can add you to my family plan\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Download Filen so we can easily share original quality photos and videos\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnte": "Download Filen so we can easily share original quality files\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Download Filen so I can add you to my family plan\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Download Filen so we can easily share original quality photos and videos\n\nhttps://filen.io",
   "shareThisLink": "This link allows anyone who receives it to access your item. You can remove access at any time by deleting the link.",
   "shareWithNonenteUsers": "Share with non-Filen users",
   "shareYourFeedbackHere": "Споделете вашата обратната връзка тук",
@@ -3824,7 +3824,7 @@
   "suggestions": "Suggestions",
   "sunrise": "On the horizon",
   "support": "Поддръжка",
-  "supportEnte": "Подкрепете <bold-green>ente</bold-green>",
+  "supportEnte": "Подкрепете <bold-green>Filen</bold-green>",
   "syncing": "Syncing...",
   "syncProgress": "{completed}/{total} memories preserved",
   "@syncProgress": {
@@ -4477,7 +4477,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

@@ -550,7 +550,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Susisiekite su mumis adresu support@ente.com, kad sutvarkytumėte savo {provider} prenumeratą.",
+  "contactToManageSubscription": "Susisiekite su mumis adresu support@filen.io, kad sutvarkytumėte savo {provider} prenumeratą.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -799,7 +799,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1080,8 +1080,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Pamiršote atkūrimo raktą?",
-  "free10GB": "10 GB nemokamai programai „<bold-green>ente</bold-green>“ nuotraukos",
-  "freeStorageOffer": "10 % nuolaida programai „<bold-green>ente</bold-green>“ nuotraukos",
+  "free10GB": "10 GB nemokamai programai „<bold-green>Filen</bold-green>“ nuotraukos",
+  "freeStorageOffer": "10 % nuolaida programai „<bold-green>Filen</bold-green>“ nuotraukos",
   "freeStorageOfferDescription": "Naudokite kodą „AUTH“, kad gautumėte 10 % nuolaidą pirmiesiems metams. ",
   "freeTrial": "Nemokamas bandomasis laikotarpis",
   "freeUpAmount": "Atlaisvinti {sizeInMBorGB}",
@@ -1966,7 +1966,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Susisiekite adresu support@ente.com ir mes mielai padėsime!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Susisiekite adresu support@filen.io ir mes mielai padėsime!",
   "pleaseContactSupportIfTheProblemPersists": "Jei problema išlieka, susisiekite su pagalbos komanda.",
   "pleaseEmailUsAt": "Siųskite el. laišką mums adresu {toEmail}.",
   "@pleaseEmailUsAt": {
@@ -2527,7 +2527,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2598,21 +2598,21 @@
   "sharedPhotoNotifications": "Naujos bendrintos nuotraukos ir albumai",
   "shareKey": "Bendrinti raktą",
   "shareLink": "Bendrinti nuorodą",
-  "shareMyVerificationID": "Štai mano patvirtinimo ID: {verificationID}, skirta ente.com.",
+  "shareMyVerificationID": "Štai mano patvirtinimo ID: {verificationID}, skirta filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextConfirmOthersVerificationID": "Ei, ar galite patvirtinti, kad tai yra jūsų ente.com patvirtinimo ID: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Ei, ar galite patvirtinti, kad tai yra jūsų filen.io patvirtinimo ID: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Atsisiųsk „Filen“, kad galėčiau tave įtraukti į savo šeimos planą\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Atsisiųsk „Filen“, kad galėtume lengvai bendrinti originalios kokybės nuotraukas ir vaizdo įrašus.\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Gaukite 20 GB nemokamai su „Filen“ nuotraukomis! Atsisiųskite programą adresu https://ente.com/invite ir naudokite kodą {referralCode}.",
+  "shareTextRecommendUsingEnteForFamily": "Atsisiųsk „Filen“, kad galėčiau tave įtraukti į savo šeimos planą\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Atsisiųsk „Filen“, kad galėtume lengvai bendrinti originalios kokybės nuotraukas ir vaizdo įrašus.\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Gaukite 20 GB nemokamai su „Filen“ nuotraukomis! Atsisiųskite programą adresu https://filen.io/invite ir naudokite kodą {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -2746,7 +2746,7 @@
   "suggestions": "Pasiūlymai",
   "sunrise": "Akiratyje",
   "support": "Pagalba",
-  "supportEnte": "Paremti „<bold-green>ente</bold-green>“",
+  "supportEnte": "Paremti „<bold-green>Filen</bold-green>“",
   "syncing": "Sinchronizuojama...",
   "syncProgress": "{completed} / {total} išsaugomi prisiminimai",
   "@syncProgress": {
@@ -3269,7 +3269,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

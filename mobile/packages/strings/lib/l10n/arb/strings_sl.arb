@@ -295,7 +295,7 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "freeStorageOffer": "10 % popust na <bold-green>ente</bold-green> fotografije",
+  "freeStorageOffer": "10 % popust na <bold-green>Filen</bold-green> fotografije",
   "freeStorageOfferDescription": "Uporabite kupon \"AUTH\" za 10% popusta za prvo leto",
   "general": "Splošno",
   "generatingEncryptionKeys": "Ustvarjanje ključe za šifriranje",
@@ -793,7 +793,7 @@
   "success": "Uspešno",
   "suggestFeatures": "Predlagaj funkcije",
   "support": "Podpora",
-  "supportEnte": "Podpiraj <bold-green>ente</bold-green>",
+  "supportEnte": "Podpiraj <bold-green>Filen</bold-green>",
   "systemTheme": "Sistemska",
   "tag": "Oznaka",
   "tags": "Oznake",

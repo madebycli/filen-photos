@@ -532,7 +532,7 @@
   "@contactSupport": {
     "description": "Contact support button label"
   },
-  "contactToManageSubscription": "Kontaktujte nás prosím na adrese support@ente.com pro správu Vašeho {provider} předplatného.",
+  "contactToManageSubscription": "Kontaktujte nás prosím na adrese support@filen.io pro správu Vašeho {provider} předplatného.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -869,7 +869,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1258,8 +1258,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Zapomněli jste obnovovací klíč?",
-  "free10GB": "10GB zdarma na <bold-green>ente</bold-green> Fotografie",
-  "freeStorageOffer": "10% sleva na <bold-green>ente</bold-green> photos",
+  "free10GB": "10GB zdarma na <bold-green>Filen</bold-green> Fotografie",
+  "freeStorageOffer": "10% sleva na <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Použijte kód \"AUTH\" pro získání 10% slevy na první rok",
   "freeTrial": "Bezplatná zkušební verze",
   "freeUpAmount": "Uvolnit {sizeInMBorGB}",
@@ -1810,7 +1810,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2099,7 +2099,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Kontaktujte nás na adrese support@ente.com a rádi Vám pomůžeme!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Kontaktujte nás na adrese support@filen.io a rádi Vám pomůžeme!",
   "pleaseContactSupportIfTheProblemPersists": "Pokud problém přetrvává, kontaktujte prosím podporu",
   "pleaseEmailUsAt": "Prosím, pošlete nám e-mail na adresu {toEmail}",
   "@pleaseEmailUsAt": {
@@ -2821,8 +2821,8 @@
   "shareLink": "Sdílet odkaz",
   "shareNotSupportedForSharedFiles": "Sdílení není u sdílených souborů podporováno",
   "shareStorageWith5Members": "Sdílejte úložiště s 5 členy",
-  "shareTextRecommendUsingEnteForFamily": "Stáhněte si Filen, abych Vás mohl přidat do svého rodinného plánu\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Stáhněte si aplikaci Filen, abychom mohli snadno sdílet fotografie a videa v originální kvalitě\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Stáhněte si Filen, abych Vás mohl přidat do svého rodinného plánu\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Stáhněte si aplikaci Filen, abychom mohli snadno sdílet fotografie a videa v originální kvalitě\n\nhttps://filen.io",
   "shareThisLink": "Tento odkaz umožňuje každému, kdo jej obdrží, přístup k vašemu obsahu. Přístup můžete kdykoli zrušit smazáním odkazu.",
   "shareWithNonenteUsers": "Sdílet s jinými uživateli",
   "shareYourSubscription": "Sdílejte své předplatné se svými blízkými",
@@ -2987,7 +2987,7 @@
   "suggestions": "Doporučení",
   "sunrise": "Na obzoru",
   "support": "Podpora",
-  "supportEnte": "Podpořte <bold-green>ente</bold-green>",
+  "supportEnte": "Podpořte <bold-green>Filen</bold-green>",
   "syncProgress": "{completed}/{total} vzpomínek zachováno",
   "@syncProgress": {
     "description": "Text to tell user how many memories have been preserved",

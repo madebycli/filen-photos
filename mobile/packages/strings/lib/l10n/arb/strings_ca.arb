@@ -565,7 +565,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -827,8 +827,8 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "free10GB": "10GB gratuïts a <bold-green>ente</bold-green> Fotos",
-  "freeStorageOffer": "10% de descompte a <bold-green>ente</bold-green> photos",
+  "free10GB": "10GB gratuïts a <bold-green>Filen</bold-green> Fotos",
+  "freeStorageOffer": "10% de descompte a <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Utilitzeu el codi \"AUTH\" per obtenir un 10% de descompte el primer any",
   "freeTrial": "Prova gratuïta",
   "freeUpAmount": "Allibera {sizeInMBorGB}",
@@ -2069,7 +2069,7 @@
   "suggestions": "Suggeriments",
   "sunrise": "A l'horitzó",
   "support": "Suport",
-  "supportEnte": "Donar suport a <bold-green>ente</bold-green>",
+  "supportEnte": "Donar suport a <bold-green>Filen</bold-green>",
   "syncing": "Sincronitzant...",
   "syncProgress": "{completed}/{total} records preservats",
   "@syncProgress": {

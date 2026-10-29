@@ -323,8 +323,8 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "free10GB": "10 GB gratis hos <bold-green>ente</bold-green> bilder",
-  "freeStorageOffer": "10 % avslag på <bold-green>ente</bold-green> bilder",
+  "free10GB": "10 GB gratis hos <bold-green>Filen</bold-green> bilder",
+  "freeStorageOffer": "10 % avslag på <bold-green>Filen</bold-green> bilder",
   "freeStorageOfferDescription": "Bruk kode «AUTH» for 10 % avslag det første året",
   "general": "Generelt",
   "generatingEncryptionKeys": "Genererer krypteringsnøkler …",
@@ -849,7 +849,7 @@
   "success": "Vellykket",
   "suggestFeatures": "Foreslå funksjoner",
   "support": "Brukerstøtte",
-  "supportEnte": "Støtt <bold-green>ente</bold-green>",
+  "supportEnte": "Støtt <bold-green>Filen</bold-green>",
   "tag": "Merkelapp",
   "tags": "Merkelapper",
   "tapToUnlock": "Trykk for å låse opp",

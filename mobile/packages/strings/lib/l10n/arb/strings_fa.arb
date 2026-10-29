@@ -274,7 +274,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -376,8 +376,8 @@
   "fileInfoAddDescHint": "افزودن توضیحات...",
   "fileTypes": "انواع پرونده",
   "focusOnSearchBar": "در زمان شروع برنامه، در حالت جستجو باش",
-  "free10GB": "10 گیگابایت فضای رایگان در <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "۱۰٪ تخفیف بر تصاویر <bold-green>ente</bold-green>",
+  "free10GB": "10 گیگابایت فضای رایگان در <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "۱۰٪ تخفیف بر تصاویر <bold-green>Filen</bold-green>",
   "freeStorageOfferDescription": "کد \"AUTH\" را وارد کنید تا برای سال نخست ۱۰٪ تخفیف بگیرید",
   "general": "عمومی",
   "generatingEncryptionKeys": "در حال تولید کلیدهای رمزگذاری...",
@@ -898,7 +898,7 @@
   "success": "موفقیت",
   "suggestFeatures": "پیشنهاد قابلیت ها",
   "support": "پشتیبانی",
-  "supportEnte": "حمایت از <bold-green>ente</bold-green>",
+  "supportEnte": "حمایت از <bold-green>Filen</bold-green>",
   "tag": "برچسب",
   "tags": "برچسب‌ها",
   "tapToCopy": "برای رونویسی ضربه بزنید",

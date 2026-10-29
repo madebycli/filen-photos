@@ -539,7 +539,7 @@
   "@contactSupport": {
     "description": "Contact support button label"
   },
-  "contactToManageSubscription": "اپنی {provider} سبسکرپشن کا نظم کرنے کے لیے support@ente.com پر رابطہ کریں.",
+  "contactToManageSubscription": "اپنی {provider} سبسکرپشن کا نظم کرنے کے لیے support@filen.io پر رابطہ کریں.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -829,7 +829,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1183,8 +1183,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "ریکوری کی بھول گئے؟",
-  "free10GB": "<bold-green>ente</bold-green> فوٹوز پر ۱۰ جی بی مفت",
-  "freeStorageOffer": "<bold-green>ente</bold-green> فوٹوز پر ۱۰٪ کی چھوٹ",
+  "free10GB": "<bold-green>Filen</bold-green> فوٹوز پر ۱۰ جی بی مفت",
+  "freeStorageOffer": "<bold-green>Filen</bold-green> فوٹوز پر ۱۰٪ کی چھوٹ",
   "freeStorageOfferDescription": "پہلے سال ۱۰٪ چھوٹ حاصل کرنے کے لیے کوڈ ”AUTH“ استعمال کریں",
   "freeTrial": "مفت ٹرائل",
   "freeUpAmount": "{sizeInMBorGB} خالی کریں",
@@ -1711,7 +1711,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2004,7 +2004,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "از کرم support@ente.com پر رابطہ کریں اور ہمیں خوشی ہوگی مدد کر کے!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "از کرم support@filen.io پر رابطہ کریں اور ہمیں خوشی ہوگی مدد کر کے!",
   "pleaseContactSupportIfTheProblemPersists": "اگر مسئلہ برقرار رہے تو براہ کرم سپورٹ سے رابطہ کریں",
   "pleaseEmailUsAt": "براہ کرم ہمیں {toEmail} پر ای میل کریں",
   "@pleaseEmailUsAt": {
@@ -2656,21 +2656,21 @@
   "sharedPhotoNotificationsExplanation": "نئی تصاویر اور البمز جن میں آپ شامل ہیں یا آپ کے ساتھ شیئر کیے گئے",
   "shareKey": "کی شیئر کریں",
   "shareLink": "لنک شیئر کریں",
-  "shareMyVerificationID": "یہ میرا تصدیقی ID ہے: {verificationID} ente.com کے لیے.",
+  "shareMyVerificationID": "یہ میرا تصدیقی ID ہے: {verificationID} filen.io کے لیے.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "۵ اراکین کے ساتھ اسٹوریج شیئر کریں",
-  "shareTextConfirmOthersVerificationID": "ارے، کیا آپ تصدیق کر سکتے ہیں کہ یہ آپ کا ente.com تصدیقی ID ہے: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "ارے، کیا آپ تصدیق کر سکتے ہیں کہ یہ آپ کا filen.io تصدیقی ID ہے: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Filen ڈاؤن لوڈ کریں تاکہ میں آپ کو اپنے فیملی پلان میں شامل کر سکوں۔\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Filen ڈاؤن لوڈ کریں تاکہ ہم اصل معیار کی تصاویر اور ویڈیوز آسانی سے شیئر کر سکیں۔\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Filen ڈاؤن لوڈ کریں تاکہ میں آپ کو اپنے فیملی پلان میں شامل کر سکوں۔\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Filen ڈاؤن لوڈ کریں تاکہ ہم اصل معیار کی تصاویر اور ویڈیوز آسانی سے شیئر کر سکیں۔\n\nhttps://filen.io",
   "shareWithNonenteUsers": "غیر Filen صارفین کے ساتھ شیئر کریں",
   "shareYourSubscription": "اپنی سبسکرپشن اپنے پیاروں کے ساتھ شیئر کریں",
   "sharing": "شیئر کیا جا رہا ہے...",
@@ -2830,7 +2830,7 @@
   "suggestions": "تجاویز",
   "sunrise": "افق پر",
   "support": "سپورٹ",
-  "supportEnte": "<bold-green>ente</bold-green> کو سپورٹ کریں",
+  "supportEnte": "<bold-green>Filen</bold-green> کو سپورٹ کریں",
   "syncing": "Sync ہو رہا ہے...",
   "syncProgress": "{completed}/{total} یادیں محفوظ",
   "@syncProgress": {

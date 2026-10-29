@@ -729,7 +729,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Vi preghiamo di contattarci all'indirizzo support@ente.com per gestire il vostro abbonamento {provider}.",
+  "contactToManageSubscription": "Vi preghiamo di contattarci all'indirizzo support@filen.io per gestire il vostro abbonamento {provider}.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1149,7 +1149,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1694,8 +1694,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Chiave di recupero dimenticata?",
-  "free10GB": "10 GB gratuiti su <bold-green>ente</bold-green> Foto",
-  "freeStorageOffer": "10% di sconto su <bold-green>ente</bold-green> Foto",
+  "free10GB": "10 GB gratuiti su <bold-green>Filen</bold-green> Foto",
+  "freeStorageOffer": "10% di sconto su <bold-green>Filen</bold-green> Foto",
   "freeStorageOfferDescription": "Utilizzare il codice \"AUTH\" per ottenere il 10% di sconto al primo anno",
   "freeTrial": "Prova gratuita",
   "freeUpAmount": "Libera {sizeInMBorGB}",
@@ -2313,7 +2313,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2627,7 +2627,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Contatta support@ente.com e saremo felici di aiutarti!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Contatta support@filen.io e saremo felici di aiutarti!",
   "pleaseContactSupportIfTheProblemPersists": "Riprova. Se il problema persiste, ti invitiamo a contattare l'assistenza",
   "pleaseEmailUsAt": "Per favore invia un'email a {toEmail}",
   "@pleaseEmailUsAt": {
@@ -3406,7 +3406,7 @@
   "shareKey": "Condividi chiave",
   "shareLink": "Condividi link",
   "shareMemory": "Condividi ricordo",
-  "shareMyVerificationID": "Ecco il mio ID di verifica: {verificationID} per ente.com.",
+  "shareMyVerificationID": "Ecco il mio ID di verifica: {verificationID} per filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -3414,14 +3414,14 @@
   },
   "shareNotSupportedForSharedFiles": "La condivisione non è supportata per i file condivisi",
   "shareStorageWith5Members": "Condividi lo spazio con 5 membri",
-  "shareTextConfirmOthersVerificationID": "Ehi, puoi confermare che questo è il tuo ID di verifica per ente.com: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Ehi, puoi confermare che questo è il tuo ID di verifica per filen.io: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Scarica Filen così posso aggiungerti al mio piano famiglia\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Scarica Filen così possiamo condividere foto e video in qualità originale\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Scarica Filen così posso aggiungerti al mio piano famiglia\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Scarica Filen così possiamo condividere foto e video in qualità originale\n\nhttps://filen.io",
   "shareThisLink": "Questo link permette a chiunque lo riceva di accedere al tuo elemento. Puoi rimuovere l'accesso in qualsiasi momento eliminando il link.",
   "shareWithNonenteUsers": "Condividi con utenti che non hanno un account Filen",
   "shareYourLegacyBannerDescription": "Aiuta i cari ad accedere a informazioni importanti, in tua assenza.",
@@ -3628,7 +3628,7 @@
   "suggestions": "Suggerimenti",
   "sunrise": "All'orizzonte",
   "support": "Assistenza",
-  "supportEnte": "Supporta <bold-green>ente</bold-green>",
+  "supportEnte": "Supporta <bold-green>Filen</bold-green>",
   "syncing": "Sincronizzazione in corso...",
   "syncProgress": "{completed}/{total} ricordi conservati",
   "@syncProgress": {

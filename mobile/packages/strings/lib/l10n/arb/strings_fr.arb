@@ -631,7 +631,7 @@
   "contactNameHint": "Nom complet du contact d'urgence",
   "contactNotes": "Message pour le contact",
   "contactNotesHint": "Informations importantes a partager avec cette personne lorsqu'elle sera contactee",
-  "contactToManageSubscription": "Veuillez nous contacter à support@ente.com pour gérer votre abonnement {provider}.",
+  "contactToManageSubscription": "Veuillez nous contacter à support@filen.io pour gérer votre abonnement {provider}.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -979,7 +979,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1965,7 +1965,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2251,7 +2251,7 @@
   "playstoreSubscription": "Abonnement au PlayStore",
   "playStream": "Lire le stream",
   "pleaseCheckPasswordAndTryAgain": "Vérifier le mot de passe et réessayer.",
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Veuillez contacter support@ente.com et nous serons heureux de vous aider !",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Veuillez contacter support@filen.io et nous serons heureux de vous aider !",
   "pleaseContactSupportIfTheProblemPersists": "Merci de contacter l'assistance si cette erreur persiste",
   "pleaseEmailUsAt": "Merci de nous envoyer un email à {toEmail}",
   "@pleaseEmailUsAt": {
@@ -2959,21 +2959,21 @@
   "sharedWith": "Partage avec",
   "shareKey": "Clé de partage",
   "shareLink": "Partager le lien",
-  "shareMyVerificationID": "Voici mon ID de vérification : {verificationID} pour ente.com.",
+  "shareMyVerificationID": "Voici mon ID de vérification : {verificationID} pour filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "Partager votre espace de stockage avec 5 membres",
-  "shareTextConfirmOthersVerificationID": "Hé ! Pouvez-vous confirmer qu'il s'agit de votre ID de vérification ente.com : {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hé ! Pouvez-vous confirmer qu'il s'agit de votre ID de vérification filen.io : {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Téléchargez Filen pour que je puisse vous ajouter à mon abonnement familial\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Téléchargez Filen pour pouvoir facilement partager des photos et vidéos en qualité originale\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Téléchargez Filen pour que je puisse vous ajouter à mon abonnement familial\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Téléchargez Filen pour pouvoir facilement partager des photos et vidéos en qualité originale\n\nhttps://filen.io",
   "shareThisLink": "Ce lien permet a toute personne qui le recoit d'acceder a ton element. Tu peux supprimer l'acces a tout moment en supprimant le lien.",
   "shareWithNonenteUsers": "Partager avec des utilisateurs non-Filen",
   "shareYourSubscription": "Partagez votre abonnement avec vos proches",

@@ -556,7 +556,7 @@
   "@contactSupport": {
     "description": "Contact support button label"
   },
-  "contactToManageSubscription": "請聯絡 support@ente.com 以管理您的 {provider} 訂閱。",
+  "contactToManageSubscription": "請聯絡 support@filen.io 以管理您的 {provider} 訂閱。",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -859,7 +859,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1205,8 +1205,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "沒有復原金鑰嗎？",
-  "free10GB": "<bold-green>ente</bold-green> Photos享有 10GB 免費空間",
-  "freeStorageOffer": "購買 <bold-green>ente</bold-green> Photos 可享受 10% 優惠",
+  "free10GB": "<bold-green>Filen</bold-green> Photos享有 10GB 免費空間",
+  "freeStorageOffer": "購買 <bold-green>Filen</bold-green> Photos 可享受 10% 優惠",
   "freeStorageOfferDescription": "使用優惠碼「AUTH」可享受首年 10% 折扣",
   "freeTrial": "免費試用",
   "freeUpAmount": "釋放 {sizeInMBorGB}",
@@ -1746,7 +1746,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2051,7 +2051,7 @@
   "playstoreSubscription": "PlayStore 訂閱",
   "playStream": "播放串流",
   "pleaseCheckPasswordAndTryAgain": "請檢查您的密碼並重試。",
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "請聯絡 support@ente.com，我們將樂意協助！",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "請聯絡 support@filen.io，我們將樂意協助！",
   "pleaseContactSupportIfTheProblemPersists": "如果問題持續存在，請聯絡客服支援",
   "pleaseEmailUsAt": "請寄信到 {toEmail}",
   "@pleaseEmailUsAt": {
@@ -2747,15 +2747,15 @@
   "shareKey": "分享金鑰",
   "shareLink": "分享連結",
   "shareMemory": "分享回憶",
-  "shareMyVerificationID": "這是我在 ente.com 的驗證 ID：{verificationID}。",
+  "shareMyVerificationID": "這是我在 filen.io 的驗證 ID：{verificationID}。",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "與 5 位成員共享空間",
-  "shareTextRecommendUsingEnteForFamily": "下載 Filen，讓我可以將你加入我的家庭方案\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "下載 Filen，讓我們輕鬆分享原始畫質的照片與影片\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "下載 Filen，讓我可以將你加入我的家庭方案\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "下載 Filen，讓我們輕鬆分享原始畫質的照片與影片\n\nhttps://filen.io",
   "shareWithNonenteUsers": "與非 Filen 使用者分享",
   "shareYourSubscription": "與摯愛分享您的訂閱",
   "sharing": "正在分享……",
@@ -2773,7 +2773,7 @@
   "showPerson": "顯示人物",
   "showQRAuthMessage": "請驗證身份以顯示QR code",
   "showTextOnWidget": "在小工具上顯示文字",
-  "sigInBackupReminder": "Ente在登入後會自動備份驗證碼。\n\n我們仍然建議導出驗證碼做為額外備份。",
+  "sigInBackupReminder": "Filen在登入後會自動備份驗證碼。\n\n我們仍然建議導出驗證碼做為額外備份。",
   "signInToBackup": "登入以備份您的驗證碼",
   "signOutFromOtherDevices": "從其他裝置登出",
   "@signOutFromOtherDevices": {
@@ -2947,7 +2947,7 @@
   "suggestions": "建議",
   "sunrise": "日出地平線",
   "support": "支援",
-  "supportEnte": "支援 <bold-green>ente</bold-green>",
+  "supportEnte": "支援 <bold-green>Filen</bold-green>",
   "syncing": "同步中……",
   "syncProgress": "{completed}/{total} 個回憶已保存",
   "@syncProgress": {

@@ -487,7 +487,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -590,8 +590,8 @@
   "faqs": "વારંવાર પૂછાતા પ્રશ્નો",
   "featurePassAutomatically": "કટોકટીના સમયે તેને આપમેળે આગળ મોકલો",
   "featureSaveImportant": "તમારા મહત્વપૂર્ણ દસ્તાવેજો અને પ્રમાણપત્રો સાચવી રાખો",
-  "free10GB": "<bold-green>ente</bold-green> ફોટા પર ૧૦GB મફત",
-  "freeStorageOffer": "<bold-green>ente</bold-green> ફોટા પર 10% છૂટ",
+  "free10GB": "<bold-green>Filen</bold-green> ફોટા પર ૧૦GB મફત",
+  "freeStorageOffer": "<bold-green>Filen</bold-green> ફોટા પર 10% છૂટ",
   "general": "સામાન્ય",
   "generatingEncryptionKeysTitle": "એન્ક્રિપ્શન ચાવીઓ જનરેટ કરી રહ્યાં છીએ...",
   "@generatingEncryptionKeysTitle": {
@@ -783,7 +783,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "કૃપા કરીને support@ente.com પર સંપર્ક કરો, અમને મદદ કરવામાં આનંદ થશે!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "કૃપા કરીને support@filen.io પર સંપર્ક કરો, અમને મદદ કરવામાં આનંદ થશે!",
   "pleaseContactSupportIfTheProblemPersists": "જો સમસ્યા યથાવત રહે, તો કૃપા કરીને સપોર્ટનો સંપર્ક કરો",
   "pleaseLoginAgain": "કૃપા કરીને ફરી લોગિન કરો",
   "pleaseSendTheLogsTo": "કૃપા કરીને લોગ\n{toEmail} પર મોકલો",

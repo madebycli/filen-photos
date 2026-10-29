@@ -625,7 +625,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -911,7 +911,7 @@
   },
   "forgotRecoveryKey": "Kurtarma anahtarınızı mı unuttunuz?",
   "free10GB": "<bold-green>Filen</bold-green> Photos'ta 10 GB ücretsiz",
-  "freeStorageOffer": "<bold-green>ente</bold-green> fotoğraflarında %10 indirim",
+  "freeStorageOffer": "<bold-green>Filen</bold-green> fotoğraflarında %10 indirim",
   "freeStorageOfferDescription": "İlk yılda %10 indirim almak için \"AUTH\" kodunu kullanın",
   "freeTrial": "Ücretsiz deneme",
   "freeUpAmount": "{sizeInMBorGB} yer açın",
@@ -1356,7 +1356,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

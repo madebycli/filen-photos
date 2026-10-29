@@ -465,7 +465,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -692,8 +692,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Elfelejtetted a helyreállítási kulcsot?",
-  "free10GB": "10 GB ingyen <bold-green>ente <bold-green> Photos",
-  "freeStorageOffer": "10% kedvezmény itt <bold-green>ente<bold-green> photos",
+  "free10GB": "10 GB ingyen <bold-green>Filen <bold-green> Photos",
+  "freeStorageOffer": "10% kedvezmény itt <bold-green>Filen<bold-green> photos",
   "freeStorageOfferDescription": "Használd az \"AUTH\" kódot, hogy 10% kedvezményt kapjon az első évben",
   "freeTrial": "Próbaverzió",
   "freeUpDeviceSpace": "Szabadítson fel tárhelyet",
@@ -1148,7 +1148,7 @@
   },
   "playstoreSubscription": "Google Play előfizetés",
   "pleaseCheckPasswordAndTryAgain": "Kérjük, ellenőrizd a jelszavad és próbáld újra.",
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Lépj kapcsolatba a support@ente.com\n címen, és örömmel segítünk!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Lépj kapcsolatba a support@filen.io\n címen, és örömmel segítünk!",
   "pleaseEnterADescription": "Adjon meg leírást",
   "pleaseLoginAgain": "Kérjük, jelentkezzen be újra",
   "pleaseVerifyDetails": "Kérjük ellenőrizze az adatokat és próbálja újra",
@@ -1413,21 +1413,21 @@
   "sharedWith": "Megosztva",
   "shareKey": "Kulcs megosztása",
   "shareLink": "Link megosztása",
-  "shareMyVerificationID": "Az ente.com-hoz tartozó ellenőrzési azonosítóm: {verificationID}.",
+  "shareMyVerificationID": "Az filen.io-hoz tartozó ellenőrzési azonosítóm: {verificationID}.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "Oszd meg a tárhelyed 5 taggal",
-  "shareTextConfirmOthersVerificationID": "Szia, meg tudod erősíteni, hogy ez a te ente.com-hoz tartozó ellenőrzési azonosítód: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Szia, meg tudod erősíteni, hogy ez a te filen.io-hoz tartozó ellenőrzési azonosítód: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Töltsd le az Entét, hogy hozzáadhassalak a családi csomagomhoz\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Töltsd le az Filen alkalmazást, hogy könnyen megoszthassuk az eredeti minőségű fotókat és videókat https://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Töltsd le az Entét, hogy hozzáadhassalak a családi csomagomhoz\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Töltsd le az Filen alkalmazást, hogy könnyen megoszthassuk az eredeti minőségű fotókat és videókat https://filen.io",
   "shareThisLink": "Ez a link lehetove teszi barkinek, aki megkapja, hogy hozzaferjen az elemehez. Barmikor eltavolithatja a hozzaferest a link torlesevel.",
   "shareWithNonenteUsers": "Megosztás nem Filen felhasználókkal",
   "shareYourSubscription": "Oszd meg az előfizetésedet a szeretteiddel",
@@ -1516,7 +1516,7 @@
   "subscriptionRequiredForSharing": "Fizetett elofizeteset igenel a linkek megosztasa",
   "success": "Sikeres",
   "suggestFeatures": "Funkció ajánlása",
-  "supportEnte": "Támogasd <bold-green>ente <bold-green>",
+  "supportEnte": "Támogasd <bold-green>Filen <bold-green>",
   "systemTheme": "Rendszer",
   "tag": "Címke",
   "tags": "Címkék",

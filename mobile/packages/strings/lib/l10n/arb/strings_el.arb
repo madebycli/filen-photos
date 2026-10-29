@@ -412,7 +412,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -633,7 +633,7 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "freeStorageOffer": "10% έκπτωση στο <bold-green>ente</bold-green> photos",
+  "freeStorageOffer": "10% έκπτωση στο <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Χρησιμοποιήστε τον κωδικό \"AUTH\" για να λάβετε 10% έκπτωση για τον πρώτο χρόνο",
   "freeTrial": "Δωρεάν δοκιμή",
   "freeUpAmount": "Εξοικονόμηση {sizeInMBorGB}",

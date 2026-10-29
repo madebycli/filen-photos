@@ -519,7 +519,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -781,8 +781,8 @@
   "focusOnSearchBar": "التركيز على البحث عند بدء التطبيق",
   "font": "الخط",
   "food": "متعة الطهي",
-  "free10GB": "مساحة 10GB مجانية على <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "خَصْم 10٪ على صور <bold-green>ente</bold-green>",
+  "free10GB": "مساحة 10GB مجانية على <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "خَصْم 10٪ على صور <bold-green>Filen</bold-green>",
   "freeStorageOfferDescription": "استخدم الكود \"AUTH\" وأحصل على 10٪ خَصْم في السنة الأولى",
   "freeTrial": "تجربة مجانية",
   "freeUpAmount": "تحرير {sizeInMBorGB}",
@@ -881,7 +881,7 @@
     }
   },
   "importSuccessTitle": "مرحى!",
-  "importTypeEnteEncrypted": "تصدير مشفَّر ente",
+  "importTypeEnteEncrypted": "تصدير مشفَّر Filen",
   "incorrectCode": "رمز غير صحيح",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"

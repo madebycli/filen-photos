@@ -352,7 +352,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -487,7 +487,7 @@
   "@forgotPassword": {
     "description": "Forgot password link label"
   },
-  "freeStorageOffer": "Попуст од 10% на <bold-green>ente</bold-green> photos",
+  "freeStorageOffer": "Попуст од 10% на <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Употребите кôд \"AUTH\" да би добили попуст од 10% прве године",
   "freeTrial": "Бесплатна проба",
   "freeUpDeviceSpace": "Ослободи простор на уређају",
@@ -1225,7 +1225,7 @@
   "successfullyUnarchived": "Успешно премештено из архиве",
   "sunrise": "На хирозонту",
   "support": "Подршка",
-  "supportEnte": "Подржи <bold-green>ente</bold-green>",
+  "supportEnte": "Подржи <bold-green>Filen</bold-green>",
   "syncing": "Синхронизујем...",
   "syncStopped": "Синхронизација прекинута",
   "tag": "Ознака",

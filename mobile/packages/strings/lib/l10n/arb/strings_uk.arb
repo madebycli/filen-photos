@@ -783,7 +783,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1136,8 +1136,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Забули ключ відновлення?",
-  "free10GB": "10 ГБ вільного простору на <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "Знижка 10% на <bold-green>ente</bold-green> Photos",
+  "free10GB": "10 ГБ вільного простору на <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "Знижка 10% на <bold-green>Filen</bold-green> Photos",
   "freeStorageOfferDescription": "Скористайтеся кодом «AUTH», щоб отримати знижку в 10% на перший рік",
   "freeTrial": "Безплатний пробний період",
   "freeUpAmount": "Звільніть {sizeInMBorGB}",
@@ -2507,7 +2507,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2565,7 +2565,7 @@
   "sharedWith": "Поділено з",
   "shareLink": "Поділитися посиланням",
   "shareStorageWith5Members": "Поділитися сховищем із 5 учасниками",
-  "shareTextRecommendUsingEnteForFamily": "Установи Filen, щоб мені можна було додати тебе до сімейного тарифу\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Установи Filen, щоб мені можна було додати тебе до сімейного тарифу\n\nhttps://filen.io",
   "shareThisLink": "Це посилання дозволяє будь-кому, хто його отримає, отримати доступ до вашого елемента. Ви можете скасувати доступ у будь-який час, видаливши посилання.",
   "shareWithNonenteUsers": "Поділитися з користувачами без Filen",
   "shareYourSubscription": "Поділіться своєю підпискою з близькими",
@@ -2702,7 +2702,7 @@
   "suggestions": "Пропозиції",
   "sunrise": "На горизонті",
   "support": "Підтримка",
-  "supportEnte": "Підтримка <bold-green>ente</bold-green>",
+  "supportEnte": "Підтримка <bold-green>Filen</bold-green>",
   "syncing": "Синхронізуємо...",
   "syncProgress": "{completed} / {total} спогадів збережено",
   "@syncProgress": {
@@ -3214,7 +3214,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

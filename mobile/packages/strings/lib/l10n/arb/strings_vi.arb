@@ -771,7 +771,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Vui lòng liên hệ với chúng tôi qua support@ente.com để quản lý gói {provider} của bạn.",
+  "contactToManageSubscription": "Vui lòng liên hệ với chúng tôi qua support@filen.io để quản lý gói {provider} của bạn.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1202,7 +1202,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1833,8 +1833,8 @@
   },
   "forgotPasswordPrompt": "Quên mật khẩu?",
   "forgotRecoveryKey": "Quên mã khôi phục?",
-  "free10GB": "10GB miễn phí với <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "Giảm 10% <bold-green>ente</bold-green> Photos",
+  "free10GB": "10GB miễn phí với <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "Giảm 10% <bold-green>Filen</bold-green> Photos",
   "freeStorageOfferDescription": "Dùng mã \"AUTH\" để giảm 10% năm đầu tiên",
   "free": "Miễn phí",
   "freeTrial": "Dùng thử miễn phí",
@@ -2811,7 +2811,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3199,7 +3199,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Vui lòng liên hệ support@ente.com và chúng tôi rất sẵn sàng giúp đỡ!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Vui lòng liên hệ support@filen.io và chúng tôi rất sẵn sàng giúp đỡ!",
   "pleaseContactSupportIfTheProblemPersists": "Vui lòng liên hệ bộ phận hỗ trợ nếu vấn đề vẫn tiếp diễn",
   "pleaseEmailUsAt": "Vui lòng gửi email cho chúng tôi tại {toEmail}",
   "@pleaseEmailUsAt": {
@@ -4063,7 +4063,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -4175,7 +4175,7 @@
     "description": "Subtitle for sending a viewing link to the current photo or video from the file viewer"
   },
   "shareMemory": "Chia sẻ kỷ niệm",
-  "shareMyVerificationID": "Đây là ID xác minh của tôi: {verificationID} cho ente.com.",
+  "shareMyVerificationID": "Đây là ID xác minh của tôi: {verificationID} cho filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -4183,16 +4183,16 @@
   },
   "shareNotSupportedForSharedFiles": "Không hỗ trợ chia sẻ đối với các tệp được chia sẻ",
   "shareStorageWith5Members": "Chia sẻ dung lượng bộ nhớ với 5 thành viên",
-  "shareTextConfirmOthersVerificationID": "Này, bạn có thể xác nhận rằng đây là ID xác minh ente.com của bạn không: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Này, bạn có thể xác nhận rằng đây là ID xác minh filen.io của bạn không: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Tải Filen để chúng ta có thể dễ dàng chia sẻ tệp chất lượng gốc\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Tải Filen để tôi có thể thêm bạn vào gói gia đình\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Tải Filen để chúng ta có thể dễ dàng chia sẻ ảnh và video chất lượng gốc\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Nhận miễn phí 20 GB với Filen Photos! Tải ứng dụng tại https://ente.com/invite và sử dụng mã {referralCode}.",
+  "shareTextRecommendUsingEnte": "Tải Filen để chúng ta có thể dễ dàng chia sẻ tệp chất lượng gốc\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Tải Filen để tôi có thể thêm bạn vào gói gia đình\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Tải Filen để chúng ta có thể dễ dàng chia sẻ ảnh và video chất lượng gốc\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Nhận miễn phí 20 GB với Filen Photos! Tải ứng dụng tại https://filen.io/invite và sử dụng mã {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -4421,7 +4421,7 @@
   "suggestions": "Gợi ý",
   "sunrise": "Đường chân trời",
   "support": "Hỗ trợ",
-  "supportEnte": "Hỗ trợ <bold-green>ente</bold-green>",
+  "supportEnte": "Hỗ trợ <bold-green>Filen</bold-green>",
   "syncing": "Đang đồng bộ...",
   "syncProgress": "{completed}/{total} kỷ niệm đã được lưu giữ",
   "@syncProgress": {
@@ -5094,7 +5094,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

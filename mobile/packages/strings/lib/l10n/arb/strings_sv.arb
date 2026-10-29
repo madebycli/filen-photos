@@ -771,7 +771,7 @@
   "@contactUs": {
     "description": "Button label for contacting Filen support"
   },
-  "contactToManageSubscription": "Kontakta oss på support@ente.com för att hantera ditt {provider}-abonnemang.",
+  "contactToManageSubscription": "Kontakta oss på support@filen.io för att hantera ditt {provider}-abonnemang.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -1202,7 +1202,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1833,8 +1833,8 @@
   },
   "forgotPasswordPrompt": "Glömt lösenord?",
   "forgotRecoveryKey": "Har du glömt återställningsnyckeln?",
-  "free10GB": "10GB gratis på <bold-green>ente</bold-green> Foton",
-  "freeStorageOffer": "10% rabatt på <bold-green>ente</bold-green> foton",
+  "free10GB": "10GB gratis på <bold-green>Filen</bold-green> Foton",
+  "freeStorageOffer": "10% rabatt på <bold-green>Filen</bold-green> foton",
   "freeStorageOfferDescription": "Använd koden \"AUTH\" för att få 10% rabatt första året",
   "free": "Gratis",
   "freeTrial": "Gratis provperiod",
@@ -2811,7 +2811,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -3199,7 +3199,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Vänligen kontakta support@ente.com så hjälper vi hjärna dig!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Vänligen kontakta support@filen.io så hjälper vi hjärna dig!",
   "pleaseContactSupportIfTheProblemPersists": "Vänligen kontakta support om problemet kvarstår",
   "pleaseEmailUsAt": "Skicka e-post till oss på {toEmail}",
   "@pleaseEmailUsAt": {
@@ -4063,7 +4063,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -4175,7 +4175,7 @@
     "description": "Subtitle for sending a viewing link to the current photo or video from the file viewer"
   },
   "shareMemory": "Dela minne",
-  "shareMyVerificationID": "Här är mitt verifierings-ID: {verificationID} för ente.com.",
+  "shareMyVerificationID": "Här är mitt verifierings-ID: {verificationID} för filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -4183,16 +4183,16 @@
   },
   "shareNotSupportedForSharedFiles": "Det går inte att dela delade filer",
   "shareStorageWith5Members": "Dela lagring med 5 medlemmar",
-  "shareTextConfirmOthersVerificationID": "Hej, kan du bekräfta att detta är ditt verifierings-ID för ente.com: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hej, kan du bekräfta att detta är ditt verifierings-ID för filen.io: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Ladda ner Filen så kan vi enkelt dela filer i originalkvalitet\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Ladda ner Filen så att jag kan lägga till dig i mitt familjeabonnemang\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Ladda ner Filen så kan vi enkelt dela foton och videor i originalkvalitet\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Få 20 GB gratis med Filen Photos! Ladda ner appen på https://ente.com/invite och använd koden {referralCode}.",
+  "shareTextRecommendUsingEnte": "Ladda ner Filen så kan vi enkelt dela filer i originalkvalitet\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForFamily": "Ladda ner Filen så att jag kan lägga till dig i mitt familjeabonnemang\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Ladda ner Filen så kan vi enkelt dela foton och videor i originalkvalitet\n\nhttps://filen.io",
+  "shareTextReferralInvite": "Få 20 GB gratis med Filen Photos! Ladda ner appen på https://filen.io/invite och använd koden {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
@@ -4421,7 +4421,7 @@
   "suggestions": "Förslag",
   "sunrise": "På horisonten",
   "support": "Support",
-  "supportEnte": "Stöd <bold-green>ente</bold-green>",
+  "supportEnte": "Stöd <bold-green>Filen</bold-green>",
   "syncing": "Synkar...",
   "syncProgress": "{completed}/{total} minnen bevarade",
   "@syncProgress": {
@@ -5094,7 +5094,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },

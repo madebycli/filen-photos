@@ -663,7 +663,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -981,8 +981,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Zapomniałeś klucz odzyskiwania?",
-  "free10GB": "10 GB za darmo na zdjęcia <bold-green>ente</bold-green>",
-  "freeStorageOffer": "10% zniżki na zdjęcia <bold-green>ente</bold-green>",
+  "free10GB": "10 GB za darmo na zdjęcia <bold-green>Filen</bold-green>",
+  "freeStorageOffer": "10% zniżki na zdjęcia <bold-green>Filen</bold-green>",
   "freeStorageOfferDescription": "Użyj kodu „AUTH”, aby uzyskać 10% zniżki na pierwszy rok",
   "freeTrial": "Darmowy okres próbny",
   "freeUpAmount": "Zwolnij {sizeInMBorGB}",
@@ -1485,7 +1485,7 @@
     "placeholders": {
       "email": {
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -2241,21 +2241,21 @@
   "sharedWith": "Udostępniono",
   "shareKey": "Udostępnij klucz",
   "shareLink": "Udostępnij link",
-  "shareMyVerificationID": "Oto mój identyfikator weryfikacyjny: {verificationID} dla ente.com.",
+  "shareMyVerificationID": "Oto mój identyfikator weryfikacyjny: {verificationID} dla filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
   "shareStorageWith5Members": "Udostępnij przestrzeń 5 użytkownikom",
-  "shareTextConfirmOthersVerificationID": "Hej, czy możesz potwierdzić, że to jest Twój identyfikator weryfikacyjny ente.com: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hej, czy możesz potwierdzić, że to jest Twój identyfikator weryfikacyjny filen.io: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Pobierz Filen, abym mógł dodać cię do mojego planu rodzinnego\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Pobierz Filen, abyśmy mogli łatwo udostępniać zdjęcia i wideo w oryginalnej jakości\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Pobierz Filen, abym mógł dodać cię do mojego planu rodzinnego\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Pobierz Filen, abyśmy mogli łatwo udostępniać zdjęcia i wideo w oryginalnej jakości\n\nhttps://filen.io",
   "shareThisLink": "Ten link pozwala każdemu, kto go otrzyma, uzyskać dostęp do Twojego elementu. Możesz w każdej chwili usunąć dostęp, usuwając link.",
   "shareWithNonenteUsers": "Udostępnij użytkownikom bez konta Filen",
   "shareYourSubscription": "Podziel się swoją subskrypcją z bliskimi",
@@ -2395,7 +2395,7 @@
   "suggestFeatures": "Zaproponuj funkcje",
   "sunrise": "Na horyzoncie",
   "support": "Wsparcie techniczne",
-  "supportEnte": "Wesprzyj <bold-green>ente</bold-green>",
+  "supportEnte": "Wesprzyj <bold-green>Filen</bold-green>",
   "syncing": "Synchronizowanie...",
   "syncProgress": "Zachowano {completed}/{total} wspomnień",
   "@syncProgress": {

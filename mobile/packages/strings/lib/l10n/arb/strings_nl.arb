@@ -462,7 +462,7 @@
   "contactNotes": "Bericht voor contact",
   "contactNotesHint": "Belangrijke informatie om te delen met deze persoon wanneer contact wordt opgenomen",
   "contacts": "Contacten",
-  "contactToManageSubscription": "Neem contact met ons op via support@ente.com om uw {provider} abonnement te beheren.",
+  "contactToManageSubscription": "Neem contact met ons op via support@filen.io om uw {provider} abonnement te beheren.",
   "@contactToManageSubscription": {
     "placeholders": {
       "provider": {}
@@ -769,7 +769,7 @@
       "supportEmail": {
         "description": "The support email address",
         "type": "String",
-        "example": "support@ente.com"
+        "example": "support@filen.io"
       }
     }
   },
@@ -1111,8 +1111,8 @@
     "description": "Forgot password link label"
   },
   "forgotRecoveryKey": "Herstelcode vergeten?",
-  "free10GB": "10GB gratis op <bold-green>ente</bold-green> Photos",
-  "freeStorageOffer": "10% korting op <bold-green>ente</bold-green> photos",
+  "free10GB": "10GB gratis op <bold-green>Filen</bold-green> Photos",
+  "freeStorageOffer": "10% korting op <bold-green>Filen</bold-green> photos",
   "freeStorageOfferDescription": "Gebruik de code \"AUTH\" voor 10% korting op je eerste jaar",
   "freeTrial": "Gratis proefversie",
   "freeUpAmount": "Maak {sizeInMBorGB} vrij",
@@ -1866,7 +1866,7 @@
   "@pleaseCheckYourInternetConnectionAndTryAgain": {
     "description": "Message asking user to check internet connection"
   },
-  "pleaseContactSupportAndWeWillBeHappyToHelp": "Neem alstublieft contact op met support@ente.com en we helpen u graag!",
+  "pleaseContactSupportAndWeWillBeHappyToHelp": "Neem alstublieft contact op met support@filen.io en we helpen u graag!",
   "pleaseContactSupportIfTheProblemPersists": "Neem contact op met klantenservice als het probleem aanhoudt",
   "pleaseEmailUsAt": "Stuur ons een e-mail op {toEmail}",
   "@pleaseEmailUsAt": {
@@ -2468,7 +2468,7 @@
   "sharedWith": "Gedeeld met",
   "shareKey": "Sleutel delen",
   "shareLink": "Link delen",
-  "shareMyVerificationID": "Dit is mijn verificatie-ID: {verificationID} voor ente.com.",
+  "shareMyVerificationID": "Dit is mijn verificatie-ID: {verificationID} voor filen.io.",
   "@shareMyVerificationID": {
     "placeholders": {
       "verificationID": {}
@@ -2476,14 +2476,14 @@
   },
   "shareNotSupportedForSharedFiles": "Delen wordt niet ondersteund voor gedeelde bestanden",
   "shareStorageWith5Members": "Opslagruimte delen met 5 deelnemers",
-  "shareTextConfirmOthersVerificationID": "Hey, kunt u bevestigen dat dit uw ente.com verificatie ID is: {verificationID}",
+  "shareTextConfirmOthersVerificationID": "Hey, kunt u bevestigen dat dit uw filen.io verificatie ID is: {verificationID}",
   "@shareTextConfirmOthersVerificationID": {
     "placeholders": {
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Download Filen zodat ik je kan toevoegen aan mijn familie abonnement\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Download Filen zodat we gemakkelijk foto's en video's van originele kwaliteit kunnen delen\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Download Filen zodat ik je kan toevoegen aan mijn familie abonnement\n\nhttps://filen.io",
+  "shareTextRecommendUsingEnteForPhotos": "Download Filen zodat we gemakkelijk foto's en video's van originele kwaliteit kunnen delen\n\nhttps://filen.io",
   "shareThisLink": "Met deze link kan iedereen die hem ontvangt je item openen. Je kunt de toegang op elk moment intrekken door de link te verwijderen.",
   "shareWithNonenteUsers": "Delen met niet-Filen gebruikers",
   "sharing": "Delen...",
@@ -2625,7 +2625,7 @@
   "suggestions": "Suggesties",
   "sunrise": "Aan de horizon",
   "support": "Ondersteuning",
-  "supportEnte": "Steun <bold-green>ente</bold-green>",
+  "supportEnte": "Steun <bold-green>Filen</bold-green>",
   "syncing": "Synchroniseren...",
   "syncProgress": "{completed}/{total} herinneringen bewaard",
   "@syncProgress": {
