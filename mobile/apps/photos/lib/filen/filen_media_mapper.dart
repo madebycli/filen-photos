@@ -1,8 +1,4 @@
-import 'dart:math' as math;
-
-import 'package:ente_pure_utils/ente_pure_utils.dart' show areFromSameDay;
 import 'package:filen_sdk/filen_sdk.dart';
-import 'package:path/path.dart' as p;
 import 'package:photos/filen/filen_ids.dart';
 import 'package:photos/filen/state/collection_store.dart';
 import 'package:photos/models/api/collection/user.dart';
@@ -10,7 +6,6 @@ import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
 import 'package:photos/models/metadata/collection_magic.dart';
-import 'package:photos/module/metadata/filename.dart';
 
 const _imageExtensions = {
   'jpg',
@@ -61,29 +56,6 @@ FileType? filenFileType(String mime, String name) {
   return null;
 }
 
-/// When a photo was taken, as well as can be told without opening the file.
-///
-/// Filen only knows the file times of whoever uploaded it. A library copied over from a computer
-/// often has a "created" time of the day of the copy, while the modified time still is the old
-/// one, so the earlier of the two is used. A date in the file name (IMG_20140512_..., PXL_...)
-/// beats both when it names a different day. The photo's own EXIF date, once the file has been
-/// downloaded, is stored as an edited time and wins over all of this.
-int captureTimeMicros({
-  required String name,
-  required int? createdMs,
-  required int modifiedMs,
-}) {
-  final modified = modifiedMs * 1000;
-  final created = (createdMs ?? modifiedMs) * 1000;
-  var best = math.min(created, modified);
-  final fromName = parseDateTimeFromFileName(p.basenameWithoutExtension(name));
-  if (fromName != null) {
-    final named = fromName.microsecondsSinceEpoch;
-    if (!areFromSameDay(best, named)) best = named;
-  }
-  return best;
-}
-
 /// Maps a Filen file to Ente's gallery model, or null if it is not a photo/video.
 /// [existingGeneratedID] keeps the row identity of an already synced file.
 EnteFile? filenFileToEnteFile(
@@ -95,11 +67,7 @@ EnteFile? filenFileToEnteFile(
   final type = filenFileType(f.mime, f.name);
   if (type == null) return null;
   final modifiedMicros = f.modifiedMs * 1000;
-  final createdMicros = captureTimeMicros(
-    name: f.name,
-    createdMs: f.createdMs,
-    modifiedMs: f.modifiedMs,
-  );
+  final createdMicros = (f.createdMs ?? f.modifiedMs) * 1000;
   return EnteFile()
     ..generatedID = existingGeneratedID
     ..uploadedFileID = filenUuidToId(f.uuid)

@@ -13,7 +13,8 @@ class FilenException implements Exception {
   const FilenException(this.code, [this.message]);
 
   @override
-  String toString() => 'FilenException($code${message == null ? '' : ': $message'})';
+  String toString() =>
+      'FilenException($code${message == null ? '' : ': $message'})';
 }
 
 class FilenUserInfo {
@@ -123,7 +124,24 @@ class FilenTree {
 /// channel). The SDK does all networking and cryptography; this class only marshals calls.
 class FilenSdk {
   FilenSdk({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel('io.ente.photos/filen_sdk');
+    : _channel = channel ?? const MethodChannel('io.ente.photos/filen_sdk') {
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'uploadProgress') {
+        final args = call.arguments as Map<Object?, Object?>;
+        _uploadProgress.add((
+          id: args['id']! as String,
+          bytes: args['bytes']! as int,
+        ));
+      }
+      return null;
+    });
+  }
+
+  final _uploadProgress =
+      StreamController<({String id, int bytes})>.broadcast();
+
+  /// Bytes sent since the previous event of an upload that was started with an `id`.
+  Stream<({String id, int bytes})> get uploadProgress => _uploadProgress.stream;
 
   static final FilenSdk instance = FilenSdk();
 
@@ -159,64 +177,99 @@ class FilenSdk {
     'twoFactorCode': twoFactorCode,
   }))!;
 
-  Future<void> restore(String session) => _call<void>('restore', {'session': session});
+  Future<void> restore(String session) =>
+      _call<void>('restore', {'session': session});
 
   Future<void> logout() => _call<void>('logout');
 
   Future<bool> isLoggedIn() async => (await _call<bool>('isLoggedIn')) ?? false;
 
-  Future<FilenUserInfo> userInfo() async => FilenUserInfo.fromMap(
-    (await _call<Map<Object?, Object?>>('userInfo'))!,
-  );
+  Future<FilenUserInfo> userInfo() async =>
+      FilenUserInfo.fromMap((await _call<Map<Object?, Object?>>('userInfo'))!);
 
   Future<String> rootUuid() async => (await _call<String>('rootUuid'))!;
 
   /// Total size and counts of the folder [uuid] and everything below it.
   Future<({int size, int files, int dirs})> dirSize(String uuid) async {
     final m = (await _call<Map<Object?, Object?>>('dirSize', {'uuid': uuid}))!;
-    return (size: m['size']! as int, files: m['files']! as int, dirs: m['dirs']! as int);
+    return (
+      size: m['size']! as int,
+      files: m['files']! as int,
+      dirs: m['dirs']! as int,
+    );
   }
 
-  Future<void> setVersioning(bool enabled) => _call<void>('setVersioning', {'enabled': enabled});
+  Future<void> setVersioning(bool enabled) =>
+      _call<void>('setVersioning', {'enabled': enabled});
 
   /// Deletes the old versions Filen keeps of changed files.
   Future<void> deleteAllVersions() => _call<void>('deleteAllVersions');
 
-  Future<void> setLoginAlerts(bool enabled) => _call<void>('setLoginAlerts', {'enabled': enabled});
+  Future<void> setLoginAlerts(bool enabled) =>
+      _call<void>('setLoginAlerts', {'enabled': enabled});
 
-  Future<void> changePassword({required String current, required String newPassword}) =>
-      _call<void>('changePassword', {'current': current, 'new': newPassword});
+  Future<void> changePassword({
+    required String current,
+    required String newPassword,
+  }) => _call<void>('changePassword', {'current': current, 'new': newPassword});
 
   /// Every folder and file below [rootUuid].
-  Future<FilenTree> listTree(String rootUuid, {List<String> skipDirNames = const []}) async {
+  Future<FilenTree> listTree(
+    String rootUuid, {
+    List<String> skipDirNames = const [],
+  }) async {
     final m = (await _call<Map<Object?, Object?>>('listTree', {
       'rootUuid': rootUuid,
       'skipDirNames': skipDirNames,
     }))!;
     return FilenTree(
-      [for (final d in m['dirs']! as List<Object?>) FilenDir.fromMap(d! as Map<Object?, Object?>)],
-      [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)],
+      [
+        for (final d in m['dirs']! as List<Object?>)
+          FilenDir.fromMap(d! as Map<Object?, Object?>),
+      ],
+      [
+        for (final f in m['files']! as List<Object?>)
+          FilenFile.fromMap(f! as Map<Object?, Object?>),
+      ],
     );
   }
 
   Future<String> findOrCreateRootChild(String name) async =>
       (await _call<String>('findOrCreateRootChild', {'name': name}))!;
 
-  Future<String> createDir({required String parentUuid, required String name}) async =>
-      (await _call<String>('createDir', {'parentUuid': parentUuid, 'name': name}))!;
+  Future<String> createDir({
+    required String parentUuid,
+    required String name,
+  }) async => (await _call<String>('createDir', {
+    'parentUuid': parentUuid,
+    'name': name,
+  }))!;
 
   /// One level of a folder (no recursion).
   Future<FilenTree> listFolder(String uuid) async {
-    final m = (await _call<Map<Object?, Object?>>('listFolder', {'uuid': uuid}))!;
+    final m = (await _call<Map<Object?, Object?>>('listFolder', {
+      'uuid': uuid,
+    }))!;
     return FilenTree(
-      [for (final d in m['dirs']! as List<Object?>) FilenDir.fromMap(d! as Map<Object?, Object?>)],
-      [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)],
+      [
+        for (final d in m['dirs']! as List<Object?>)
+          FilenDir.fromMap(d! as Map<Object?, Object?>),
+      ],
+      [
+        for (final f in m['files']! as List<Object?>)
+          FilenFile.fromMap(f! as Map<Object?, Object?>),
+      ],
     );
   }
 
   /// UUID of the child folder [name] of [parentUuid]; created when missing.
-  Future<String> ensureDir({required String parentUuid, required String name}) async =>
-      (await _call<String>('ensureDir', {'parentUuid': parentUuid, 'name': name}))!;
+  Future<String> ensureDir({
+    required String parentUuid,
+    required String name,
+  }) async => (await _call<String>('ensureDir', {
+    'parentUuid': parentUuid,
+    'name': name,
+  }))!;
 
   Future<Uint8List> readBytes(String uuid) async =>
       (await _call<Uint8List>('readBytes', {'uuid': uuid}))!;
@@ -241,11 +294,19 @@ class FilenSdk {
       _call<void>('deleteFilePermanently', {'uuid': uuid});
 
   /// Changes the capture/modification time Filen stores for the file.
-  Future<void> setFileTimes({required String uuid, int? createdMs, int? modifiedMs}) =>
-      _call<void>('setFileTimes', {'uuid': uuid, 'createdMs': createdMs, 'modifiedMs': modifiedMs});
+  Future<void> setFileTimes({
+    required String uuid,
+    int? createdMs,
+    int? modifiedMs,
+  }) => _call<void>('setFileTimes', {
+    'uuid': uuid,
+    'createdMs': createdMs,
+    'modifiedMs': modifiedMs,
+  });
 
   /// Local http URL that streams the decrypted file (with range requests) for media players.
-  Future<String> streamUrl(String uuid) async => (await _call<String>('streamUrl', {'uuid': uuid}))!;
+  Future<String> streamUrl(String uuid) async =>
+      (await _call<String>('streamUrl', {'uuid': uuid}))!;
 
   /// Moves a whole folder to Filen's trash (recoverable there).
   Future<void> trashDir(String uuid) => _call<void>('trashDir', {'uuid': uuid});
@@ -254,29 +315,43 @@ class FilenSdk {
       _call<void>('renameDir', {'uuid': uuid, 'name': name});
 
   /// Moves the file to Filen's trash.
-  Future<void> trashFile(String uuid) => _call<void>('trashFile', {'uuid': uuid});
+  Future<void> trashFile(String uuid) =>
+      _call<void>('trashFile', {'uuid': uuid});
 
   /// Files at the top level of Filen's trash.
   Future<List<FilenFile>> listTrash() async {
     final m = (await _call<Map<Object?, Object?>>('listTrash', {}))!;
-    return [for (final f in m['files']! as List<Object?>) FilenFile.fromMap(f! as Map<Object?, Object?>)];
+    return [
+      for (final f in m['files']! as List<Object?>)
+        FilenFile.fromMap(f! as Map<Object?, Object?>),
+    ];
   }
 
   /// Puts a trashed file back into its original folder.
-  Future<void> restoreFile(String uuid) => _call<void>('restoreFile', {'uuid': uuid});
+  Future<void> restoreFile(String uuid) =>
+      _call<void>('restoreFile', {'uuid': uuid});
 
   /// Permanently deletes everything in Filen's trash.
   Future<void> emptyTrash() => _call<void>('emptyTrash', {});
 
-  Future<void> moveFile({required String uuid, required String newParentUuid}) =>
-      _call<void>('moveFile', {'uuid': uuid, 'newParentUuid': newParentUuid});
+  Future<void> moveFile({
+    required String uuid,
+    required String newParentUuid,
+  }) => _call<void>('moveFile', {'uuid': uuid, 'newParentUuid': newParentUuid});
 
   Future<void> downloadFile({required String uuid, required String destPath}) =>
       _call<void>('downloadFile', {'uuid': uuid, 'destPath': destPath});
 
   /// WebP bytes, or null if the SDK cannot produce a thumbnail for this file type.
-  Future<Uint8List?> thumbnail(String uuid, {int maxWidth = 512, int maxHeight = 512}) =>
-      _call<Uint8List>('thumbnail', {'uuid': uuid, 'maxWidth': maxWidth, 'maxHeight': maxHeight});
+  Future<Uint8List?> thumbnail(
+    String uuid, {
+    int maxWidth = 512,
+    int maxHeight = 512,
+  }) => _call<Uint8List>('thumbnail', {
+    'uuid': uuid,
+    'maxWidth': maxWidth,
+    'maxHeight': maxHeight,
+  });
 
   Future<FilenFile> uploadFile({
     required String localPath,
@@ -285,8 +360,10 @@ class FilenSdk {
     int? createdMs,
     int? modifiedMs,
     String? mime,
+    String? id,
   }) async => FilenFile.fromMap(
     (await _call<Map<Object?, Object?>>('uploadFile', {
+      'id': id,
       'localPath': localPath,
       'parentUuid': parentUuid,
       'name': name,

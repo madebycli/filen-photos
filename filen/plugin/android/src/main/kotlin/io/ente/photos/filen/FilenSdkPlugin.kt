@@ -1,5 +1,7 @@
 package io.ente.photos.filen
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -108,6 +110,14 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 (call.argument<Number>("createdMs"))?.toLong(),
                 (call.argument<Number>("modifiedMs"))?.toLong(),
                 call.argument<String>("mime"),
+                call.argument<String>("id")?.let { id ->
+                    { delta: Long ->
+                        // Back to the main thread, where the channel must be used.
+                        Handler(Looper.getMainLooper()).post {
+                            channel?.invokeMethod("uploadProgress", mapOf("id" to id, "bytes" to delta))
+                        }
+                    }
+                },
             )
             else -> throw NotImplementedError()
         }

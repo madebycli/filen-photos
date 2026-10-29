@@ -7,6 +7,7 @@ import 'package:photos/core/errors.dart';
 import 'package:photos/db/files_db.dart';
 import 'package:photos/filen/filen_ids.dart';
 import 'package:photos/filen/filen_sync.dart';
+import 'package:photos/filen/filen_upload_progress.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/metadata/file_magic.dart';
 import 'package:photos/module/metadata/exif.dart';
@@ -84,9 +85,12 @@ Future<EnteFile> filenUploadFile(
     final watch = Stopwatch()..start();
     final created = file.creationTime;
     final modified = file.modificationTime;
+    final progressId =
+        '${file.generatedID ?? name}-${DateTime.now().microsecondsSinceEpoch}';
     // A dropped connection is retried a few times before the file is given up (the next sync
     // tries again anyway).
     for (var attempt = 1; ; attempt++) {
+      FilenUploadProgress.instance.fileStarted(progressId, size);
       try {
         remote = await FilenSdk.instance.uploadFile(
           localPath: source.path,
@@ -94,6 +98,7 @@ Future<EnteFile> filenUploadFile(
           name: freeFilenName(name, {for (final f in inFolder) f.name}),
           createdMs: created == null ? null : created ~/ 1000,
           modifiedMs: modified == null ? null : modified ~/ 1000,
+          id: progressId,
         );
         uploadedNow = true;
         break;
@@ -104,6 +109,8 @@ Future<EnteFile> filenUploadFile(
           'Upload of ${file.tag} hit a network error, retry $attempt of 2',
         );
         await Future<void>.delayed(Duration(seconds: 2 * attempt));
+      } finally {
+        FilenUploadProgress.instance.fileEnded(progressId);
       }
     }
     sync.noteUploaded(remote);

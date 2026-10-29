@@ -21,6 +21,7 @@ import uniffi.filen_sdk_rs.FileMeta
 import uniffi.filen_sdk_rs.FilenSdkException
 import uniffi.filen_sdk_rs.JsClient
 import uniffi.filen_sdk_rs.JsClientConfig
+import uniffi.filen_sdk_rs.JsFileUploadCallback
 import uniffi.filen_sdk_rs.LoginParams
 import uniffi.filen_sdk_rs.AnyDirWithContext
 import uniffi.filen_sdk_rs.ChangePasswordParams
@@ -348,8 +349,15 @@ class FilenBackend {
         createdMs: Long?,
         modifiedMs: Long?,
         mime: String?,
+        onProgress: ((Long) -> Unit)? = null,
     ): Map<String, Any?> = wrap {
         val c = requireClient()
+        // The SDK reports the bytes sent since its previous call (a delta, not a total).
+        val callback = onProgress?.let { report ->
+            object : JsFileUploadCallback {
+                override fun onUpdate(uploadedBytes: ULong) = report(uploadedBytes.toLong())
+            }
+        }
         val file = c.uploadFile(
             FileBuilderParamsOptionalName(
                 parent = dirTarget(c, parentUuid),
@@ -359,7 +367,7 @@ class FilenBackend {
                 mime = mime,
             ),
             localPath,
-            null,
+            callback,
             ManagedFuture(null, null),
         )
         fileMap(file, parentUuid) ?: throw FilenException("INTERNAL", "uploaded file has no readable metadata")

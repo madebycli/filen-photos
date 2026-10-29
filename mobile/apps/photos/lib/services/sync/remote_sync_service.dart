@@ -18,9 +18,9 @@ import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
-import 'package:photos/filen/filen_capture_date.dart';
 import 'package:photos/filen/filen_settings.dart';
 import 'package:photos/filen/filen_state.dart';
+import 'package:photos/filen/filen_upload_progress.dart';
 import 'package:photos/main.dart' show isProcessBg;
 import 'package:photos/models/device_collection.dart';
 import 'package:photos/models/file/extensions/file_props.dart';
@@ -141,8 +141,6 @@ class RemoteSyncService {
       }
       // Write what was queued (album membership, metadata edits) before the sync ends.
       await FilenState.instance.flush();
-      // Filen fork: photos copied from a computer are filed by their EXIF date, in the background.
-      FilenCaptureDateScan.instance.run().ignore();
       Bus.instance.fire(SyncStatusUpdate(SyncStatus.completedBackup));
     } catch (e, s) {
       _logger.severe("Filen sync failed", e, s);
@@ -574,6 +572,7 @@ class RemoteSyncService {
     _ignoredUploads = 0;
     final int toBeUploaded = filesToBeUploaded.length + updatedFileIDs.length;
 
+    FilenUploadProgress.instance.begin(toBeUploaded);
     if (toBeUploaded > 0) {
       Bus.instance.fire(
         SyncStatusUpdate(SyncStatus.preparingForUpload, total: toBeUploaded),
@@ -647,6 +646,7 @@ class RemoteSyncService {
       // Do nothing
     }
 
+    FilenUploadProgress.instance.end();
     return _completedUploads > 0;
   }
 
@@ -667,6 +667,7 @@ class RemoteSyncService {
       CollectionUpdatedEvent(file.collectionID, [file], "fileUpload"),
     );
     _completedUploads++;
+    FilenUploadProgress.instance.fileCounted();
     final toBeUploadedInThisSession = _uploader.getCurrentSessionUploadCount();
     if (toBeUploadedInThisSession == 0) {
       return;

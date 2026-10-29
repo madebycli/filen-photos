@@ -14,6 +14,7 @@ import 'package:photos/ente_theme_data.dart';
 import 'package:photos/events/notification_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
 import 'package:photos/events/tab_changed_event.dart';
+import 'package:photos/filen/filen_upload_progress.dart';
 import 'package:photos/models/home_tab.dart';
 import "package:photos/service_locator.dart";
 import "package:photos/services/sync/large_backup_session_tracker.dart";
@@ -266,10 +267,13 @@ class _SyncStatusWidgetState extends State<SyncStatusWidget> {
     }
     if (_event!.status == SyncStatus.inProgress) {
       final format = NumberFormat();
-      return context.strings.syncProgress(
+      final progress = context.strings.syncProgress(
         completed: format.format(_event!.completed!),
         total: format.format(_event!.total!),
       );
+      // Filen fork: the SDK reports how much of the files in flight is sent.
+      final percent = FilenUploadProgress.instance.percent;
+      return percent == null ? progress : '$progress · $percent %';
     }
     if (_event!.status == SyncStatus.paused) {
       return _event!.reason;
