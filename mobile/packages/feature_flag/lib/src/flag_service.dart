@@ -39,7 +39,9 @@ class FlagService {
 
   bool get manualTagFileToPerson => hasGrantedMLConsent;
 
-  bool get webGPUEnabled => true;
+  /// Filen fork: off. The GPU path of the on-device ML crashed the whole app (SIGSEGV inside
+  /// libonnxruntime) on a Pixel; the CPU/XNNPACK path is slower but stable.
+  bool get webGPUEnabled => false;
 
   bool get usearchForSearch => true;
 

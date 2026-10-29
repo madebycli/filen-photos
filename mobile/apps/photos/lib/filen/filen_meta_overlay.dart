@@ -105,7 +105,9 @@ MetaReconciliation reconcileMeta({
 bool filenRowUnchanged(EnteFile row, EnteFile mapped) {
   return row.title == mapped.title &&
       row.fileSize == mapped.fileSize &&
-      row.creationTime == mapped.creationTime &&
+      // The row holds the edited time (if any) as its creation time.
+      row.creationTime ==
+          (mapped.pubMagicMetadata?.editedTime ?? mapped.creationTime) &&
       row.modificationTime == mapped.modificationTime &&
       row.updationTime == mapped.updationTime &&
       row.mMdVersion == mapped.mMdVersion &&

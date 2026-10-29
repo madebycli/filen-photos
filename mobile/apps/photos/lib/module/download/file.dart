@@ -12,6 +12,7 @@ import 'package:photos/core/cache/thumbnail_in_memory_cache.dart';
 import 'package:photos/core/cache/video_cache_manager.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/constants.dart';
+import 'package:photos/filen/filen_capture_date.dart';
 import 'package:photos/filen/filen_file_access.dart';
 import 'package:photos/filen/filen_ids.dart';
 import "package:photos/models/file/extensions/file_props.dart";
@@ -231,6 +232,7 @@ Future<File?> _downloadAndCache(
       fileExtension: fileExtension,
     );
     await storePreviewFromDownloadedOriginal(file, outputFile);
+    await correctCaptureDateFromOriginal(file, outputFile);
     await outputFile.delete();
     return cachedFile;
   } catch (e) {
