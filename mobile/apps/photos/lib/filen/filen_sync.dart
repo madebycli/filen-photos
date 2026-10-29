@@ -414,11 +414,12 @@ class FilenSyncService {
 
   // ---- file operations ------------------------------------------------------------------------
 
-  /// Moves files to Filen's trash (not permanently deleted). Throws on the first failure, so the
-  /// caller only forgets the local rows when everything worked; files already trashed disappear
-  /// from the next listing on their own.
-  Future<void> trashFiles(List<TrashRequest> requests) async {
+  /// Moves files to Filen's trash (not permanently deleted) and returns them as trash entries.
+  /// Throws on the first failure, so the caller only forgets the local rows when everything
+  /// worked; files already trashed disappear from the next listing on their own.
+  Future<List<EnteTrashFile>> trashFiles(List<TrashRequest> requests) async {
     final db = FilesDB.instance;
+    final trashed = <EnteTrashFile>[];
     for (final r in requests) {
       // The row of the album the user looked at, else any row of the same photo (a photo can be
       // listed in several albums).
@@ -440,7 +441,19 @@ class FilenSyncService {
         _logger.info('${row.tag} was already gone from Filen');
       }
       _logger.info('Trashed ${row.tag} on Filen');
+      // The trash page shows it right away, without waiting for the next sync (which may be busy
+      // uploading for a long time).
+      final now = DateTime.now().microsecondsSinceEpoch;
+      final entry = EnteTrashFile.from(
+        row,
+        deleteBy: kFilenTrashKeepsForever,
+        createdAt: now,
+        updateAt: now,
+      );
+      entry.collectionID = -1;
+      trashed.add(entry);
     }
+    return trashed;
   }
 
   /// "Move to album": from the album's point of view the photo leaves [fromCollectionID] and joins
@@ -680,6 +693,7 @@ class FilenSyncService {
   Future<TrashDiff> trashDiff() async {
     await _state.ensureInitialized();
     final items = await FilenSdk.instance.listTrash();
+    _logger.info('Filen trash: ${items.length} files');
     final ownerID = Configuration.instance.getUserID()!;
     final current = <int, EnteTrashFile>{};
     for (final f in items) {

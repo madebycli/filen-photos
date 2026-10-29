@@ -1,5 +1,7 @@
 package io.ente.photos.filen
 
+import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -20,9 +22,11 @@ import kotlinx.coroutines.withContext
  */
 class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var channel: MethodChannel? = null
+    private var appContext: Context? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        appContext = binding.applicationContext
         channel = MethodChannel(binding.binaryMessenger, CHANNEL).also { it.setMethodCallHandler(this) }
     }
 
@@ -58,13 +62,15 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "restore" -> { backend.restore(str("session")); null }
             "logout" -> { backend.logout(); null }
             "isLoggedIn" -> backend.isLoggedIn
+            // The wallpaper-based accent of Android 12+ ("Material You"); null on older Android.
+            "systemAccent" -> if (Build.VERSION.SDK_INT >= 31) {
+                appContext?.getColor(android.R.color.system_accent1_500)
+            } else {
+                null
+            }
             "userInfo" -> backend.userInfo()
             "rootUuid" -> backend.rootUuid()
             "dirSize" -> backend.dirSize(str("uuid"))
-            "setVersioning" -> { backend.setVersioning(call.argument<Boolean>("enabled") == true); null }
-            "deleteAllVersions" -> { backend.deleteAllVersions(); null }
-            "setLoginAlerts" -> { backend.setLoginAlerts(call.argument<Boolean>("enabled") == true); null }
-            "changePassword" -> { backend.changePassword(str("current"), str("new")); null }
             "listTree" -> backend.listTree(
                 str("rootUuid"),
                 (call.argument<List<String>>("skipDirNames") ?: emptyList()).toSet(),
@@ -83,14 +89,6 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 (call.argument<Number>("modifiedMs"))?.toLong(),
             )
             "deleteFilePermanently" -> { backend.deleteFilePermanently(str("uuid")); null }
-            "setFileTimes" -> {
-                backend.setFileTimes(
-                    str("uuid"),
-                    (call.argument<Number>("createdMs"))?.toLong(),
-                    (call.argument<Number>("modifiedMs"))?.toLong(),
-                )
-                null
-            }
             "streamUrl" -> backend.streamUrl(str("uuid"))
             "trashFile" -> { backend.trashFile(str("uuid")); null }
             "listTrash" -> backend.listTrash()

@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/filen/filen_account.dart';
-import 'package:photos/ui/settings/backup/free_space_options.dart';
 import 'package:photos/ui/viewer/gallery/trash_page.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -52,151 +51,6 @@ class _FilenAccountSettingsPageState extends State<FilenAccountSettingsPage> {
 
   void _reload() => setState(() => _overview = _load());
 
-  Future<void> _run(Future<void> Function() action, String failure) async {
-    try {
-      await action();
-      _reload();
-    } catch (e, s) {
-      _logger.warning(failure, e, s);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('$failure ($e)')));
-    }
-  }
-
-  Future<bool> _confirm(String title, String message, String yes) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(yes),
-          ),
-        ],
-      ),
-    );
-    return result == true;
-  }
-
-  Future<void> _changePassword() async {
-    final current = TextEditingController();
-    final next = TextEditingController();
-    final again = TextEditingController();
-    String? error;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setLocal) => AlertDialog(
-          title: const Text('Change password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: current,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Current password',
-                ),
-              ),
-              TextField(
-                controller: next,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New password'),
-              ),
-              TextField(
-                controller: again,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Repeat new password',
-                ),
-              ),
-              if (error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (current.text.isEmpty || next.text.length < 8) {
-                  setLocal(() => error = 'Use at least 8 characters.');
-                } else if (next.text != again.text) {
-                  setLocal(() => error = 'The new passwords differ.');
-                } else {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('Change'),
-            ),
-          ],
-        ),
-      ),
-    );
-    final currentPassword = current.text;
-    final newPassword = next.text;
-    current.dispose();
-    next.dispose();
-    again.dispose();
-    if (ok != true || !mounted) return;
-    try {
-      await FilenSdk.instance.changePassword(
-        current: currentPassword,
-        newPassword: newPassword,
-      );
-    } on FilenException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.code == 'BAD_CREDENTIALS'
-                ? 'The current password is wrong.'
-                : 'Could not change the password (${e.code}).',
-          ),
-        ),
-      );
-      return;
-    }
-    if (!mounted) return;
-    // The saved session was made with the old password: sign in again to keep it valid.
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Password changed'),
-        content: const Text(
-          'Please sign in again with your new password. Your photos stay on Filen.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Sign in again'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    await FilenAccount.instance.logout(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     final email = Configuration.instance.getEmail() ?? '';
@@ -232,15 +86,6 @@ class _FilenAccountSettingsPageState extends State<FilenAccountSettingsPage> {
         ),
         const SizedBox(height: 16),
         SettingsItem(
-          title: 'Free up space',
-          subtitle: 'Device copies, duplicates, large files',
-          icon: HugeIcons.strokeRoundedDelete02,
-          onTap: () async {
-            await routeToPage(context, const FreeUpSpaceOptionsScreen());
-          },
-        ),
-        const SizedBox(height: 8),
-        SettingsItem(
           title: 'Trash',
           subtitle: 'Restore or permanently delete removed photos',
           icon: HugeIcons.strokeRoundedRestoreBin,
@@ -266,10 +111,7 @@ class _FilenAccountSettingsPageState extends State<FilenAccountSettingsPage> {
     final info = data.info;
     final used = info.storageUsed;
     final max = info.maxStorage;
-    final otherBytes = (used - data.photosBytes - info.versionedStorage).clamp(
-      0,
-      used,
-    );
+    final otherBytes = (used - data.photosBytes).clamp(0, used);
     final fraction = max <= 0 ? 0.0 : (used / max).clamp(0.0, 1.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,12 +139,6 @@ class _FilenAccountSettingsPageState extends State<FilenAccountSettingsPage> {
               subtitle: formatBytes(otherBytes),
               icon: HugeIcons.strokeRoundedFolder01,
             ),
-            SettingsItem(
-              title: 'Old versions of changed files',
-              subtitle:
-                  '${formatBytes(info.versionedStorage)} in ${info.versionedFiles} versions',
-              icon: HugeIcons.strokeRoundedClock01,
-            ),
             if (info.unfinishedStorage > 0)
               SettingsItem(
                 title: 'Unfinished uploads',
@@ -311,66 +147,6 @@ class _FilenAccountSettingsPageState extends State<FilenAccountSettingsPage> {
                 icon: HugeIcons.strokeRoundedUpload01,
               ),
           ],
-        ),
-        const SizedBox(height: 16),
-        MenuGroupComponent(
-          items: [
-            MenuComponent(
-              title: 'Keep old versions of changed files',
-              trailing: ToggleSwitchComponent.async(
-                value: () => info.versioningEnabled,
-                onChanged: () => _run(
-                  () =>
-                      FilenSdk.instance.setVersioning(!info.versioningEnabled),
-                  'Could not change versioning',
-                ),
-              ),
-            ),
-            MenuComponent(
-              title: 'Email me about new logins',
-              trailing: ToggleSwitchComponent.async(
-                value: () => info.loginAlertsEnabled,
-                onChanged: () => _run(
-                  () => FilenSdk.instance.setLoginAlerts(
-                    !info.loginAlertsEnabled,
-                  ),
-                  'Could not change login alerts',
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SettingsItem(
-          title: 'Delete old versions',
-          subtitle: info.versionedStorage > 0
-              ? 'Frees ${formatBytes(info.versionedStorage)}. The current files stay.'
-              : 'There are no old versions.',
-          icon: HugeIcons.strokeRoundedDelete01,
-          onTap: info.versionedStorage > 0
-              ? () async {
-                  final yes = await _confirm(
-                    'Delete old versions?',
-                    'The ${info.versionedFiles} old versions on your whole Filen drive are removed for good. The current files are not touched.',
-                    'Delete',
-                  );
-                  if (yes) {
-                    await _run(
-                      FilenSdk.instance.deleteAllVersions,
-                      'Could not delete old versions',
-                    );
-                  }
-                }
-              : null,
-        ),
-        const SizedBox(height: 8),
-        SettingsItem(
-          title: 'Change password',
-          subtitle: info.twoFactorEnabled
-              ? 'Two-factor authentication is on'
-              : 'Two-factor authentication is off',
-          icon: HugeIcons.strokeRoundedLockPassword,
-          onTap: () async => _changePassword(),
         ),
       ],
     );

@@ -55,6 +55,7 @@ import "package:photos/services/sync/sync_service.dart";
 import "package:photos/src/rust/api/log.dart" as photos_rust_log;
 import "package:photos/src/rust/frb_generated.dart";
 import 'package:photos/theme/accent.dart';
+import 'package:photos/theme/system_accent_refresher.dart';
 import 'package:photos/ui/wallpaper/wallpaper_page.dart';
 import "package:photos/utils/bg_task_utils.dart";
 import "package:photos/utils/device_info.dart";
@@ -136,6 +137,7 @@ Future<void> _runInForeground(
 ) async {
   components.ComponentTheme.configure(app: components.ComponentApp.photos);
   await AccentColors.load(await SharedPreferences.getInstance());
+  SystemAccentRefresher.instance.start();
   return await runWithLogs(() async {
     _logger.info("Starting app in foreground");
     isProcessBg = false;

@@ -60,11 +60,16 @@ class TrashSyncService {
     }
   }
 
-  Future<void> _updateIgnoredFiles(TrashDiff diff) async {
+  Future<void> _updateIgnoredFiles(TrashDiff diff) =>
+      _ignoreTrashed(diff.trashedFiles);
+
+  /// Remembers that these photos were deleted, so the phone they came from does not upload them
+  /// again.
+  Future<void> _ignoreTrashed(List<EnteTrashFile> trashed) async {
     // Filen's own camera upload uploads a deleted photo again; Ente remembers and skips it.
     if (backupSettings.shouldReuploadDeleted()) return;
     final ignoredFiles = <IgnoredFile>[];
-    for (final t in diff.trashedFiles) {
+    for (final t in trashed) {
       final file = IgnoredFile.fromTrashItem(t);
       if (file != null) {
         ignoredFiles.add(file);
@@ -77,8 +82,14 @@ class TrashSyncService {
   }
 
   /// Moves the files to Filen's trash (they are not deleted permanently).
-  Future<void> trashFilesOnServer(List<TrashRequest> trashRequestItems) {
-    return FilenSyncService.instance.trashFiles(trashRequestItems);
+  Future<void> trashFilesOnServer(List<TrashRequest> trashRequestItems) async {
+    final trashed = await FilenSyncService.instance.trashFiles(
+      trashRequestItems,
+    );
+    if (trashed.isEmpty) return;
+    await _trashDB.insertMultiple(trashed);
+    await _ignoreTrashed(trashed);
+    Bus.instance.fire(TrashUpdatedEvent());
   }
 
   /// Permanently deletes photos from the trash after the user confirmed it.

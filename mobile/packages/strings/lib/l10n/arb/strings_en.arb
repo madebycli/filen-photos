@@ -5223,5 +5223,7 @@
   "filenBackupOnLowBattery": "Back up on low battery",
   "filenBackupOnLowBatteryHint": "Off: the backup pauses below 15% battery.",
   "filenReuploadDeleted": "Upload deleted photos again",
-  "filenReuploadDeletedHint": "Off: a photo you delete from Filen is not uploaded again from this phone."
+  "filenReuploadDeletedHint": "Off: a photo you delete from Filen is not uploaded again from this phone.",
+  "accentSystemColors": "System colors",
+  "accentSystemColorsHint": "Follows your wallpaper colors (Android 12 and newer)"
 }

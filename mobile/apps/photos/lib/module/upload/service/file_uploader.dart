@@ -380,6 +380,7 @@ class FileUploader {
         file,
         collectionID,
         mediaUploadData,
+        onSendProgress: onSendProgress,
       );
       if (mediaUploadData.isDeleted) {
         _logger.info("File found to be deleted");

@@ -1,9 +1,11 @@
-import 'package:filen_sdk/filen_sdk.dart';
-import 'package:photos/core/event_bus.dart';
-import 'package:photos/events/sync_status_update_event.dart';
+import 'dart:async';
+import 'dart:collection';
 
-/// How far the running backup is, in percent, from what the Filen SDK reports while it sends a
-/// file: finished files plus the fraction of the files in flight, out of the files of this run.
+import 'package:filen_sdk/filen_sdk.dart';
+
+/// How far the running backup is, from what the Filen SDK reports while it sends a file: the
+/// percent of the run (finished files plus the fraction of the files in flight), the upload speed
+/// and a callback per file for Ente's per-photo progress in the backup status screen.
 class FilenUploadProgress {
   FilenUploadProgress._({Stream<({String id, int bytes})>? source}) {
     // Lives as long as the app, like the singleton itself.
@@ -18,11 +20,19 @@ class FilenUploadProgress {
     Stream<({String id, int bytes})> source,
   ) => FilenUploadProgress._(source: source);
 
+  static const _speedWindow = Duration(seconds: 5);
+
   final _sent = <String, int>{};
   final _size = <String, int>{};
+  final _onFileProgress = <String, void Function(int sent, int total)>{};
+  final _samples = Queue<({DateTime at, int bytes})>();
+  final _changes = StreamController<void>.broadcast();
   int _completed = 0;
   int _total = 0;
-  DateTime _lastEvent = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime _lastChange = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Fires (at most twice a second) when the numbers below changed.
+  Stream<void> get changes => _changes.stream;
 
   /// A new run of uploads with [total] files.
   void begin(int total) {
@@ -30,28 +40,52 @@ class FilenUploadProgress {
     _total = total;
     _sent.clear();
     _size.clear();
+    _onFileProgress.clear();
+    _samples.clear();
+    _changes.add(null);
   }
 
-  void fileStarted(String id, int size) {
+  /// [onProgress] gets the bytes sent so far and the file's size.
+  void fileStarted(
+    String id,
+    int size, {
+    void Function(int sent, int total)? onProgress,
+  }) {
     _sent[id] = 0;
     _size[id] = size;
+    if (onProgress != null) {
+      _onFileProgress[id] = onProgress;
+    } else {
+      _onFileProgress.remove(id);
+    }
   }
 
   /// The file is no longer in flight (sent or given up).
   void fileEnded(String id) {
     _sent.remove(id);
     _size.remove(id);
+    _onFileProgress.remove(id);
   }
 
-  /// One more file of this run is done (the status bar's "x of y").
-  void fileCounted() => _completed++;
+  /// One more file of this run is done.
+  void fileCounted() {
+    _completed++;
+    _changes.add(null);
+  }
 
   void end() {
     _total = 0;
     _completed = 0;
     _sent.clear();
     _size.clear();
+    _onFileProgress.clear();
+    _samples.clear();
+    _changes.add(null);
   }
+
+  bool get active => _total > 0;
+  int get completed => _completed;
+  int get total => _total;
 
   /// Whole percent of the run, or null when no run is known.
   int? get percent {
@@ -64,21 +98,29 @@ class FilenUploadProgress {
     return (((_completed + inFlight) / _total) * 100).clamp(0, 100).floor();
   }
 
-  void _onBytes(({String id, int bytes}) e) {
-    if (!_sent.containsKey(e.id)) return;
-    _sent[e.id] = _sent[e.id]! + e.bytes;
-    // At most twice a second: enough to look alive, not enough to rebuild the UI per chunk.
+  /// Bytes per second over the last few seconds, or null before anything was sent.
+  double? get bytesPerSecond {
     final now = DateTime.now();
-    if (now.difference(_lastEvent) < const Duration(milliseconds: 500)) return;
-    _lastEvent = now;
-    if (_total > 0) {
-      Bus.instance.fire(
-        SyncStatusUpdate(
-          SyncStatus.inProgress,
-          completed: _completed,
-          total: _total,
-        ),
-      );
+    while (_samples.isNotEmpty &&
+        now.difference(_samples.first.at) > _speedWindow) {
+      _samples.removeFirst();
     }
+    if (_samples.isEmpty) return null;
+    final sum = _samples.fold<int>(0, (a, s) => a + s.bytes);
+    final span = now.difference(_samples.first.at).inMilliseconds;
+    // Less than a second of data would show wild numbers.
+    return sum / (span < 1000 ? 1000 : span) * 1000;
+  }
+
+  void _onBytes(({String id, int bytes}) e) {
+    final sent = _sent[e.id];
+    if (sent == null) return;
+    final now = DateTime.now();
+    _sent[e.id] = sent + e.bytes;
+    _samples.addLast((at: now, bytes: e.bytes));
+    _onFileProgress[e.id]?.call(sent + e.bytes, _size[e.id] ?? 0);
+    if (now.difference(_lastChange) < const Duration(milliseconds: 500)) return;
+    _lastChange = now;
+    _changes.add(null);
   }
 }

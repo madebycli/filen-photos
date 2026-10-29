@@ -40,6 +40,7 @@ const List<String> kFilenSyncedSettings = [
   'ml_debug.run_ml_during_interaction',
   'filen.map_enabled',
   'filen.accent_color',
+  'filen.accent_system',
 ];
 
 /// One setting as stored in the cloud document: a type tag plus the value, canonical JSON so two

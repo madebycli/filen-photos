@@ -33,8 +33,9 @@ final _logger = Logger('FilenUpload');
 Future<EnteFile> filenUploadFile(
   EnteFile file,
   int collectionID,
-  MediaUploadData data,
-) async {
+  MediaUploadData data, {
+  void Function(int sent, int total)? onSendProgress,
+}) async {
   final source = data.sourceFile;
   final collection = CollectionsService.instance.getCollectionByID(
     collectionID,
@@ -93,7 +94,11 @@ Future<EnteFile> filenUploadFile(
     final send = await compressForUpload(source, name);
     try {
       for (var attempt = 1; ; attempt++) {
-        FilenUploadProgress.instance.fileStarted(progressId, send.size);
+        FilenUploadProgress.instance.fileStarted(
+          progressId,
+          send.size,
+          onProgress: onSendProgress,
+        );
         try {
           remote = await FilenSdk.instance.uploadFile(
             localPath: send.file.path,

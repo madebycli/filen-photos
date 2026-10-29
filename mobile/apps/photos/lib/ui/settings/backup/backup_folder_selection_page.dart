@@ -438,18 +438,6 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
               style: TextStyles.mini.copyWith(color: colors.textLight),
             ),
           ),
-          if (_folderPaths[deviceCollection.id] != null)
-            SizedBox(
-              width: sideOfThumbnail,
-              child: Text(
-                _folderPaths[deviceCollection.id]!,
-                textAlign: TextAlign.left,
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyles.tiny.copyWith(color: colors.textLighter),
-              ),
-            ),
         ],
       ),
     );

@@ -4895,5 +4895,7 @@
   "filenBackupOnLowBattery": "Auch bei niedrigem Akku sichern",
   "filenBackupOnLowBatteryHint": "Aus: Die Sicherung pausiert unter 15 % Akku.",
   "filenReuploadDeleted": "Gelöschte Fotos erneut hochladen",
-  "filenReuploadDeletedHint": "Aus: Ein Foto, das du aus Filen löschst, wird von diesem Handy nicht erneut hochgeladen."
+  "filenReuploadDeletedHint": "Aus: Ein Foto, das du aus Filen löschst, wird von diesem Handy nicht erneut hochgeladen.",
+  "accentSystemColors": "Systemfarben",
+  "accentSystemColorsHint": "Folgt den Farben deines Hintergrundbilds (Android 12 und neuer)"
 }

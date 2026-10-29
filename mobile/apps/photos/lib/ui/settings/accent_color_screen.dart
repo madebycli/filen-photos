@@ -1,5 +1,6 @@
 import "package:adaptive_theme/adaptive_theme.dart";
 import "package:ente_components/ente_components.dart";
+import "package:ente_strings/ente_strings.dart";
 import "package:flutter/material.dart";
 import "package:photos/ente_theme_data.dart";
 import "package:photos/theme/accent.dart";
@@ -15,12 +16,38 @@ class AccentColorScreen extends StatefulWidget {
 
 class _AccentColorScreenState extends State<AccentColorScreen> {
   Color _selected = AccentColors.current;
+  bool _system = AccentColors.useSystem;
+  Color? _systemColor;
+
+  @override
+  void initState() {
+    super.initState();
+    AccentColors.systemColor().then((color) {
+      if (mounted) setState(() => _systemColor = color);
+    });
+  }
+
+  Future<void> _pickSystem() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!await AccentColors.saveSystem(prefs)) return;
+    if (!mounted) return;
+    setState(() {
+      _system = true;
+      _selected = AccentColors.current;
+    });
+    AdaptiveTheme.of(
+      context,
+    ).setTheme(light: lightThemeData, dark: darkThemeData);
+  }
 
   Future<void> _pick(Color color) async {
     final prefs = await SharedPreferences.getInstance();
     await AccentColors.save(prefs, color);
     if (!mounted) return;
-    setState(() => _selected = color);
+    setState(() {
+      _selected = color;
+      _system = false;
+    });
     // Rebuild both themes so every screen picks the new color up.
     AdaptiveTheme.of(
       context,
@@ -33,6 +60,23 @@ class _AccentColorScreenState extends State<AccentColorScreen> {
     return SettingsPageScaffold(
       title: "Accent color",
       children: [
+        if (_systemColor != null) ...[
+          MenuComponent(
+            title: context.strings.accentSystemColors,
+            subtitle: context.strings.accentSystemColorsHint,
+            leading: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: _systemColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            trailing: _system ? const Icon(Icons.check_rounded) : null,
+            onTap: _pickSystem,
+          ),
+          const SizedBox(height: 24),
+        ],
         Wrap(
           spacing: 16,
           runSpacing: 16,
@@ -41,7 +85,8 @@ class _AccentColorScreenState extends State<AccentColorScreen> {
               _Swatch(
                 name: option.name,
                 color: option.color,
-                selected: option.color.toARGB32() == _selected.toARGB32(),
+                selected:
+                    !_system && option.color.toARGB32() == _selected.toARGB32(),
                 outline: colors.textBase,
                 onTap: () => _pick(option.color),
               ),

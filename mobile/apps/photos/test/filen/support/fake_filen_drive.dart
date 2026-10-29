@@ -18,6 +18,10 @@ class FakeFilenDrive {
 
   final Map<String, _Dir> _dirs = {};
   final Map<String, _File> _files = {};
+
+  /// Files in Filen's trash, with the folder they came from.
+  final Map<String, _File> _trash = {};
+  final Map<String, String> _trashOrigin = {};
   int _next = 1;
 
   /// Every call by method name, in order.
@@ -75,9 +79,21 @@ class FakeFilenDrive {
     return false;
   }
 
-  Map<String, Object?> _fileMap(String uuid, _File f) => {
+  /// Whether the file is in Filen's trash.
+  bool isTrashed(String uuid) => _trash.containsKey(uuid);
+
+  bool exists(String uuid) => _files.containsKey(uuid);
+
+  /// Another client (the Filen app, the web) moves a file to the trash.
+  Future<void> trashDirectly(String uuid) async {
+    final f = _files.remove(uuid)!;
+    _trash[uuid] = f;
+    _trashOrigin[uuid] = f.parent;
+  }
+
+  Map<String, Object?> _fileMap(String uuid, _File f, {String? parent}) => {
     'uuid': uuid,
-    'parent': f.parent,
+    'parent': parent ?? f.parent,
     'name': f.name,
     'mime': f.name.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg',
     'size': f.data.length,
@@ -152,6 +168,42 @@ class FakeFilenDrive {
         return _fileMap(uuid, _files[uuid]!);
       case 'deleteFilePermanently':
         _files.remove(a['uuid']);
+        _trash.remove(a['uuid']);
+        return null;
+      case 'trashFile':
+        final f = _files.remove(a['uuid']);
+        if (f == null) {
+          throw PlatformException(code: 'NOT_FOUND', message: 'no such file');
+        }
+        _trash[a['uuid']! as String] = f;
+        _trashOrigin[a['uuid']! as String] = f.parent;
+        return null;
+      case 'listTrash':
+        return {
+          'dirs': <Object?>[],
+          'files': [
+            for (final e in _trash.entries)
+              _fileMap(e.key, e.value, parent: ''),
+          ],
+        };
+      case 'restoreFile':
+        final f = _trash.remove(a['uuid']);
+        if (f == null) {
+          throw PlatformException(code: 'NOT_FOUND', message: 'not in trash');
+        }
+        _files[a['uuid']! as String] = f;
+        return null;
+      case 'moveFile':
+        final f = _files[a['uuid']];
+        if (f == null) {
+          throw PlatformException(code: 'NOT_FOUND', message: 'no such file');
+        }
+        _files[a['uuid']! as String] = _File(
+          a['newParentUuid']! as String,
+          f.name,
+          f.data,
+          isState: f.isState,
+        );
         return null;
       case 'downloadFile':
         final f = _files[a['uuid']]!;

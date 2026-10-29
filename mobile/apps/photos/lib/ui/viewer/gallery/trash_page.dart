@@ -9,6 +9,7 @@ import "package:ente_photos_platform/ente_photos_platform.dart"
 import "package:ente_pure_utils/ente_pure_utils.dart";
 import "package:ente_strings/extensions.dart";
 import 'package:flutter/material.dart';
+import "package:logging/logging.dart";
 import "package:photo_manager/photo_manager.dart";
 import "package:photos/core/constants.dart";
 import "package:photos/core/event_bus.dart";
@@ -61,6 +62,18 @@ class _TrashPageState extends State<_TrashPage> {
   bool _isOnEnteTrash = !isLocalGalleryMode;
   bool _hasTrashFiles = false;
   final _selectedFiles = SelectedFiles();
+
+  @override
+  void initState() {
+    super.initState();
+    // Filen fork: look at Filen's trash now, instead of waiting for the next full sync (which
+    // can be busy uploading for a long time).
+    unawaited(
+      trashSyncService.syncTrash().catchError((Object e, StackTrace s) {
+        Logger('TrashPage').warning('Could not read Filen\'s trash', e, s);
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

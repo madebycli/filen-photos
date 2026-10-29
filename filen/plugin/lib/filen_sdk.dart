@@ -24,11 +24,6 @@ class FilenUserInfo {
   final int maxStorage;
   final String rootUuid;
   final String? nickName;
-  final bool versioningEnabled;
-  final int versionedFiles;
-  final int versionedStorage;
-  final bool loginAlertsEnabled;
-  final bool twoFactorEnabled;
   final int unfinishedFiles;
   final int unfinishedStorage;
 
@@ -39,11 +34,6 @@ class FilenUserInfo {
     required this.maxStorage,
     required this.rootUuid,
     this.nickName,
-    this.versioningEnabled = false,
-    this.versionedFiles = 0,
-    this.versionedStorage = 0,
-    this.loginAlertsEnabled = false,
-    this.twoFactorEnabled = false,
     this.unfinishedFiles = 0,
     this.unfinishedStorage = 0,
   });
@@ -55,11 +45,6 @@ class FilenUserInfo {
     maxStorage: m['maxStorage']! as int,
     rootUuid: m['rootUuid']! as String,
     nickName: m['nickName'] as String?,
-    versioningEnabled: (m['versioningEnabled'] as bool?) ?? false,
-    versionedFiles: (m['versionedFiles'] as int?) ?? 0,
-    versionedStorage: (m['versionedStorage'] as int?) ?? 0,
-    loginAlertsEnabled: (m['loginAlertsEnabled'] as bool?) ?? false,
-    twoFactorEnabled: (m['twoFactorEnabled'] as bool?) ?? false,
     unfinishedFiles: (m['unfinishedFiles'] as int?) ?? 0,
     unfinishedStorage: (m['unfinishedStorage'] as int?) ?? 0,
   );
@@ -182,6 +167,9 @@ class FilenSdk {
 
   Future<void> logout() => _call<void>('logout');
 
+  /// The accent color Android derives from the wallpaper (ARGB), or null before Android 12.
+  Future<int?> systemAccent() => _call<int>('systemAccent');
+
   Future<bool> isLoggedIn() async => (await _call<bool>('isLoggedIn')) ?? false;
 
   Future<FilenUserInfo> userInfo() async =>
@@ -198,20 +186,6 @@ class FilenSdk {
       dirs: m['dirs']! as int,
     );
   }
-
-  Future<void> setVersioning(bool enabled) =>
-      _call<void>('setVersioning', {'enabled': enabled});
-
-  /// Deletes the old versions Filen keeps of changed files.
-  Future<void> deleteAllVersions() => _call<void>('deleteAllVersions');
-
-  Future<void> setLoginAlerts(bool enabled) =>
-      _call<void>('setLoginAlerts', {'enabled': enabled});
-
-  Future<void> changePassword({
-    required String current,
-    required String newPassword,
-  }) => _call<void>('changePassword', {'current': current, 'new': newPassword});
 
   /// Every folder and file below [rootUuid].
   Future<FilenTree> listTree(
@@ -292,17 +266,6 @@ class FilenSdk {
   /// Permanently deletes one of the app's own state files.
   Future<void> deleteFilePermanently(String uuid) =>
       _call<void>('deleteFilePermanently', {'uuid': uuid});
-
-  /// Changes the capture/modification time Filen stores for the file.
-  Future<void> setFileTimes({
-    required String uuid,
-    int? createdMs,
-    int? modifiedMs,
-  }) => _call<void>('setFileTimes', {
-    'uuid': uuid,
-    'createdMs': createdMs,
-    'modifiedMs': modifiedMs,
-  });
 
   /// Local http URL that streams the decrypted file (with range requests) for media players.
   Future<String> streamUrl(String uuid) async =>
