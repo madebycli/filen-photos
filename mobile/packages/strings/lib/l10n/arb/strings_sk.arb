@@ -228,7 +228,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "Aby ste predišli vymknutiu sa z vášho účtu, nezabudnite pred povolením overenia emailom uložiť kópiu svojho 2FA emailu mimo Ente Auth.",
+  "emailVerificationEnableWarning": "Aby ste predišli vymknutiu sa z vášho účtu, nezabudnite pred povolením overenia emailom uložiť kópiu svojho 2FA emailu mimo Filen Auth.",
   "emailVerificationToggle": "Overenie pomocou e-mailovej adresy",
   "emailYourLogs": "Odoslať vaše logy emailom",
   "@emailYourLogs": {
@@ -323,9 +323,9 @@
   },
   "getStarted": "Poďme na to",
   "giveUsAStarOnGithub": "Dajte nám hviezdy na Githube",
-  "hearUsWhereOptionalTitle": "Ako ste sa dozvedeli o Ente? (voliteľné)",
+  "hearUsWhereOptionalTitle": "Ako ste sa dozvedeli o Filen? (voliteľné)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "hideContent": "Skryť obsah",
   "@hideContent": {
@@ -356,7 +356,7 @@
   "importBitwardenGuide": "Použite možnosť „Exportovať trezor“ v službe Bitwarden Tools a importujte nezašifrovaný JSON súbor.",
   "importCodeDelimiterInfo": "Kódy môžu byť oddelené čiarkou alebo novým riadkom",
   "importCodes": "Importovať kódy",
-  "importEnteEncGuide": "Vyberte zašifrovaný JSON export súbor aplikácie Ente",
+  "importEnteEncGuide": "Vyberte zašifrovaný JSON export súbor aplikácie Filen",
   "importEnterSetupKey": "Vložte kľúč nastavenia",
   "importFailureDesc": "Vybraný súbor nie je možné spracovať.",
   "importFromGallery": "Importovať z galérie",
@@ -382,7 +382,7 @@
     }
   },
   "importSuccessTitle": "Jéj!",
-  "importTypeEnteEncrypted": "Šifrovaný Ente export",
+  "importTypeEnteEncrypted": "Šifrovaný Filen export",
   "incorrectCode": "Neplatný kód",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -479,13 +479,13 @@
       "count": {}
     }
   },
-  "networkConnectionRefusedErr": "Nemožno sa pripojiť k Ente, skúste znova v krátkom čase. Ak chyba pretrváva, kontaktujte podporu.",
+  "networkConnectionRefusedErr": "Nemožno sa pripojiť k Filen, skúste znova v krátkom čase. Ak chyba pretrváva, kontaktujte podporu.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "Nemožno sa pripojiť k Ente, skontrolujte svoje nastavenia siete a kontaktujte podporu, ak chyba pretrváva.",
+  "networkHostLookUpErr": "Nemožno sa pripojiť k Filen, skontrolujte svoje nastavenia siete a kontaktujte podporu, ak chyba pretrváva.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "next": "Ďalej",
   "@next": {
@@ -566,7 +566,7 @@
   },
   "passwordToEncryptExport": "Heslo na zašifrovanie exportu",
   "passwordTooShort": "Heslo musí byť dlhé aspoň 8 charakterov.",
-  "passwordWarning": "Ente neukladá tohto heslo. V prípade, že ho zabudnete, <underline>nie sme schopní rozšifrovať vaše údaje</underline>",
+  "passwordWarning": "Filen neukladá tohto heslo. V prípade, že ho zabudnete, <underline>nie sme schopní rozšifrovať vaše údaje</underline>",
   "@passwordWarning": {
     "description": "Warning about password storage"
   },
@@ -764,7 +764,7 @@
   "shouldHideCode": "Skryť kódy",
   "showLargeIcons": "Zobraziť veľké ikony",
   "showQRAuthMessage": "Pre zobrazenie QR kódu sa musíte overiť",
-  "sigInBackupReminder": "Ente bude automaticky zálohovať kódy po prihlásení.\n\nStále však odporúčame exportovať kódy manuálne ako extra zálohu.",
+  "sigInBackupReminder": "Filen bude automaticky zálohovať kódy po prihlásení.\n\nStále však odporúčame exportovať kódy manuálne ako extra zálohu.",
   "signInToBackup": "Prihláste sa a zálohujte svoje kódy",
   "signOutFromOtherDevices": "Odhlásiť sa z iných zariadení",
   "@signOutFromOtherDevices": {

@@ -13,11 +13,11 @@ import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/ui/filen_account_settings_page.dart';
 import 'package:photos/filen/ui/filen_login_page.dart';
 import "package:photos/service_locator.dart";
-import "package:photos/ui/components/banners/offline_settings_banner.dart";
 import "package:photos/ui/notification/toast.dart";
 import "package:photos/ui/settings/about/about_us_page.dart";
 import "package:photos/ui/settings/appearance/appearance_settings_page.dart";
 import "package:photos/ui/settings/backup/backup_settings_page.dart";
+import "package:photos/ui/settings/backup/free_space_options.dart";
 import "package:photos/ui/settings/debug/debug_settings_page.dart";
 import "package:photos/ui/settings/debug/ml_debug_settings_page.dart";
 import "package:photos/ui/settings/inherited_settings_state.dart";
@@ -57,8 +57,6 @@ class _SettingsBody extends StatelessWidget {
       actions: _buildHeaderActions(context),
       children: [
         if (showLoginEntry) ...[
-          OfflineSettingsBanner(onGetStarted: () => _openFilenLogin(context)),
-          const SizedBox(height: 16),
           _buildOfflineLoginCard(context, colors),
           const SizedBox(height: 8),
         ],
@@ -78,6 +76,14 @@ class _SettingsBody extends StatelessWidget {
             icon: HugeIcons.strokeRoundedCloudUpload,
             onTap: () async {
               await routeToPage(context, const BackupSettingsPage());
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildMenuItem(
+            title: context.strings.freeUpSpace,
+            icon: HugeIcons.strokeRoundedDelete02,
+            onTap: () async {
+              await routeToPage(context, const FreeUpSpaceOptionsScreen());
             },
           ),
           const SizedBox(height: 8),
@@ -191,7 +197,7 @@ class _SettingsBody extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: colors.green,
+          color: colors.primary,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(

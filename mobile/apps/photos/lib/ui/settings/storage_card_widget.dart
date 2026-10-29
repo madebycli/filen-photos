@@ -9,6 +9,7 @@ import "package:photos/core/errors.dart";
 import 'package:photos/models/user_details.dart';
 import 'package:photos/states/user_details_state.dart';
 import 'package:photos/theme/colors.dart';
+import 'package:photos/theme/ente_theme.dart';
 import 'package:photos/ui/settings/storage_progress_widget.dart';
 
 class StorageCardWidget extends StatefulWidget {
@@ -166,7 +167,7 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
                 fractionOfStorage: 1,
               ),
               StorageProgressWidget(
-                color: const Color(0xFF08C225),
+                color: getEnteColorScheme(context).primary500,
                 fractionOfStorage: (usedStorageInBytes / totalStorageInBytes),
               ),
             ],

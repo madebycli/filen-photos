@@ -11,7 +11,7 @@ import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
 import "package:photos/app.dart";
 import "package:photos/locale.dart";
-import "package:photos/ui/settings/app_icon_selection_screen.dart";
+import "package:photos/ui/settings/accent_color_screen.dart";
 import "package:photos/ui/settings/gallery_settings_screen.dart";
 
 class AppearanceSettingsPage extends StatefulWidget {
@@ -54,10 +54,10 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           const SizedBox(height: 8),
         ],
         SettingsItem(
-          title: context.strings.appIcon,
-          icon: HugeIcons.strokeRoundedImage02,
+          title: "Accent color",
+          icon: HugeIcons.strokeRoundedPaintBoard,
           onTap: () async {
-            await routeToPage(context, const AppIconSelectionScreen());
+            await routeToPage(context, const AccentColorScreen());
           },
         ),
         const SizedBox(height: 8),

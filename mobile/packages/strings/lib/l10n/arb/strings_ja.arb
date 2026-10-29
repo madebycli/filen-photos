@@ -913,9 +913,9 @@
   "guestView": "ゲストビュー",
   "guestViewEnablePreSteps": "アプリのロックを有効にするには、システム設定でデバイスのパスコードまたは画面ロックを設定してください。",
   "happyBirthday": "お誕生日おめでとうございます! 🥳",
-  "hearUsWhereOptionalTitle": "Ente についてどのようにお聞きになりましたか？（任意）",
+  "hearUsWhereOptionalTitle": "Filen についてどのようにお聞きになりましたか？（任意）",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "help": "ヘルプ",
   "helpAndSupport": "ヘルプとサポート",
@@ -981,7 +981,7 @@
     }
   },
   "importSuccessTitle": "やりました！",
-  "importTypeEnteEncrypted": "Ente 暗号化されたエクスポート",
+  "importTypeEnteEncrypted": "Filen 暗号化されたエクスポート",
   "incorrectDetails": "不正な詳細",
   "incorrectRecoveryKeyBody": "リカバリーキーが間違っています",
   "incorrectRecoveryKeyTitle": "リカバリーキーの誤り",
@@ -1238,11 +1238,11 @@
   "name": "名前順",
   "networkConnectionRefusedErr": "Enteに接続できませんでした。しばらくしてから再試行してください。エラーが解決しない場合は、サポートにお問い合わせください。",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
   "networkHostLookUpErr": "Enteに接続できませんでした。ネットワーク設定を確認し、エラーが解決しない場合はサポートにお問い合わせください。",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "never": "なし",
   "newAlbum": "新しいアルバム",
@@ -1360,9 +1360,9 @@
   "offlineNameFaceBannerTitle": "この顔に名前を付けてください",
   "offlineSettingsBannerTitle": "あなたの写真を見ることはできません。",
   "oneLineAboutTheIssue": "問題の概要",
-  "onEnte": "<branding>Ente</branding>が保管",
+  "onEnte": "<branding>Filen</branding>が保管",
   "@onEnte": {
-    "description": "The text displayed above albums backed up to Ente",
+    "description": "The text displayed above albums backed up to Filen",
     "type": "text"
   },
   "onlyFamilyAdminCanChangeCode": "コードを変更するには、 {familyAdminEmail} までご連絡ください。",

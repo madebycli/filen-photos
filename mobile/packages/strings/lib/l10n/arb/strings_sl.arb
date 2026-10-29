@@ -229,7 +229,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "Če se želite izogniti zaklepanju računa, pred omogočanjem preverjanja e-pošte shranite kopijo e-poštnega potrdila 2FA zunaj storitve Ente Auth.",
+  "emailVerificationEnableWarning": "Če se želite izogniti zaklepanju računa, pred omogočanjem preverjanja e-pošte shranite kopijo e-poštnega potrdila 2FA zunaj storitve Filen Auth.",
   "emailVerificationToggle": "Verifikacija e-pošte",
   "emailYourLogs": "Pošlji loge po e-pošti",
   "@emailYourLogs": {
@@ -308,9 +308,9 @@
   },
   "getStarted": "Začnite",
   "giveUsAStarOnGithub": "Dajte nam zvezdico na Githubu",
-  "hearUsWhereOptionalTitle": "Kako ste slišali o Ente? (izbirno)",
+  "hearUsWhereOptionalTitle": "Kako ste slišali o Filen? (izbirno)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "hide": "Skrij",
   "hideContent": "Skrij vsebino",
@@ -341,7 +341,7 @@
   "importBitwardenGuide": "V orodjih Bitwarden Tools uporabite možnost \"Izvozi trezor\" (\"Export vault\") in uvozite nešifrirano datoteko JSON.",
   "importCodeDelimiterInfo": "Kode so lahko ločene z vejico ali novo vrstico.",
   "importCodes": "Uvozi kode",
-  "importEnteEncGuide": "Izberi šifrirano JSON datoteko izvoženo iz Ente",
+  "importEnteEncGuide": "Izberi šifrirano JSON datoteko izvoženo iz Filen",
   "importEnterSetupKey": "Vnesite namestitveni ključ",
   "importFailureDesc": "Izbrane datoteke ni bilo mogoče prebrati",
   "importInstruction": "Izberite datoteko, ki vsebuje seznam vaših kod v naslednji obliki",
@@ -366,7 +366,7 @@
     }
   },
   "importSuccessTitle": "Juhu!",
-  "importTypeEnteEncrypted": "Ente šifriran izvoz",
+  "importTypeEnteEncrypted": "Filen šifriran izvoz",
   "incorrectCode": "Nepravilna koda",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -469,13 +469,13 @@
     }
   },
   "moveToAlbum": "Premakni v album",
-  "networkConnectionRefusedErr": "Ne morete se povezati z Ente, poskusite znova čez nekaj časa. Če se napaka nadaljuje, se obrnite na podporo.",
+  "networkConnectionRefusedErr": "Ne morete se povezati z Filen, poskusite znova čez nekaj časa. Če se napaka nadaljuje, se obrnite na podporo.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "Ne morete se povezati z Ente, preverite omrežne nastavitve in se obrnite na podporo, če se napaka nadaljuje.",
+  "networkHostLookUpErr": "Ne morete se povezati z Filen, preverite omrežne nastavitve in se obrnite na podporo, če se napaka nadaljuje.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "next": "Naprej",
   "@next": {

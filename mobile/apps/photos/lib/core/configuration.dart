@@ -262,17 +262,6 @@ class Configuration implements LockScreenHost {
       );
     }
 
-    try {
-      wrappedService.resetForLogout();
-    } catch (e) {
-      _logger.info("WrappedService not initialized or failed to reset", e);
-    }
-    try {
-      await wrappedCacheService.clearAll();
-    } catch (e) {
-      _logger.info("WrappedCacheService not initialized or failed to clear", e);
-    }
-
     if (!autoLogout) {
       // Auto logout can run before these services are initialized.
       CollectionsService.instance.clearCache();

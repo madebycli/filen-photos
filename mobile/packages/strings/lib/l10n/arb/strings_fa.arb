@@ -29,7 +29,7 @@
   "addTo": "افزودن به",
   "addToAlbum": "افزودن به آلبوم",
   "addToCollection": "افزودن به مجموعه",
-  "addToEnte": "افزودن به Ente",
+  "addToEnte": "افزودن به Filen",
   "addToHiddenAlbum": "افزودن به آلبوم پنهان",
   "advanced": "پیشرفته",
   "after1Year": "بعد از 1 سال",
@@ -69,8 +69,8 @@
   "@androidSignInTitle": {
     "description": "Message showed as a title in a dialog which indicates the user that they need to scan biometric to continue. It is used on Android side. Maximum 60 characters."
   },
-  "aNewVersionOfEnteIsAvailable": "نسخه جدید Ente در دسترس است.",
-  "aNewVersionOfEnteLockerIsAvailable": "نسخه جدید Ente Locker در دسترس است.",
+  "aNewVersionOfEnteIsAvailable": "نسخه جدید Filen در دسترس است.",
+  "aNewVersionOfEnteLockerIsAvailable": "نسخه جدید Filen Locker در دسترس است.",
   "anythingElse": "چیز دیگری هم هست؟",
   "@anythingElse": {
     "description": "Label for optional account deletion feedback"
@@ -308,7 +308,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "جهت پیشگیری از مسدود شدن حساب، حتماً قبل از فعال‌سازی تأیید ایمیل، یک نسخه از تأیید هویت دو‌مرحله‌ای ایمیلی 2FA خود را خارج از Ente Auth ذخیره کنید.",
+  "emailVerificationEnableWarning": "جهت پیشگیری از مسدود شدن حساب، حتماً قبل از فعال‌سازی تأیید ایمیل، یک نسخه از تأیید هویت دو‌مرحله‌ای ایمیلی 2FA خود را خارج از Filen Auth ذخیره کنید.",
   "emailVerificationToggle": "تائید ایمیل",
   "emailYourLogs": "لاگ‌های خود را ایمیل کنید",
   "@emailYourLogs": {
@@ -392,9 +392,9 @@
   "giveUsAStarOnGithub": "در گیت‌هاب به ما ستاره بدهید",
   "grantFullAccessPrompt": "لطفا در تنظیمات برنامه، دسترسی به تمام عکس‌ها را فعال کنید",
   "grantPermission": "اعطای مجوز",
-  "hearUsWhereOptionalTitle": "از کجا در مورد Ente شنیدی؟ (اختیاری)",
+  "hearUsWhereOptionalTitle": "از کجا در مورد Filen شنیدی؟ (اختیاری)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "hideContent": "پنهان کردن محتوا",
   "@hideContent": {
@@ -426,7 +426,7 @@
   "importBitwardenGuide": "از گزینهٔ «تهیه خروجی از گاوصندوق» در بخش ابزارهای Bitwarden استفاده کنید و فایل JSON رمزگذاری‌نشده را وارد کنید.",
   "importCodeDelimiterInfo": "کدها می‌توانند با کاما یا یک خط جدید از یکدیگر جدا شوند",
   "importCodes": "ورود کدها",
-  "importEnteEncGuide": "انتخاب فایل JSON رمزگذاری شده از Ente",
+  "importEnteEncGuide": "انتخاب فایل JSON رمزگذاری شده از Filen",
   "importEnterSetupKey": "وارد کردن کلید تنظیم",
   "importFailureDesc": "تجزیهٔ فایل انتخاب‌شده، با خطا مواجه شد.",
   "importFromGallery": "وارد کردن از گالری",
@@ -505,7 +505,7 @@
   "invalidRecoveryKey": "کلید بازیابی که وارد کرده‌اید نامعتبر است. لطفا مطمئن شوید که شامل ۲۴ کلمه است و همه کلمات را صحیح نوشته‌اید.\n\nاگر کد بازیابی قدیمی تری را وارد کرده‌اید، مطمئن شوید که شامل ۶۴ حرف است و همه حروف را صحیح نوشته‌اید.",
   "invite": "دعوت",
   "inviteMembers": "دعوت اعضا",
-  "inviteToEnte": "دعوت به Ente",
+  "inviteToEnte": "دعوت به Filen",
   "ok": "تأیید",
   "@ok": {
     "description": "Generic OK button label"
@@ -567,13 +567,13 @@
       "count": {}
     }
   },
-  "networkConnectionRefusedErr": "نمی‌توان به Ente متصل شد. لطفاً کمی بعد دوباره امتحان کنید. در صورتی که مشکل برطرف نشد، لطفا به پشتیبانی اطلاع دهید.",
+  "networkConnectionRefusedErr": "نمی‌توان به Filen متصل شد. لطفاً کمی بعد دوباره امتحان کنید. در صورتی که مشکل برطرف نشد، لطفا به پشتیبانی اطلاع دهید.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "نمی‌توان به Ente متصل شد. لطفاً وضعیت شبکه را بررسی کنید و اگر خطا برطرف نشد، به پشتیبانی اطلاع دهید.",
+  "networkHostLookUpErr": "نمی‌توان به Filen متصل شد. لطفاً وضعیت شبکه را بررسی کنید و اگر خطا برطرف نشد، به پشتیبانی اطلاع دهید.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "never": "هرگز",
   "next": "بعدی",

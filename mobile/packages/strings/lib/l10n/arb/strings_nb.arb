@@ -242,7 +242,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "For å unngå å bli låst ut av kontoen din, sørg for å lagre en kopi av e-postadressen 2FA utenfor Ente Auth før du tar i bruk e-postbekreftelse.",
+  "emailVerificationEnableWarning": "For å unngå å bli låst ut av kontoen din, sørg for å lagre en kopi av e-postadressen 2FA utenfor Filen Auth før du tar i bruk e-postbekreftelse.",
   "emailVerificationToggle": "E-postbekreftelse",
   "emailYourLogs": "Send loggene med e-post",
   "@emailYourLogs": {
@@ -337,9 +337,9 @@
   },
   "getStarted": "Kom i gang",
   "giveUsAStarOnGithub": "Gi oss en stjerne på GitHub",
-  "hearUsWhereOptionalTitle": "Hvordan fikk du høre om Ente? (valgfritt)",
+  "hearUsWhereOptionalTitle": "Hvordan fikk du høre om Filen? (valgfritt)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "hideContent": "Skjul innhold",
   "@hideContent": {
@@ -370,7 +370,7 @@
   "importBitwardenGuide": "Bruk «Eksporter hvelv»-innstillingen i Bitwarden sine verktøy og importer den ukrypterte JSON-fila.",
   "importCodeDelimiterInfo": "Kodene kan skilles med et komma eller en ny linje",
   "importCodes": "Importer koder",
-  "importEnteEncGuide": "Velg den krypterte JSON-fila eksportert fra Ente",
+  "importEnteEncGuide": "Velg den krypterte JSON-fila eksportert fra Filen",
   "importEnterSetupKey": "Skriv inn en oppsettsnøkkel",
   "importFailureDesc": "Klarte ikke tolke den valgte fila.",
   "importFromGallery": "Importer fra galleri",
@@ -409,7 +409,7 @@
     }
   },
   "importSuccessTitle": "Jippi!",
-  "importTypeEnteEncrypted": "Ente kryptert eksport",
+  "importTypeEnteEncrypted": "Filen kryptert eksport",
   "incorrectCode": "Feil kode",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -514,13 +514,13 @@
       "count": {}
     }
   },
-  "networkConnectionRefusedErr": "Klarte ikke koble til Ente, prøv igjen etter en stund. Hvis feilen vedvarer, ta kontakt med kundestøtte.",
+  "networkConnectionRefusedErr": "Klarte ikke koble til Filen, prøv igjen etter en stund. Hvis feilen vedvarer, ta kontakt med kundestøtte.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "Klarte ikke koble til Ente, kontroller nettverksinnstillingene og ta kontakt med kundestøtte hvis feilen vedvarer.",
+  "networkHostLookUpErr": "Klarte ikke koble til Filen, kontroller nettverksinnstillingene og ta kontakt med kundestøtte hvis feilen vedvarer.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "next": "Neste",
   "@next": {
@@ -801,7 +801,7 @@
   "shouldHideCode": "Skjul koder",
   "showLargeIcons": "Vis store ikoner",
   "showQRAuthMessage": "Autentiser for å vise QR-kode",
-  "sigInBackupReminder": "Ente vil på automatisk vis sikkerhetskopiere kodene etter innlogging.\n\nVi anbefaler fremdeles å eksportere kodene som ekstra beskyttelse.",
+  "sigInBackupReminder": "Filen vil på automatisk vis sikkerhetskopiere kodene etter innlogging.\n\nVi anbefaler fremdeles å eksportere kodene som ekstra beskyttelse.",
   "signInToBackup": "Logg inn for å sikkerhetskopiere kodene",
   "signOutFromOtherDevices": "Logg ut fra andre enheter",
   "@signOutFromOtherDevices": {

@@ -403,14 +403,25 @@ class FilenSyncService {
   Future<void> trashFiles(List<TrashRequest> requests) async {
     final db = FilesDB.instance;
     for (final r in requests) {
-      final row = await db.getUploadedFile(r.fileID, r.collectionID);
+      // The row of the album the user looked at, else any row of the same photo (a photo can be
+      // listed in several albums).
+      final row =
+          await db.getUploadedFile(r.fileID, r.collectionID) ??
+          await db.getAnyUploadedFile(r.fileID);
       if (row == null || !isFilenFile(row)) {
-        _logger.warning(
-          'Skipping trash of ${r.fileID}: not a known Filen file',
+        // Never pretend: the caller would forget the local rows and the photo would come back.
+        throw StateError(
+          'Cannot move ${r.fileID} to the Filen trash: not a known Filen file',
         );
-        continue;
       }
-      await FilenSdk.instance.trashFile(filenUuidOf(row));
+      final uuid = filenUuidOf(row);
+      try {
+        await FilenSdk.instance.trashFile(uuid);
+      } on FilenException catch (e) {
+        // Already gone from the drive (trashed elsewhere): that is what the user wanted.
+        if (e.code != 'NOT_FOUND') rethrow;
+        _logger.info('${row.tag} was already gone from Filen');
+      }
       _logger.info('Trashed ${row.tag} on Filen');
     }
   }

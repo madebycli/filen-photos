@@ -58,6 +58,11 @@ class FilenSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "isLoggedIn" -> backend.isLoggedIn
             "userInfo" -> backend.userInfo()
             "rootUuid" -> backend.rootUuid()
+            "dirSize" -> backend.dirSize(str("uuid"))
+            "setVersioning" -> { backend.setVersioning(call.argument<Boolean>("enabled") == true); null }
+            "deleteAllVersions" -> { backend.deleteAllVersions(); null }
+            "setLoginAlerts" -> { backend.setLoginAlerts(call.argument<Boolean>("enabled") == true); null }
+            "changePassword" -> { backend.changePassword(str("current"), str("new")); null }
             "listTree" -> backend.listTree(
                 str("rootUuid"),
                 (call.argument<List<String>>("skipDirNames") ?: emptyList()).toSet(),

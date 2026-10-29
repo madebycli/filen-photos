@@ -36,6 +36,7 @@ const List<String> kFilenSyncedSettings = [
   'should_backup_videos',
   'filen.ml_consent',
   'filen.map_enabled',
+  'filen.accent_color',
 ];
 
 /// One setting as stored in the cloud document: a type tag plus the value, canonical JSON so two

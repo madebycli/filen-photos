@@ -140,6 +140,86 @@ class EnteColorScheme {
     this.golden700 = _golden700,
     this.golden500 = _golden500,
   });
+
+  /// Filen fork: the same scheme with the user's accent color in place of Ente's green.
+  EnteColorScheme withAccent(Color seed) {
+    final hsl = HSLColor.fromColor(seed);
+    Color shade(double f) =>
+        hsl.withLightness((hsl.lightness * f).clamp(0.0, 1.0)).toColor();
+    final isDark = backgroundColour.computeLuminance() < 0.5;
+    final tintBase = isDark ? const Color(0xFF222222) : const Color(0xFFFFFFFF);
+    final greenBase_ = seed;
+    final greenDark_ = shade(0.82);
+    final greenDarker_ = shade(0.65);
+    final greenLight_ = Color.lerp(tintBase, seed, isDark ? 0.16 : 0.14)!;
+    final greenStroke_ = Color.lerp(tintBase, seed, isDark ? 0.30 : 0.40)!;
+    final primary700_ = shade(0.9);
+    final primary500_ = seed;
+    final primary400_ = hsl.withLightness((hsl.lightness * 1.08).clamp(0.0, 1.0)).toColor();
+    final primary300_ = hsl.withLightness((hsl.lightness * 1.18).clamp(0.0, 1.0)).toColor();
+    return EnteColorScheme(
+      backgroundColour,
+      backgroundElevated,
+      backgroundElevated2,
+      backdropBase,
+      backdropMuted,
+      backdropFaint,
+      textBase,
+      textMuted,
+      textFaint,
+      blurTextBase,
+      fillBase,
+      fillBasePressed,
+      fillStrong,
+      fillMuted,
+      fillFaint,
+      fillFaintPressed,
+      fillBaseGrey,
+      strokeBase,
+      strokeMuted,
+      strokeFaint,
+      strokeFainter,
+      blurStrokeBase,
+      blurStrokeFaint,
+      blurStrokePressed,
+      tabIcon,
+      menuItemIconStroke,
+      fill,
+      fillDark,
+      fillDarker,
+      fillDarkest,
+      fillReverse,
+      content,
+      contentDark,
+      contentDarker,
+      contentLight,
+      contentLighter,
+      contentLightest,
+      contentReverse,
+      strokeSolid,
+      strokeDark,
+      greenBase_,
+      greenDark_,
+      greenDarker_,
+      greenLight_,
+      greenStroke_,
+      redBase,
+      redDark,
+      redDarker,
+      redLight,
+      primary700: primary700_,
+      primary500: primary500_,
+      primary400: primary400_,
+      primary300: primary300_,
+      warning800: warning800,
+      warning700: warning700,
+      warning500: warning500,
+      warning400: warning400,
+      caution500: caution500,
+      golden700: golden700,
+      golden500: golden500,
+    );
+  }
 }
 
 const EnteColorScheme lightScheme = EnteColorScheme(

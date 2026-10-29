@@ -22,6 +22,8 @@ import uniffi.filen_sdk_rs.FilenSdkException
 import uniffi.filen_sdk_rs.JsClient
 import uniffi.filen_sdk_rs.JsClientConfig
 import uniffi.filen_sdk_rs.LoginParams
+import uniffi.filen_sdk_rs.AnyDirWithContext
+import uniffi.filen_sdk_rs.ChangePasswordParams
 import uniffi.filen_sdk_rs.MakeThumbnailInMemoryParams
 import uniffi.filen_sdk_rs.MakeThumbnailInMemoryResult
 import uniffi.filen_sdk_rs.ManagedFuture
@@ -101,7 +103,38 @@ class FilenBackend {
             "maxStorage" to info.maxStorage.toLong(),
             "rootUuid" to info.rootDirUuid,
             "nickName" to info.nickName,
+            "versioningEnabled" to info.versioningEnabled,
+            "versionedFiles" to info.versionedFiles.toLong(),
+            "versionedStorage" to info.versionedStorage.toLong(),
+            "loginAlertsEnabled" to info.loginAlertsEnabled,
+            "twoFactorEnabled" to info.twoFactorEnabled,
+            "unfinishedFiles" to info.unfinishedFiles.toLong(),
+            "unfinishedStorage" to info.unfinishedStorage.toLong(),
         )
+    }
+
+    /** Total size and counts of a folder and everything below it. */
+    suspend fun dirSize(uuid: String): Map<String, Any?> = wrap {
+        val c = requireClient()
+        val r = c.getDirSize(AnyDirWithContext.Normal(dirTarget(c, uuid)))
+        mapOf("size" to r.size.toLong(), "files" to r.files.toLong(), "dirs" to r.dirs.toLong())
+    }
+
+    suspend fun setVersioning(enabled: Boolean) = wrap {
+        requireClient().setVersioningEnabled(enabled)
+    }
+
+    /** Removes the old versions Filen keeps of changed files (frees "versioned" storage). */
+    suspend fun deleteAllVersions() = wrap {
+        requireClient().deleteAllVersions()
+    }
+
+    suspend fun setLoginAlerts(enabled: Boolean) = wrap {
+        requireClient().setLoginAlertsEnabled(enabled)
+    }
+
+    suspend fun changePassword(current: String, new: String) = wrap {
+        requireClient().changePassword(ChangePasswordParams(currentPassword = current, newPassword = new))
     }
 
     suspend fun rootUuid(): String = wrap { requireClient().root().uuid }

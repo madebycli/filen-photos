@@ -227,11 +227,39 @@ class PrimaryColorTokens {
   final Color primaryDarker;
 }
 
+/// Filen fork: the user's accent color for the photos app. Null keeps the original green.
+Color? componentAccentSeed;
+
+/// Primary color tokens derived from one [seed] color, for the user-chosen accent.
+PrimaryColorTokens primaryTokensFromSeed(Color seed, Brightness brightness) {
+  final dark = brightness == Brightness.dark;
+  final hsl = HSLColor.fromColor(seed);
+  Color shade(double factor) =>
+      hsl.withLightness((hsl.lightness * factor).clamp(0.0, 1.0)).toColor();
+  final surface = dark
+      ? const Color.fromRGBO(34, 34, 34, 1)
+      : const Color.fromRGBO(255, 255, 255, 1);
+  Color tint(double amount) => Color.lerp(surface, seed, amount)!;
+  return PrimaryColorTokens(
+    primaryLight: dark ? const Color.fromRGBO(41, 41, 41, 1) : tint(0.14),
+    primaryLightHover: tint(dark ? 0.16 : 0.22),
+    primaryLightPressed: tint(dark ? 0.26 : 0.32),
+    primaryStroke: tint(dark ? 0.30 : 0.40),
+    primary: seed,
+    primaryDark: shade(0.82),
+    primaryDarker: shade(0.65),
+  );
+}
+
 PrimaryColorTokens _primaryTokensForApp(
   ComponentApp app,
   Brightness brightness,
 ) {
   final dark = brightness == Brightness.dark;
+  final accent = componentAccentSeed;
+  if (app == ComponentApp.photos && accent != null) {
+    return primaryTokensFromSeed(accent, brightness);
+  }
   return switch (app) {
     ComponentApp.photos =>
       dark ? greenPrimaryTokensDark : greenPrimaryTokensLight,

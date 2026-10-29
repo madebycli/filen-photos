@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:photos/theme/colors.dart';
 import 'package:photos/theme/ente_theme.dart';
 
-final lightThemeData = ThemeData(
+// Filen fork: getters, so a new accent color takes effect when the theme is rebuilt.
+ThemeData get lightThemeData => ThemeData(
   fontFamily: 'Inter',
   brightness: Brightness.light,
   popupMenuTheme: PopupMenuThemeData(color: ColorTokens.light.fillLight),
@@ -95,7 +96,7 @@ final lightThemeData = ThemeData(
   ],
 );
 
-final darkThemeData = ThemeData(
+ThemeData get darkThemeData => ThemeData(
   fontFamily: 'Inter',
   brightness: Brightness.dark,
   popupMenuTheme: PopupMenuThemeData(color: ColorTokens.dark.fillLight),

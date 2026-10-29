@@ -32,7 +32,9 @@ enum LocalGalleryFlag {
   nameFaceBannerDismissed,
   seenMLEnablingBanner,
   mlProgressBannerDismissed,
-  localGallerySettingsBannerDismissed,
+  // Reserved: previously localGallerySettingsBannerDismissed (Ente marketing
+  // banner, removed). Kept to preserve bit positions.
+  reservedLocalGallerySettingsBannerDismissed,
 }
 
 enum DeletePreference {
@@ -60,14 +62,12 @@ class LocalSettings {
   static const kGalleryLayoutType = "gallery_layout_type";
   static const kPhotoGridSize = "photo_grid_size";
   static const _kisMLLocalIndexingEnabled = "ls.ml_local_indexing";
-  static const kRateUsShownCount = "rate_us_shown_count";
   static const kEnableMultiplePart = "ls.enable_multiple_part";
   static const kCuratedMemoriesEnabled = "ls.curated_memories_enabled";
   static const kOnThisDayNotificationsEnabled =
       "ls.on_this_day_notifications_enabled";
   static const kBirthdayNotificationsEnabled =
       "ls.birthday_notifications_enabled";
-  static const kRateUsPromptThreshold = 2;
   static const shouldLoopVideoKey = "video.should_loop";
   static const isMutedKey = "video.is_muted";
   static const _memoriesMusicMutedKey = "memories.audio_muted";
@@ -96,10 +96,7 @@ class LocalSettings {
       "ls.bg_debug_notifications_enabled";
   static const _kCFUploadProxyEnabled = "ls.cf_upload_proxy_enabled";
   static const _kSharedPhotoFeedCutoffTime = "ls.shared_photo_feed_cutoff_time";
-  static const _kWrapped2025ResumeIndex = "ls.wrapped_2025_resume_index";
-  static const _kWrapped2025Complete = "ls.wrapped_2025_complete";
   static const _memoryLaneSeenKey = "faces_timeline_seen_person_ids";
-  static const _kChristmasBannerEnabled = "ls.christmas_banner_enabled";
   static const _kPetRecognitionEnabled = "ls.pet_recognition_enabled";
   static const _kAutoMergeThresholdOverride = "ml_debug.auto_merge_threshold";
   static const _kDefaultClusteringDistanceOverride =
@@ -317,14 +314,6 @@ class LocalSettings {
     await _prefs.setInt(kPhotoGridSize, value);
   }
 
-  int getRateUsShownCount() {
-    if (_prefs.containsKey(kRateUsShownCount)) {
-      return _prefs.getInt(kRateUsShownCount)!;
-    } else {
-      return 0;
-    }
-  }
-
   DateTime getInstallDateTime() {
     if (_prefs.containsKey('ls.install_time')) {
       return DateTime.fromMillisecondsSinceEpoch(
@@ -335,14 +324,6 @@ class LocalSettings {
       _prefs.setInt('ls.install_time', installTime.millisecondsSinceEpoch);
       return installTime;
     }
-  }
-
-  Future<void> setRateUsShownCount(int value) async {
-    await _prefs.setInt(kRateUsShownCount, value);
-  }
-
-  bool shouldPromptToRateUs() {
-    return getRateUsShownCount() < kRateUsPromptThreshold;
   }
 
   bool get isLocalGalleryMode => appMode == AppMode.localGallery;
@@ -589,33 +570,6 @@ class LocalSettings {
     return cutoff;
   }
 
-  int wrapped2025ResumeIndex() {
-    return _prefs.getInt(_kWrapped2025ResumeIndex) ?? 0;
-  }
-
-  Future<void> setWrapped2025ResumeIndex(int index) async {
-    await _prefs.setInt(_kWrapped2025ResumeIndex, index);
-  }
-
-  bool wrapped2025Complete() {
-    return _prefs.getBool(_kWrapped2025Complete) ?? false;
-  }
-
-  Future<void> setWrapped2025Complete() async {
-    await _prefs.setBool(_kWrapped2025Complete, true);
-  }
-
-  Future<void> resetWrapped2025Complete() async {
-    await _prefs.setBool(_kWrapped2025Complete, false);
-  }
-
-  bool get isChristmasBannerEnabled =>
-      _prefs.getBool(_kChristmasBannerEnabled) ?? true;
-
-  Future<void> setChristmasBannerEnabled(bool value) async {
-    await _prefs.setBool(_kChristmasBannerEnabled, value);
-  }
-
   AppMode get appMode {
     if (_cachedAppMode != null) return _cachedAppMode!;
 
@@ -663,12 +617,6 @@ class LocalSettings {
 
   Future<void> setLocalGalleryFacesBannerDismissed(bool value) =>
       _setFlag(LocalGalleryFlag.facesBannerDismissed, value);
-
-  bool get isLocalGallerySettingsBannerDismissed =>
-      _getFlag(LocalGalleryFlag.localGallerySettingsBannerDismissed);
-
-  Future<void> setLocalGallerySettingsBannerDismissed(bool value) =>
-      _setFlag(LocalGalleryFlag.localGallerySettingsBannerDismissed, value);
 
   int get _mediaManagementHintDeleteAttempts =>
       _prefs.getInt(_kMediaManagementHintDeleteAttempts) ?? 0;

@@ -54,6 +54,7 @@ import 'package:photos/services/sync/remote_sync_service.dart';
 import "package:photos/services/sync/sync_service.dart";
 import "package:photos/src/rust/api/log.dart" as photos_rust_log;
 import "package:photos/src/rust/frb_generated.dart";
+import 'package:photos/theme/accent.dart';
 import 'package:photos/ui/wallpaper/wallpaper_page.dart';
 import "package:photos/utils/bg_task_utils.dart";
 import "package:photos/utils/device_info.dart";
@@ -134,6 +135,7 @@ Future<void> _runInForeground(
   MediaExtentionAction initialMediaExtensionAction,
 ) async {
   components.ComponentTheme.configure(app: components.ComponentApp.photos);
+  await AccentColors.load(await SharedPreferences.getInstance());
   return await runWithLogs(() async {
     _logger.info("Starting app in foreground");
     isProcessBg = false;
@@ -517,7 +519,6 @@ Future<void> _init(
       PersonService.instance.clearCache();
       _logger.severe("Person cache warm-up failed", e, s);
     }
-    wrappedService.scheduleInitialLoad();
     logLocalSettings();
     initComplete = true;
     _stopHearBeat = true;

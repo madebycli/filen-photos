@@ -144,7 +144,7 @@
   "addTo": "Adicionar a",
   "addToAlbum": "Adicionar ao álbum",
   "addToCollection": "Adicionar à coleção",
-  "addToEnte": "Adicionar ao Ente",
+  "addToEnte": "Adicionar ao Filen",
   "addToHiddenAlbum": "Adicionar ao álbum oculto",
   "addToPerson": "Adicionar à pessoa",
   "@addToPerson": {
@@ -206,7 +206,7 @@
   "allowAppToOpenSharedAlbumLinks": "Permitir aplicativo abrir links de álbum compartilhado",
   "allowDownloads": "Permitir downloads",
   "allowJoiningAlbum": "Permitir",
-  "allowPermBody": "Por favor, permita o acesso às suas fotos nas Opções para que Ente possa exibir e fazer backup da sua biblioteca.",
+  "allowPermBody": "Por favor, permita o acesso às suas fotos nas Opções para que Filen possa exibir e fazer backup da sua biblioteca.",
   "allowPermTitle": "Permita acesso às Fotos",
   "allPersonGroupingWillReset": "Todos os agrupamentos dessa pessoa serão redefinidos, e você perderá todas as sugestões feitas por essa pessoa.",
   "allTabEmptyHint": "Não há nada aqui. Clique em + para adicionar um código ou abra a Lixeira e recupere um.",
@@ -240,8 +240,8 @@
       }
     }
   },
-  "aNewVersionOfEnteIsAvailable": "Uma nova versão do Ente está disponível.",
-  "aNewVersionOfEnteLockerIsAvailable": "Uma nova versão do Ente Locker está disponível.",
+  "aNewVersionOfEnteIsAvailable": "Uma nova versão do Filen está disponível.",
+  "aNewVersionOfEnteLockerIsAvailable": "Uma nova versão do Filen Locker está disponível.",
   "anythingElse": "Algo mais?",
   "@anythingElse": {
     "description": "Label for optional account deletion feedback"
@@ -249,7 +249,7 @@
   "appearance": "Aparência",
   "appIcon": "Ícone do aplicativo",
   "appleId": "ID da Apple",
-  "applePhotosUnsupportedResource": "Este arquivo não pôde ser salvo no Apple Photos. Você ainda pode vê-lo no Ente.",
+  "applePhotosUnsupportedResource": "Este arquivo não pôde ser salvo no Apple Photos. Você ainda pode vê-lo no Filen.",
   "@applePhotosUnsupportedResource": {
     "description": "Shown when iOS Photos rejects a file while saving to gallery because the media resource is invalid or unsupported"
   },
@@ -360,7 +360,7 @@
   "autoAddPeople": "Adicionar pessoas automaticamente",
   "autoAddToAlbum": "Adicionar ao álbum automaticamente",
   "autoCastDialogBody": "Você verá dispositivos de transmissão disponível aqui.",
-  "autoCastiOSPermission": "Certifique-se que as permissões da internet local estejam ligadas para o Ente Photos App, em opções.",
+  "autoCastiOSPermission": "Certifique-se que as permissões da internet local estejam ligadas para o Filen Photos App, em opções.",
   "autoLock": "Bloqueio automático",
   "@autoLock": {
     "description": "Auto lock setting title"
@@ -413,7 +413,7 @@
   "backupSettings": "Opções de backup",
   "backupStatus": "Estado do backup",
   "backupStatusDescription": "Os itens com backup aparecerão aqui",
-  "backupToEnte": "Fazer backup no Ente",
+  "backupToEnte": "Fazer backup no Filen",
   "backupVideos": "Fazer backup de vídeos",
   "beach": "Areia e o mar",
   "birthday": "Aniversário",
@@ -567,7 +567,7 @@
   "codeChangeLimitReached": "Desculpe, você atingiu o limite de mudanças de código.",
   "codeCopiedToClipboard": "Código copiado para a área de transferência",
   "codeIssuerHint": "Emissor",
-  "collabLinkSectionDescription": "Permitir pessoas adicionar fotos sem uma conta Ente",
+  "collabLinkSectionDescription": "Permitir pessoas adicionar fotos sem uma conta Filen",
   "collaborator": "Colaborador",
   "collageLayout": "Layout",
   "collageSaved": "Colagem salva na galeria",
@@ -657,7 +657,7 @@
       }
     }
   },
-  "confirmDeleteAccountAcrossApps": "Eu compreendo que isso excluirá todos os meus dados no Ente Fotos, Ente Auth e Ente Locker.",
+  "confirmDeleteAccountAcrossApps": "Eu compreendo que isso excluirá todos os meus dados no Filen Fotos, Filen Auth e Filen Locker.",
   "@confirmDeleteAccountAcrossApps": {
     "description": "Checkbox label for final account deletion confirmation"
   },
@@ -745,7 +745,7 @@
   "createAccountTitle": "Criar uma conta",
   "createAlbum": "Criar álbum",
   "createAlbumActionHint": "Pressione para selecionar fotos e clique em + para criar um álbum",
-  "createAnEnteAccount": "Criar uma conta Ente",
+  "createAnEnteAccount": "Criar uma conta Filen",
   "createAnotherKit": "Criar outro kit",
   "createBackupNow": "Criar backup agora",
   "createCollaborativeLink": "Criar link colaborativo",
@@ -857,12 +857,12 @@
   "@deletedComment": {
     "description": "Label for deleted comments"
   },
-  "deletedFromEnte": "Excluído do Ente",
+  "deletedFromEnte": "Excluído do Filen",
   "deletedItemsStayHereForThirtyDays": "Itens excluídos ficam aqui por 30 dias",
   "deleteDuplicates": "Excluir duplicados",
   "deleteEmptyAlbums": "Excluir álbuns vazios",
   "deleteEmptyAlbumsWithQuestionMark": "Excluir álbuns vazios?",
-  "deleteEnteAccount": "Excluir conta Ente",
+  "deleteEnteAccount": "Excluir conta Filen",
   "@deleteEnteAccount": {
     "description": "Final destructive button label for account deletion"
   },
@@ -870,7 +870,7 @@
   "deleteFromBoth": "Excluir de ambos",
   "deleteFromDevice": "Excluir do dispositivo",
   "deleteFromDeviceQuestion": "Excluir do dispositivo?",
-  "deleteFromEnte": "Excluir do Ente",
+  "deleteFromEnte": "Excluir do Filen",
   "deleteHiddenFilesFromDevice": "Excluir arquivos ocultos do dispositivo",
   "deleteHiddenFilesFromDeviceDescription": "Excluir cópias locais de arquivos ocultos do seu dispositivo",
   "deleteItemCount": "{count, plural, one{Excluir {count} item} other{Excluir {count} itens}}",
@@ -1156,7 +1156,7 @@
     "description": "Title shown when editing an existing secret"
   },
   "editsSaved": "Edições salvas",
-  "editsToLocationWillOnlyBeSeenWithinEnte": "Edições à localização serão apenas vistos no Ente",
+  "editsToLocationWillOnlyBeSeenWithinEnte": "Edições à localização serão apenas vistos no Filen",
   "editStorageLimit": "Editar limite de armazenamento",
   "editTag": "Editar etiqueta",
   "editTime": "Editar tempo",
@@ -1182,7 +1182,7 @@
     }
   },
   "emailHint": "Insira o endereço de e-mail",
-  "emailNeedsEnteAccountForFamily": "{email} não possui uma conta Ente.\n\nEnvie um convite para adicioná-los à sua família assim que criarem uma conta no Ente.",
+  "emailNeedsEnteAccountForFamily": "{email} não possui uma conta Filen.\n\nEnvie um convite para adicioná-los à sua família assim que criarem uma conta no Filen.",
   "@emailNeedsEnteAccountForFamily": {
     "placeholders": {
       "email": {
@@ -1191,13 +1191,13 @@
       }
     }
   },
-  "emailNoEnteAccount": "{email} não tem uma conta Ente.\n\nEnvie um convite para compartilhar itens.",
+  "emailNoEnteAccount": "{email} não tem uma conta Filen.\n\nEnvie um convite para compartilhar itens.",
   "@emailNoEnteAccount": {
     "placeholders": {
       "email": {}
     }
   },
-  "emailNoEnteAccountPhotos": "{email} não tem uma conta Ente.\n\nEnvie-os um convite para compartilhar fotos.",
+  "emailNoEnteAccountPhotos": "{email} não tem uma conta Filen.\n\nEnvie-os um convite para compartilhar fotos.",
   "@emailNoEnteAccountPhotos": {
     "placeholders": {
       "email": {}
@@ -1215,7 +1215,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "Para evitar ser bloqueado da sua conta, certifique-se de guardar uma cópia do seu e-mail 2FA fora do Ente Auth antes de ativar a verificação de e-mail.",
+  "emailVerificationEnableWarning": "Para evitar ser bloqueado da sua conta, certifique-se de guardar uma cópia do seu e-mail 2FA fora do Filen Auth antes de ativar a verificação de e-mail.",
   "emailVerificationToggle": "Verificação por e-mail",
   "emailYourLogs": "Enviar registros por e-mail",
   "@emailYourLogs": {
@@ -1248,16 +1248,16 @@
   "@endpointUpdatedMessage": {
     "description": "Success message when endpoint is updated"
   },
-  "ente": "Ente",
-  "enteAuth": "Ente Auth",
+  "ente": "Filen",
+  "enteAuth": "Filen Auth",
   "@enteAuth": {
     "description": "Product name"
   },
-  "enteLocker": "Ente Locker",
+  "enteLocker": "Filen Locker",
   "@enteLocker": {
     "description": "Product name"
   },
-  "entePhotos": "Ente Fotos",
+  "entePhotos": "Filen Fotos",
   "@entePhotos": {
     "description": "Product name"
   },
@@ -1572,9 +1572,9 @@
       }
     }
   },
-  "filesInAlbumSafelyOnEnte": "{count, plural, one {Este item no álbum já possui backup no Ente, exclua a cópia do dispositivo para liberar espaço sem perdê-lo.} other {Todos os {formattedNumber} itens no álbum já possuem backup no Ente, exclua as cópias do dispositivo para liberar espaço sem perdê-los.}}",
+  "filesInAlbumSafelyOnEnte": "{count, plural, one {Este item no álbum já possui backup no Filen, exclua a cópia do dispositivo para liberar espaço sem perdê-lo.} other {Todos os {formattedNumber} itens no álbum já possuem backup no Filen, exclua as cópias do dispositivo para liberar espaço sem perdê-los.}}",
   "@filesInAlbumSafelyOnEnte": {
-    "description": "Explains that device copies for files in an album can be deleted because the files are stored on Ente",
+    "description": "Explains that device copies for files in an album can be deleted because the files are stored on Filen",
     "placeholders": {
       "count": {
         "example": "395",
@@ -1596,9 +1596,9 @@
       }
     }
   },
-  "filesSafelyOnEnte": "{count, plural, one {Este item já possui backup no Ente, exclua a cópia do dispositivo para liberar espaço.} other {Todos os {formattedNumber} itens já possuem backup no Ente, exclua as cópias do dispositivo para liberar espaço.}}",
+  "filesSafelyOnEnte": "{count, plural, one {Este item já possui backup no Filen, exclua a cópia do dispositivo para liberar espaço.} other {Todos os {formattedNumber} itens já possuem backup no Filen, exclua as cópias do dispositivo para liberar espaço.}}",
   "@filesSafelyOnEnte": {
-    "description": "Explains that device copies can be deleted because the files are stored on Ente",
+    "description": "Explains that device copies can be deleted because the files are stored on Filen",
     "placeholders": {
       "count": {
         "example": "395",
@@ -1671,7 +1671,7 @@
   "grantGalleryPermissionDesc": "Conceder permissão para acessar e organizar suas fotos com reconhecimento facial. Todo o processamento ocorre em seu dispositivo.",
   "grantGalleryPermissionTitle": "Vamos achar seus favoritos",
   "grantPermission": "Permitir",
-  "grantPermissionDesc": "Permita que Ente tenha acesso a sua biblioteca para podermos organizá-la com reconhecimento facial. Todo processamento ocorre em seu dispositivo.",
+  "grantPermissionDesc": "Permita que Filen tenha acesso a sua biblioteca para podermos organizá-la com reconhecimento facial. Todo processamento ocorre em seu dispositivo.",
   "greenery": "A vegetação verde",
   "grid": "Grade",
   "groupBy": "Agrupar por",
@@ -1683,11 +1683,11 @@
   "guestView": "Vista do convidado",
   "guestViewEnablePreSteps": "Para ativar a vista do convidado, defina uma senha de acesso no dispositivo ou bloqueie sua tela nas opções do sistema.",
   "happyBirthday": "Feliz aniversário! 🥳",
-  "hearUsWhereOptionalTitle": "Como você descobriu o Ente? (opcional)",
+  "hearUsWhereOptionalTitle": "Como você descobriu o Filen? (opcional)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
-  "hearUsWhereTitle": "Como você ouviu falar do Ente?",
+  "hearUsWhereTitle": "Como você ouviu falar do Filen?",
   "help": "Ajuda",
   "helpAndSupport": "Ajuda e suporte",
   "hidden": "Oculto",
@@ -1736,7 +1736,7 @@
   "importBitwardenGuide": "Use a opção \"Exportar cofre\" nas ferramentas do Bitwarden e importe o arquivo JSON não criptografado.",
   "importCodeDelimiterInfo": "Códigos podem ser separados por vírgula ou uma nova linha",
   "importCodes": "Importar códigos",
-  "importEnteEncGuide": "Selecione o arquivo JSON criptografado exportado do Ente",
+  "importEnteEncGuide": "Selecione o arquivo JSON criptografado exportado do Filen",
   "importEnterSetupKey": "Insira a chave de configuração",
   "importFailureDesc": "Não foi possível analisar o arquivo selecionado.",
   "importFromGallery": "Importar da galeria",
@@ -1775,7 +1775,7 @@
     }
   },
   "importSuccessTitle": "Sucesso!",
-  "importTypeEnteEncrypted": "Exportação criptografada do Ente",
+  "importTypeEnteEncrypted": "Exportação criptografada do Filen",
   "incorrectCode": "Código incorreto",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -1825,7 +1825,7 @@
       }
     }
   },
-  "inviteToEnte": "Convidar ao Ente",
+  "inviteToEnte": "Convidar ao Filen",
   "ok": "OK",
   "@ok": {
     "description": "Generic OK button label"
@@ -2050,7 +2050,7 @@
   "maps": "Mapas",
   "mapsPrivacyNotice": "As coordenadas aproximadas serão enviadas para terceiros conscientes da privacidade como OpenStreetMap para mostrar o mapa e o local.",
   "me": "Eu",
-  "mediaManagementHintMessage": "Ative o gerenciamento de mídias do Ente nas opções e os diálogos pararão.",
+  "mediaManagementHintMessage": "Ative o gerenciamento de mídias do Filen nas opções e os diálogos pararão.",
   "@mediaManagementHintMessage": {
     "description": "Message explaining that enabling Android media management permission avoids repeated delete confirmations."
   },
@@ -2117,7 +2117,7 @@
   "mixedGrouping": "Agrupamento mesclado?",
   "mlConsent": "Ativar",
   "mlConsentConfirmation": "Concordo e desejo ativar",
-  "mlConsentDescription": "Se você ativar a aprendizagem automática, Ente extrairá informações como a geometria facial dos arquivos, incluindo os compartilhados com você.\n\nIsso acontecerá no seu dispositivo, qualquer informação biométrica gerada será criptografada de ponta a ponta.",
+  "mlConsentDescription": "Se você ativar a aprendizagem automática, Filen extrairá informações como a geometria facial dos arquivos, incluindo os compartilhados com você.\n\nIsso acontecerá no seu dispositivo, qualquer informação biométrica gerada será criptografada de ponta a ponta.",
   "mlIndexingDescription": "Por favor, tome em conta que a aprendizagem automática resultará em maior largura de banda e consumo de bateria até que tudo seja processado. Recomendamos usar o aplicativo para desktop para processamento mais rápido, e todos os resultados serão sincronizados automaticamente.",
   "mlProgressBannerDescription": "Suas fotos estão sendo processadas no dispositivo para detectar rostos, objetos e mais.",
   "mlProgressBannerStatus": "{indexed} de {total} fotos processadas",
@@ -2177,9 +2177,9 @@
   "moveToHiddenAlbum": "Mover ao álbum oculto",
   "movingFilesToAlbum": "Movendo arquivos para o álbum...",
   "name": "Nome",
-  "networkHostLookUpErr": "Não foi possível conectar-se ao Ente, verifique suas configurações de rede e entre em contato com o suporte se o erro persistir.",
+  "networkHostLookUpErr": "Não foi possível conectar-se ao Filen, verifique suas configurações de rede e entre em contato com o suporte se o erro persistir.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "never": "Nunca",
   "newAlbum": "Novo álbum",
@@ -2311,9 +2311,9 @@
     "type": "text"
   },
   "oneLineAboutTheIssue": "Uma linha detalhando o problema",
-  "onEnte": "No <branding>ente</branding>",
+  "onEnte": "No <branding>Filen</branding>",
   "@onEnte": {
-    "description": "The text displayed above albums backed up to Ente",
+    "description": "The text displayed above albums backed up to Filen",
     "type": "text"
   },
   "onlyFamilyAdminCanChangeCode": "Entre em contato com {familyAdminEmail} para alterar o seu código.",
@@ -2800,7 +2800,7 @@
   "resendInvite": "Reenviar convite",
   "reset": "Redefinir",
   "resetIgnoredFiles": "Redefinir arquivos ignorados",
-  "resetIgnoredFilesDescription": "Redefina estes arquivos para que Ente tente reenviá-los novamente.",
+  "resetIgnoredFilesDescription": "Redefina estes arquivos para que Filen tente reenviá-los novamente.",
   "resetPasswordTitle": "Redefinir senha",
   "@resetPasswordTitle": {
     "description": "Reset password title"
@@ -3024,7 +3024,7 @@
   "secretCanNotBeEmpty": "A chave secreta não pode estar vazia",
   "security": "Segurança",
   "seePublicAlbumLinksInApp": "Ver links de álbum compartilhado no aplicativo",
-  "selectAlbumsToBackUpToEnte": "Selecione os álbuns para backup no Ente",
+  "selectAlbumsToBackUpToEnte": "Selecione os álbuns para backup no Filen",
   "selectAlbumToLikePhoto": "Selecione o álbum para curtir esta foto",
   "@selectAlbumToLikePhoto": {
     "description": "Instruction for liking photo"
@@ -3060,10 +3060,10 @@
       }
     }
   },
-  "selectedFilesAreNotOnEnte": "Os arquivos selecionados não estão no Ente",
+  "selectedFilesAreNotOnEnte": "Os arquivos selecionados não estão no Filen",
   "selectedFilesBackedUpToEnte": "Estes itens serão excluídos de todos os álbuns. Você pode recuperá-los da Lixeira.",
   "@selectedFilesBackedUpToEnte": {
-    "description": "Delete confirmation message for selected items that are backed up to Ente."
+    "description": "Delete confirmation message for selected items that are backed up to Filen."
   },
   "selectedFilesSavedOnDeviceOnly": "Itens sem backup. Excluir permanentemente do dispositivo?",
   "@selectedFilesSavedOnDeviceOnly": {
@@ -3224,9 +3224,9 @@
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnteForFamily": "Baixe o Ente para eu poder adicioná-lo ao meu plano familiar\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Baixe o Ente para podermos compartilhar fotos e vídeos facilmente na qualidade original\n\nhttps://ente.com",
-  "shareWithNonenteUsers": "Compartilhar com usuários fora do Ente",
+  "shareTextRecommendUsingEnteForFamily": "Baixe o Filen para eu poder adicioná-lo ao meu plano familiar\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForPhotos": "Baixe o Filen para podermos compartilhar fotos e vídeos facilmente na qualidade original\n\nhttps://ente.com",
+  "shareWithNonenteUsers": "Compartilhar com usuários fora do Filen",
   "shareYourSubscription": "Compartilhe sua assinatura com entes queridos",
   "sharing": "Compartilhando...",
   "sharingAndCollaboration": "Compartilhamento e colaboração",
@@ -3243,7 +3243,7 @@
   "showPerson": "Mostrar pessoa",
   "showQRAuthMessage": "Autenticar para mostrar o QR code",
   "showTextOnWidget": "Exibir texto no widget",
-  "sigInBackupReminder": "Ente fará backup dos códigos automaticamente após registrar.\n\nEntretanto, ainda recomendamos exportar os códigos como backup adicional.",
+  "sigInBackupReminder": "Filen fará backup dos códigos automaticamente após registrar.\n\nEntretanto, ainda recomendamos exportar os códigos como backup adicional.",
   "signInToBackup": "Entre para fazer backup de seus códigos",
   "signOutFromOtherDevices": "Sair da conta em outros dispositivos",
   "@signOutFromOtherDevices": {
@@ -3277,13 +3277,13 @@
   "@singleFileDeleteFromDevice": {
     "description": "Delete confirmation message for a single item that exists only on the device."
   },
-  "singleFileInBothLocalAndRemote": "Este item está disponível em seu dispositivo e no Ente.",
+  "singleFileInBothLocalAndRemote": "Este item está disponível em seu dispositivo e no Filen.",
   "@singleFileInBothLocalAndRemote": {
-    "description": "Delete confirmation message for a single item that exists both on the device and in Ente."
+    "description": "Delete confirmation message for a single item that exists both on the device and in Filen."
   },
   "singleFileInRemoteOnly": "Este item será excluído de todos os álbuns. Você pode recuperá-lo da Lixeira.",
   "@singleFileInRemoteOnly": {
-    "description": "Delete confirmation message for a single item that exists only in Ente."
+    "description": "Delete confirmation message for a single item that exists only in Filen."
   },
   "skip": "Pular",
   "skippedFiles": "Arquivos ignorados",
@@ -3293,9 +3293,9 @@
   "socialNotifications": "Curtidas e comentários",
   "socialNotificationsExplanation": "Curtidas nas fotos e comentários em álbuns que você faz parte",
   "someoneSharingAlbumsWithYouShouldSeeTheSameId": "Alguém compartilhando álbuns com você deve ver o mesmo ID no dispositivo.",
-  "someSelectedFilesBackedUpToEnte": "Estes itens estão disponíveis em seu dispositivo e no Ente.",
+  "someSelectedFilesBackedUpToEnte": "Estes itens estão disponíveis em seu dispositivo e no Filen.",
   "@someSelectedFilesBackedUpToEnte": {
-    "description": "Delete confirmation message for selected items that exist both on the device and in Ente."
+    "description": "Delete confirmation message for selected items that exist both on the device and in Filen."
   },
   "somethingWentWrong": "Algo deu errado",
   "somethingWentWrongMessage": "Algo deu errado. Tente outra vez",
@@ -3394,7 +3394,7 @@
   "@strongStrength": {
     "description": "Strong password strength label"
   },
-  "subAlreadyLinkedErrMessage": "Seu {id} já está vinculado a outra conta Ente. Se deseja usar seu {id} com esta conta, entre em contato com nosso suporte.",
+  "subAlreadyLinkedErrMessage": "Seu {id} já está vinculado a outra conta Filen. Se deseja usar seu {id} com esta conta, entre em contato com nosso suporte.",
   "@subAlreadyLinkedErrMessage": {
     "placeholders": {
       "id": {}

@@ -171,7 +171,7 @@
   "addToAlbum": "Zum Album hinzufügen",
   "addToCollection": "Zur Sammlung hinzufügen",
   "addToCollections": "Zu Sammlungen hinzufügen",
-  "addToEnte": "Zu Ente hinzufügen",
+  "addToEnte": "Zu Filen hinzufügen",
   "addToHiddenAlbum": "Zum versteckten Album hinzufügen",
   "addToPerson": "Zur Person hinzufügen",
   "@addToPerson": {
@@ -219,7 +219,7 @@
   "albumsOnEnteEmptyCta": "Alben zum Sichern auswählen",
   "albumsOnEnteEmptyDescription": "Greife auf sie über jedes Gerät zu und teile sie mit deinen Liebsten.",
   "@albumsOnEnteEmptyDescription": {
-    "description": "Body of the Ente albums empty state, under the title 'Back up your memories'"
+    "description": "Body of the Filen albums empty state, under the title 'Back up your memories'"
   },
   "albumsOnEnteEmptyTitle": "Sichere deine Erinnerungen",
   "albumsReceivedEmptyDescription": "Mit dir geteilte Alben erscheinen hier, bereit zum Ansehen und Speichern.",
@@ -251,8 +251,8 @@
   "allowDownloads": "Downloads erlauben",
   "allowJoining": "Beitritt erlauben",
   "allowJoiningAlbum": "Erlaube das Beitreten zum Album",
-  "allowJoiningDescription": "Zuschauer mit einem Ente-Konto können deinem Album beitreten und auf dem Laufenden bleiben",
-  "allowPermBody": "Bitte erlaube den Zugriff auf Deine Fotos in den Einstellungen, damit Ente sie anzeigen und sichern kann.",
+  "allowJoiningDescription": "Zuschauer mit einem Filen-Konto können deinem Album beitreten und auf dem Laufenden bleiben",
+  "allowPermBody": "Bitte erlaube den Zugriff auf Deine Fotos in den Einstellungen, damit Filen sie anzeigen und sichern kann.",
   "allowPermTitle": "Zugriff auf Fotos erlauben",
   "allPersonGroupingWillReset": "Alle Gruppierungen für diese Person werden zurückgesetzt und du wirst alle Vorschläge für diese Person verlieren",
   "allTabEmptyHint": "Noch nichts hier. Drück auf das +, um einen Code hinzuzufügen oder öffne den Papierkorb um einen wiederherzustellen.",
@@ -286,8 +286,8 @@
       }
     }
   },
-  "aNewVersionOfEnteIsAvailable": "Eine neue Version von Ente ist verfügbar.",
-  "aNewVersionOfEnteLockerIsAvailable": "Eine neue Version von Ente Locker ist verfügbar.",
+  "aNewVersionOfEnteIsAvailable": "Eine neue Version von Filen ist verfügbar.",
+  "aNewVersionOfEnteLockerIsAvailable": "Eine neue Version von Filen Locker ist verfügbar.",
   "anythingElse": "Sonst noch etwas?",
   "@anythingElse": {
     "description": "Label for optional account deletion feedback"
@@ -295,7 +295,7 @@
   "appearance": "Erscheinungsbild",
   "appIcon": "App-Symbol",
   "appleId": "Apple ID",
-  "applePhotosUnsupportedResource": "Diese Datei konnte nicht in Apple Fotos gespeichert werden. Du kannst sie weiterhin in Ente ansehen.",
+  "applePhotosUnsupportedResource": "Diese Datei konnte nicht in Apple Fotos gespeichert werden. Du kannst sie weiterhin in Filen ansehen.",
   "@applePhotosUnsupportedResource": {
     "description": "Shown when iOS Photos rejects a file while saving to gallery because the media resource is invalid or unsupported"
   },
@@ -406,7 +406,7 @@
   "autoAddPeople": "Personen automatisch hinzufügen",
   "autoAddToAlbum": "Automatisch zu Album hinzufügen",
   "autoCastDialogBody": "Verfügbare Cast-Geräte werden hier angezeigt.",
-  "autoCastiOSPermission": "Stelle sicher, dass die Ente-App auf das lokale Netzwerk zugreifen darf. Das kannst du in den Einstellungen unter \"Datenschutz\".",
+  "autoCastiOSPermission": "Stelle sicher, dass die Filen-App auf das lokale Netzwerk zugreifen darf. Das kannst du in den Einstellungen unter \"Datenschutz\".",
   "autoLock": "Automatisches Sperren",
   "@autoLock": {
     "description": "Auto lock setting title"
@@ -468,7 +468,7 @@
   "backupModeScreenWillDim": "Bildschirm wird automatisch abgedunkelt, um den Akkuverbrauch zu reduzieren",
   "backupModeSettingsDescription": "Halte die App geöffnet, um deine Sicherung abzuschließen",
   "backupModeStart": "Sicherungsmodus starten",
-  "backupModeStayInEnte": "Bleib in Ente. Das Wechseln in andere Apps pausiert deine Sicherung.",
+  "backupModeStayInEnte": "Bleib in Filen. Das Wechseln in andere Apps pausiert deine Sicherung.",
   "backupModeTapToWakeScreen": "Tippen, um den Bildschirm aufzuwecken",
   "backupOnlyNewPhotos": "Nur neue Fotos sichern",
   "backupOnlyNewPhotosAllFoldersSelected": "Alle Ordner sind derzeit für die Sicherung ausgewählt. Du kannst jetzt fortfahren oder die ausgewählten Ordner aktualisieren.",
@@ -490,7 +490,7 @@
   "backupSettings": "Backup-Einstellungen",
   "backupStatus": "Sicherungsstatus",
   "backupStatusDescription": "Gesicherte Elemente werden hier angezeigt",
-  "backupToEnte": "Sicherung nach Ente",
+  "backupToEnte": "Sicherung nach Filen",
   "backupVideos": "Videos sichern",
   "beach": "Am Strand",
   "birthday": "Geburtstag",
@@ -651,7 +651,7 @@
   "codeChangeLimitReached": "Entschuldigung, du hast das Limit der Code-Änderungen erreicht.",
   "codeCopiedToClipboard": "Code in Zwischenablage kopiert",
   "codeIssuerHint": "Aussteller",
-  "collabLinkSectionDescription": "Personen dürfen Fotos ohne Ente-Konto hinzufügen",
+  "collabLinkSectionDescription": "Personen dürfen Fotos ohne Filen-Konto hinzufügen",
   "collaborator": "Bearbeiter",
   "collageLayout": "Ansicht",
   "collageSaved": "Collage in Galerie gespeichert",
@@ -742,7 +742,7 @@
       }
     }
   },
-  "confirmDeleteAccountAcrossApps": "Ich verstehe, dass dadurch meine Daten in Ente Photos, Ente Auth und Ente Locker gelöscht werden.",
+  "confirmDeleteAccountAcrossApps": "Ich verstehe, dass dadurch meine Daten in Filen Photos, Filen Auth und Filen Locker gelöscht werden.",
   "@confirmDeleteAccountAcrossApps": {
     "description": "Checkbox label for final account deletion confirmation"
   },
@@ -769,7 +769,7 @@
   },
   "contactUs": "Kontaktiere uns",
   "@contactUs": {
-    "description": "Button label for contacting Ente support"
+    "description": "Button label for contacting Filen support"
   },
   "contactToManageSubscription": "Bitte kontaktiere uns über support@ente.com, um dein {provider}-Abo zu verwalten.",
   "@contactToManageSubscription": {
@@ -834,7 +834,7 @@
   "createAccountTitle": "Konto erstellen",
   "createAlbum": "Album erstellen",
   "createAlbumActionHint": "Drücke lange um Fotos auszuwählen und klicke + um ein Album zu erstellen",
-  "createAnEnteAccount": "Erstelle ein Ente-Konto",
+  "createAnEnteAccount": "Erstelle ein Filen-Konto",
   "createAnotherKit": "Weiteres Paket erstellen",
   "createBackupNow": "Backup jetzt erstellen",
   "createCollaborativeLink": "Gemeinschaftlichen Link erstellen",
@@ -947,12 +947,12 @@
   "@deletedComment": {
     "description": "Label for deleted comments"
   },
-  "deletedFromEnte": "Aus Ente gelöscht",
+  "deletedFromEnte": "Aus Filen gelöscht",
   "deletedItemsStayHereForThirtyDays": "Gelöschte Elemente bleiben hier für 30 Tage",
   "deleteDuplicates": "Duplikate löschen",
   "deleteEmptyAlbums": "Leere Alben löschen",
   "deleteEmptyAlbumsWithQuestionMark": "Leere Alben löschen?",
-  "deleteEnteAccount": "Ente-Konto löschen",
+  "deleteEnteAccount": "Filen-Konto löschen",
   "@deleteEnteAccount": {
     "description": "Final destructive button label for account deletion"
   },
@@ -960,7 +960,7 @@
   "deleteFromBoth": "Aus beidem löschen",
   "deleteFromDevice": "Vom Gerät löschen",
   "deleteFromDeviceQuestion": "Vom Gerät löschen?",
-  "deleteFromEnte": "Von Ente löschen",
+  "deleteFromEnte": "Von Filen löschen",
   "deleteHiddenFilesFromDevice": "Lösche versteckten Dateien vom Gerät",
   "deleteHiddenFilesFromDeviceDescription": "Lösche lokale Kopien von versteckten Dateien von deinem Gerät",
   "deleteItemCount": "{count, plural, one{Lösche {count} Element} other{Lösche {count} Elemente}}",
@@ -1261,7 +1261,7 @@
     "description": "Title shown when editing an existing secret"
   },
   "editsSaved": "Änderungen gespeichert",
-  "editsToLocationWillOnlyBeSeenWithinEnte": "Standortänderungen sind nur innerhalb von Ente sichtbar",
+  "editsToLocationWillOnlyBeSeenWithinEnte": "Standortänderungen sind nur innerhalb von Filen sichtbar",
   "editStorageLimit": "Speicherlimit bearbeiten",
   "editTag": "Tag bearbeiten",
   "editTime": "Uhrzeit ändern",
@@ -1287,7 +1287,7 @@
     }
   },
   "emailHint": "Gib deine E-Mail-Adresse ein",
-  "emailNeedsEnteAccountForFamily": "{email} hat kein Ente-Konto.\n\nSende ihr/ihm eine Einladung und füge sie/ihn deiner Familie hinzu, sobald sie/er ein Konto bei Ente erstellt hat.",
+  "emailNeedsEnteAccountForFamily": "{email} hat kein Filen-Konto.\n\nSende ihr/ihm eine Einladung und füge sie/ihn deiner Familie hinzu, sobald sie/er ein Konto bei Filen erstellt hat.",
   "@emailNeedsEnteAccountForFamily": {
     "placeholders": {
       "email": {
@@ -1296,13 +1296,13 @@
       }
     }
   },
-  "emailNoEnteAccount": "{email} hat kein Ente-Konto.\n\nSende eine Einladung, um Elemente zu teilen.",
+  "emailNoEnteAccount": "{email} hat kein Filen-Konto.\n\nSende eine Einladung, um Elemente zu teilen.",
   "@emailNoEnteAccount": {
     "placeholders": {
       "email": {}
     }
   },
-  "emailNoEnteAccountPhotos": "{email} hat kein Ente-Konto.\n\nSende eine Einladung, um Fotos zu teilen.",
+  "emailNoEnteAccountPhotos": "{email} hat kein Filen-Konto.\n\nSende eine Einladung, um Fotos zu teilen.",
   "@emailNoEnteAccountPhotos": {
     "placeholders": {
       "email": {}
@@ -1320,7 +1320,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "Um zu vermeiden, versehentlich aus Ihrem Konto ausgesperrt zu werden, stellen Sie sicher, dass Sie den Zwei-Faktor-Authentifizierungscode für Ihr E-Mail-Konto außerhalb von Ente Auth speichern, bevor Sie die E-Mail-Verifizierung aktivieren.",
+  "emailVerificationEnableWarning": "Um zu vermeiden, versehentlich aus Ihrem Konto ausgesperrt zu werden, stellen Sie sicher, dass Sie den Zwei-Faktor-Authentifizierungscode für Ihr E-Mail-Konto außerhalb von Filen Auth speichern, bevor Sie die E-Mail-Verifizierung aktivieren.",
   "emailVerificationToggle": "E-Mail-Verifizierung",
   "emailYourLogs": "Ihre Protokolle per E-Mail senden",
   "@emailYourLogs": {
@@ -1354,16 +1354,16 @@
   "@endpointUpdatedMessage": {
     "description": "Success message when endpoint is updated"
   },
-  "ente": "Ente",
-  "enteAuth": "Ente Auth",
+  "ente": "Filen",
+  "enteAuth": "Filen Auth",
   "@enteAuth": {
     "description": "Product name"
   },
-  "enteLocker": "Ente Locker",
+  "enteLocker": "Filen Locker",
   "@enteLocker": {
     "description": "Product name"
   },
-  "entePhotos": "Ente Photos",
+  "entePhotos": "Filen Photos",
   "@entePhotos": {
     "description": "Product name"
   },
@@ -1687,9 +1687,9 @@
     }
   },
   "filesDeleted": "Dateien gelöscht",
-  "filesInAlbumSafelyOnEnte": "{count, plural, one {Dieses Element im Album ist bei Ente gesichert. Lösche die Kopie auf dem Gerät, um Speicherplatz freizugeben, ohne es zu verlieren.} other {Alle {formattedNumber} Elemente im Album sind bei Ente gesichert. Lösche die Kopien auf dem Gerät, um Speicherplatz freizugeben, ohne sie zu verlieren.}}",
+  "filesInAlbumSafelyOnEnte": "{count, plural, one {Dieses Element im Album ist bei Filen gesichert. Lösche die Kopie auf dem Gerät, um Speicherplatz freizugeben, ohne es zu verlieren.} other {Alle {formattedNumber} Elemente im Album sind bei Filen gesichert. Lösche die Kopien auf dem Gerät, um Speicherplatz freizugeben, ohne sie zu verlieren.}}",
   "@filesInAlbumSafelyOnEnte": {
-    "description": "Explains that device copies for files in an album can be deleted because the files are stored on Ente",
+    "description": "Explains that device copies for files in an album can be deleted because the files are stored on Filen",
     "placeholders": {
       "count": {
         "example": "395",
@@ -1701,9 +1701,9 @@
       }
     }
   },
-  "filesSafelyOnEnte": "{count, plural, one {Dieses Element ist bei Ente gesichert. Lösche die Kopie auf dem Gerät, um Speicherplatz freizugeben, ohne es zu verlieren.} other {Alle {formattedNumber} Elemente sind bei Ente gesichert. Lösche die Kopien auf dem Gerät, um Speicherplatz freizugeben, ohne sie zu verlieren.}}",
+  "filesSafelyOnEnte": "{count, plural, one {Dieses Element ist bei Filen gesichert. Lösche die Kopie auf dem Gerät, um Speicherplatz freizugeben, ohne es zu verlieren.} other {Alle {formattedNumber} Elemente sind bei Filen gesichert. Lösche die Kopien auf dem Gerät, um Speicherplatz freizugeben, ohne sie zu verlieren.}}",
   "@filesSafelyOnEnte": {
-    "description": "Explains that device copies can be deleted because the files are stored on Ente",
+    "description": "Explains that device copies can be deleted because the files are stored on Filen",
     "placeholders": {
       "count": {
         "example": "395",
@@ -1779,7 +1779,7 @@
   "grantGalleryPermissionDesc": "Erteile die Berechtigung, um auf Fotos zuzugreifen und mit Gesichtserkennung zu organisieren. Die Verarbeitung geschieht vollständig auf deinem Gerät.",
   "grantGalleryPermissionTitle": "Lass uns deine Favoriten finden",
   "grantPermission": "Zugriff gewähren",
-  "grantPermissionDesc": "Bitte erlaube Ente, auf deine Bibliothek zuzugreifen, damit wir sie mit Gesichtserkennung organisieren können. Die gesamte Verarbeitung findet auf deinem Gerät statt.",
+  "grantPermissionDesc": "Bitte erlaube Filen, auf deine Bibliothek zuzugreifen, damit wir sie mit Gesichtserkennung organisieren können. Die gesamte Verarbeitung findet auf deinem Gerät statt.",
   "greenery": "Im Grünen",
   "grid": "Raster",
   "photosInOriginalProportions": "Fotos im ursprünglichen Seitenverhältnis",
@@ -1794,11 +1794,11 @@
   "guestView": "Gastansicht",
   "guestViewEnablePreSteps": "Bitte richte einen Gerätepasscode oder eine Bildschirmsperre ein, um die Gastansicht zu nutzen.",
   "happyBirthday": "Herzlichen Glückwunsch zum Geburtstag! 🥳",
-  "hearUsWhereOptionalTitle": "Wie hast du von Ente erfahren? (optional)",
+  "hearUsWhereOptionalTitle": "Wie hast du von Filen erfahren? (optional)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
-  "hearUsWhereTitle": "Wie hast du von Ente erfahren?",
+  "hearUsWhereTitle": "Wie hast du von Filen erfahren?",
   "help": "Hilfe",
   "helpAndSupport": "Hilfe & Support",
   "hidden": "Versteckt",
@@ -1894,7 +1894,7 @@
   "importBitwardenGuide": "Verwenden Sie die Option \"Tresor exportieren\" innerhalb der Bitwarden Tools und importieren Sie die unverschlüsselte JSON-Datei.",
   "importCodeDelimiterInfo": "Codes können in einer neuen Zeile stehen oder durch ein Komma getrennt sein",
   "importCodes": "Codes importieren",
-  "importEnteEncGuide": "Wählen Sie die von Ente exportierte, verschlüsselte JSON-Datei",
+  "importEnteEncGuide": "Wählen Sie die von Filen exportierte, verschlüsselte JSON-Datei",
   "importEnterSetupKey": "Einen Setup-Schlüssel eingeben",
   "importFailureDesc": "Die ausgewählte Datei konnte nicht verarbeitet werden.",
   "importFileTooLarge": "Die ausgewählte Datei ist zu groß. Maximale Größe: {size}.",
@@ -1929,7 +1929,7 @@
     }
   },
   "importSuccessTitle": "Geschafft!",
-  "importTypeEnteEncrypted": "Verschlüsselter Ente-Export",
+  "importTypeEnteEncrypted": "Verschlüsselter Filen-Export",
   "incorrectCode": "Falscher Code",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -1982,7 +1982,7 @@
       }
     }
   },
-  "inviteToEnte": "Zu Ente einladen",
+  "inviteToEnte": "Zu Filen einladen",
   "ok": "OK",
   "@ok": {
     "description": "Generic OK button label"
@@ -2336,7 +2336,7 @@
   "@loginTerms": {
     "description": "Terms agreement text for login"
   },
-  "loginToEnte": "Bei Ente anmelden",
+  "loginToEnte": "Bei Filen anmelden",
   "loginToExistingAccount": "Bei bestehendem Konto anmelden",
   "loginWithAuthAccount": "Mit Ihrem Auth Account anmelden",
   "loginWithTOTP": "Mit TOTP anmelden",
@@ -2385,7 +2385,7 @@
   "mapsPrivacyNotice": "Ungefähre Koordinaten werden an datenschutzbewusste Dritte wie OpenStreetMap gesendet, um die Karte und den Ort anzuzeigen.",
   "markingAsImportant": "Wird als wichtig markiert...",
   "me": "Ich",
-  "mediaManagementHintMessage": "Aktiviere die Medienverwaltung für Ente in den Einstellungen, und die Abfragen enden.",
+  "mediaManagementHintMessage": "Aktiviere die Medienverwaltung für Filen in den Einstellungen, und die Abfragen enden.",
   "@mediaManagementHintMessage": {
     "description": "Message explaining that enabling Android media management permission avoids repeated delete confirmations."
   },
@@ -2393,9 +2393,9 @@
   "@mediaManagementHintTitle": {
     "description": "Title of a sheet prompting Android users to enable media management permission."
   },
-  "meetEnteLocker": "Lerne Ente Locker kennen",
+  "meetEnteLocker": "Lerne Filen Locker kennen",
   "@meetEnteLocker": {
-    "description": "Button in the Photos changelog that opens the Ente Locker website"
+    "description": "Button in the Photos changelog that opens the Filen Locker website"
   },
   "members": "Mitglieder",
   "memberStorageUsed": "{amount} verwendet",
@@ -2482,7 +2482,7 @@
   "mixedGrouping": "Gemischte Gruppierung?",
   "mlConsent": "Maschinelles Lernen aktivieren",
   "mlConsentConfirmation": "Ich verstehe und möchte das maschinelle Lernen aktivieren",
-  "mlConsentDescription": "Wenn du das maschinelle Lernen aktivierst, wird Ente Informationen wie etwa Gesichtsgeometrie aus Dateien extrahieren, einschließlich derjenigen, die mit dir geteilt werden.\n\nDies geschieht auf deinem Gerät und alle erzeugten biometrischen Informationen werden Ende-zu-Ende-verschlüsselt.",
+  "mlConsentDescription": "Wenn du das maschinelle Lernen aktivierst, wird Filen Informationen wie etwa Gesichtsgeometrie aus Dateien extrahieren, einschließlich derjenigen, die mit dir geteilt werden.\n\nDies geschieht auf deinem Gerät und alle erzeugten biometrischen Informationen werden Ende-zu-Ende-verschlüsselt.",
   "mlConsentPrivacyDetails": "Bitte <policy>klicke hier</policy> für weitere Details zu dieser Funktion in unserer Datenschutzerklärung",
   "@mlConsentPrivacyDetails": {
     "description": "Machine learning consent screen sentence; only the text inside the policy tags is tappable and opens the privacy policy"
@@ -2541,7 +2541,7 @@
   "moreDetails": "Weitere Details",
   "moreFrom": "Mehr von",
   "@moreFrom": {
-    "description": "Heading shown above links to other Ente apps"
+    "description": "Heading shown above links to other Filen apps"
   },
   "moreOptions": "Weitere Optionen",
   "@moreOptions": {
@@ -2588,13 +2588,13 @@
       }
     }
   },
-  "networkConnectionRefusedErr": "Ente ist im Moment nicht erreichbar. Bitte versuchen Sie es später erneut. Sollte das Problem bestehen bleiben, wenden Sie sich bitte an den Support.",
+  "networkConnectionRefusedErr": "Filen ist im Moment nicht erreichbar. Bitte versuchen Sie es später erneut. Sollte das Problem bestehen bleiben, wenden Sie sich bitte an den Support.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "Ente ist im Moment nicht erreichbar. Bitte überprüfen Sie Ihre Netzwerkeinstellungen. Sollte das Problem bestehen bleiben, wenden Sie sich bitte an den Support.",
+  "networkHostLookUpErr": "Filen ist im Moment nicht erreichbar. Bitte überprüfen Sie Ihre Netzwerkeinstellungen. Sollte das Problem bestehen bleiben, wenden Sie sich bitte an den Support.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "never": "Niemals",
   "newAlbum": "Neues Album",
@@ -2747,7 +2747,7 @@
   "offlineHomeSignupBannerAction": "Jetzt sichern",
   "offlineHomeSignupBannerDescription": "Verschlüsselte Sicherungen an drei Orten, um deine Erinnerungen sicher zu halten.",
   "offlineHomeSignupBannerTitle": "Schütze deine Erinnerungen für immer",
-  "offlineKeyUnavailableMessage": "Ente Auth hat keinen Zugriff auf den Schlüssel für deine Offline-Codes.",
+  "offlineKeyUnavailableMessage": "Filen Auth hat keinen Zugriff auf den Schlüssel für deine Offline-Codes.",
   "offlineModeWarning": "Sie haben sich dafür entschieden, ohne Sicherungen fortzufahren. Bitte führen Sie manuelle Sicherungen durch, um sicherzustellen, dass Ihre Codes sicher sind.",
   "offlineNameFaceBannerSubtitle": "Melde dich an, sie zu markieren und ihre Fotos später leicht zu finden.",
   "offlineNameFaceBannerTitle": "Gib diesem Gesicht einen Namen",
@@ -2760,14 +2760,14 @@
     "description": "The text displayed above folders/albums stored on device",
     "type": "text"
   },
-  "oneAccountAcrossEnteApps": "Sie haben ein einziges Konto für Ente Photos, Ente Auth und Ente Locker.",
+  "oneAccountAcrossEnteApps": "Sie haben ein einziges Konto für Filen Photos, Filen Auth und Filen Locker.",
   "@oneAccountAcrossEnteApps": {
-    "description": "Explains that account deletion affects all Ente apps"
+    "description": "Explains that account deletion affects all Filen apps"
   },
   "oneLineAboutTheIssue": "Eine Zeile zum Problem",
-  "onEnte": "Auf <branding>ente</branding>",
+  "onEnte": "Auf <branding>Filen</branding>",
   "@onEnte": {
-    "description": "The text displayed above albums backed up to Ente",
+    "description": "The text displayed above albums backed up to Filen",
     "type": "text"
   },
   "onlyFamilyAdminCanChangeCode": "Bitte wende Dich an {familyAdminEmail}, um den Code zu ändern.",
@@ -2904,7 +2904,7 @@
       }
     }
   },
-  "permanentlyDeleteYourEnteAccount": "Ihr Ente-Konto dauerhaft löschen?",
+  "permanentlyDeleteYourEnteAccount": "Ihr Filen-Konto dauerhaft löschen?",
   "@permanentlyDeleteYourEnteAccount": {
     "description": "Heading for final account deletion confirmation"
   },
@@ -2927,7 +2927,7 @@
   },
   "pets": "Pelzige Begleiter",
   "photoGridSize": "Fotorastergröße",
-  "photoLibraryAddPermissionRequired": "Ente benötigt die Berechtigung, um Fotos und Videos in Apple Fotos zu speichern. Sie können den Zugriff in den Einstellungen erlauben.",
+  "photoLibraryAddPermissionRequired": "Filen benötigt die Berechtigung, um Fotos und Videos in Apple Fotos zu speichern. Sie können den Zugriff in den Einstellungen erlauben.",
   "photoLibraryAddPermissionRestricted": "Der Zugriff auf die Fotobibliothek ist auf diesem Gerät eingeschränkt.",
   "photoOrder": "Fotoreihenfolge",
   "photos": "Fotos",
@@ -3079,8 +3079,8 @@
     }
   },
   "publicLink": "Öffentlicher Link",
-  "publicCollectionLinkAccessDescription": "Jeder mit dem Link kann die Sammlung ohne Ente-Account öffnen.",
-  "publicLinkAccessDescription": "Jeder mit dem Link kann das Album ohne Ente-Account öffnen.",
+  "publicCollectionLinkAccessDescription": "Jeder mit dem Link kann die Sammlung ohne Filen-Account öffnen.",
+  "publicLinkAccessDescription": "Jeder mit dem Link kann das Album ohne Filen-Account öffnen.",
   "publicLinkCollectDescription": "Jeder mit diesem Link kann Fotos zu deinem Album hinzufügen.",
   "publicLinkEnabled": "Öffentlicher Link aktiviert",
   "publicLinkViewDescription": "Jeder mit diesem Link kann auf dein Album zugreifen.",
@@ -3411,7 +3411,7 @@
   "resendInvite": "Einladung erneut senden",
   "reset": "Zurücksetzen",
   "resetIgnoredFiles": "Ignorierte Dateien zurücksetzen",
-  "resetIgnoredFilesDescription": "Diese ignorierten Dateien zurücksetzen, damit Ente ein erneutes Hochladen versucht.",
+  "resetIgnoredFilesDescription": "Diese ignorierten Dateien zurücksetzen, damit Filen ein erneutes Hochladen versucht.",
   "resetPasswordTitle": "Kennwort zurücksetzen",
   "@resetPasswordTitle": {
     "description": "Reset password title"
@@ -3563,7 +3563,7 @@
     "description": "Description text asking user if they want to save to storage or share with other apps"
   },
   "savePerson": "Person speichern",
-  "saveToEnte": "In Ente speichern",
+  "saveToEnte": "In Filen speichern",
   "saveToLocker": "Im Locker speichern",
   "saveYourRecoveryKeyIfYouHaventAlready": "Sichere deinen Wiederherstellungs-Schlüssel, falls noch nicht geschehen",
   "saving": "Speichern...",
@@ -3725,7 +3725,7 @@
   "securityDesc": "Verschlüsselung, Wiederherstellungsschlüssel, Anwendungssperre und Kontoschutz",
   "seeAllCollections": "Alle Sammlungen anzeigen",
   "seePublicAlbumLinksInApp": "Öffentliche Album-Links in der App ansehen",
-  "selectAlbumsToBackUpToEnte": "Alben für die Sicherung nach Ente auswählen",
+  "selectAlbumsToBackUpToEnte": "Alben für die Sicherung nach Filen auswählen",
   "selectAlbumToLikePhoto": "Wähle das Album, um das Foto zu liken",
   "@selectAlbumToLikePhoto": {
     "description": "Instruction for liking photo"
@@ -3775,10 +3775,10 @@
       }
     }
   },
-  "selectedFilesAreNotOnEnte": "Ausgewählte Dateien sind nicht auf Ente",
+  "selectedFilesAreNotOnEnte": "Ausgewählte Dateien sind nicht auf Filen",
   "selectedFilesBackedUpToEnte": "Diese Elemente werden aus allen Alben gelöscht. Du kannst sie aus dem Papierkorb wiederherstellen.",
   "@selectedFilesBackedUpToEnte": {
-    "description": "Delete confirmation message for selected items that are backed up to Ente."
+    "description": "Delete confirmation message for selected items that are backed up to Filen."
   },
   "selectedFilesSavedOnDeviceOnly": "Elemente nicht gesichert. Endgültig vom Gerät löschen?",
   "@selectedFilesSavedOnDeviceOnly": {
@@ -3935,7 +3935,7 @@
   "share": "Teilen",
   "shareALink": "Einen Link teilen",
   "shareAnAlbum": "Ein Album teilen",
-  "shareCodeEarnStorage": "Verdopple deinen Speicherplatz auf Ente",
+  "shareCodeEarnStorage": "Verdopple deinen Speicherplatz auf Filen",
   "shareCodes": "Codes teilen",
   "shareCodesDuration": "Wählen Sie die Dauer aus, für die Sie die Codes teilen möchten.",
   "shareCollection": "Sammlung freigeben",
@@ -3998,17 +3998,17 @@
       "verificationID": {}
     }
   },
-  "shareTextRecommendUsingEnte": "Laden Sie Ente herunter, damit wir problemlos Dateien in Originalqualität freigeben können https://ente.com",
-  "shareTextRecommendUsingEnteForFamily": "Lade Ente herunter, damit ich dich zu meinem Familientarif hinzufügen kann\n\nhttps://ente.com",
-  "shareTextRecommendUsingEnteForPhotos": "Hol dir Ente, damit wir ganz einfach Fotos und Videos in Originalqualität teilen können\n\nhttps://ente.com",
-  "shareTextReferralInvite": "Erhalte 20 GB kostenlos mit Ente Photos! Lade die App unter https://ente.com/invite herunter und nutze den Code {referralCode}.",
+  "shareTextRecommendUsingEnte": "Laden Sie Filen herunter, damit wir problemlos Dateien in Originalqualität freigeben können https://ente.com",
+  "shareTextRecommendUsingEnteForFamily": "Lade Filen herunter, damit ich dich zu meinem Familientarif hinzufügen kann\n\nhttps://ente.com",
+  "shareTextRecommendUsingEnteForPhotos": "Hol dir Filen, damit wir ganz einfach Fotos und Videos in Originalqualität teilen können\n\nhttps://ente.com",
+  "shareTextReferralInvite": "Erhalte 20 GB kostenlos mit Filen Photos! Lade die App unter https://ente.com/invite herunter und nutze den Code {referralCode}.",
   "@shareTextReferralInvite": {
     "placeholders": {
       "referralCode": {}
     }
   },
   "shareThisLink": "Mit diesem Link kann jeder, der ihn erhält, auf dein Element zugreifen. Du kannst den Zugriff jederzeit entfernen, indem du den Link löschst.",
-  "shareWithNonenteUsers": "Mit Nicht-Ente-Benutzern teilen",
+  "shareWithNonenteUsers": "Mit Nicht-Filen-Benutzern teilen",
   "shareYourFeedbackHere": "Teilen Sie hier Ihre Rückmeldung",
   "@shareYourFeedbackHere": {
     "description": "Placeholder for optional account deletion feedback"
@@ -4039,7 +4039,7 @@
   "showQRAuthMessage": "Authentifizieren, um QR-Code anzuzeigen",
   "showTextOnWidget": "Text auf Widget anzeigen",
   "shuffle": "Zufällig",
-  "sigInBackupReminder": "Ente wird die Codes automatisch nach einer Anmeldung sichern.\n\nWir empfehlen aber, als ein extra Backup, die Codes zu exportieren.",
+  "sigInBackupReminder": "Filen wird die Codes automatisch nach einer Anmeldung sichern.\n\nWir empfehlen aber, als ein extra Backup, die Codes zu exportieren.",
   "signInToBackup": "Melden Sie sich an, um Ihre Codes zu sichern",
   "signOutFromOtherDevices": "Von anderen Geräten abmelden",
   "@signOutFromOtherDevices": {
@@ -4073,13 +4073,13 @@
   "@singleFileDeleteFromDevice": {
     "description": "Delete confirmation message for a single item that exists only on the device."
   },
-  "singleFileInBothLocalAndRemote": "Dieses Element ist auf deinem Gerät und bei Ente verfügbar.",
+  "singleFileInBothLocalAndRemote": "Dieses Element ist auf deinem Gerät und bei Filen verfügbar.",
   "@singleFileInBothLocalAndRemote": {
-    "description": "Delete confirmation message for a single item that exists both on the device and in Ente."
+    "description": "Delete confirmation message for a single item that exists both on the device and in Filen."
   },
   "singleFileInRemoteOnly": "Dieses Element wird aus allen Alben gelöscht. Du kannst es aus dem Papierkorb wiederherstellen.",
   "@singleFileInRemoteOnly": {
-    "description": "Delete confirmation message for a single item that exists only in Ente."
+    "description": "Delete confirmation message for a single item that exists only in Filen."
   },
   "skip": "Überspringen",
   "skippedFiles": "Übersprungene Dateien",
@@ -4092,9 +4092,9 @@
   "socialNotifications": "Likes und Kommentare",
   "socialNotificationsExplanation": "Likes auf Fotos oder Kommentare an Alben, von denen du ein Teil bist",
   "someoneSharingAlbumsWithYouShouldSeeTheSameId": "Jemand, der Alben mit dir teilt, sollte die gleiche ID auf seinem Gerät sehen.",
-  "someSelectedFilesBackedUpToEnte": "Diese Elemente sind auf dem Gerät und bei Ente verfügbar.",
+  "someSelectedFilesBackedUpToEnte": "Diese Elemente sind auf dem Gerät und bei Filen verfügbar.",
   "@someSelectedFilesBackedUpToEnte": {
-    "description": "Delete confirmation message for selected items that exist both on the device and in Ente."
+    "description": "Delete confirmation message for selected items that exist both on the device and in Filen."
   },
   "somethingWentWrong": "Irgendetwas ging schief",
   "somethingWentWrongMessage": "Ein Fehler ist aufgetreten, bitte versuchen Sie es erneut",
@@ -4200,7 +4200,7 @@
   "@strongStrength": {
     "description": "Strong password strength label"
   },
-  "subAlreadyLinkedErrMessage": "Deine {id} ist bereits mit einem anderen Ente-Konto verknüpft.\nFalls du deine {id} mit diesem Konto verwenden möchtest, wende dich bitte an unseren Support.",
+  "subAlreadyLinkedErrMessage": "Deine {id} ist bereits mit einem anderen Filen-Konto verknüpft.\nFalls du deine {id} mit diesem Konto verwenden möchtest, wende dich bitte an unseren Support.",
   "@subAlreadyLinkedErrMessage": {
     "placeholders": {
       "id": {}
@@ -4301,7 +4301,7 @@
   "@thisEmailIsAlreadyInUse": {
     "description": "Error message when email is already in use"
   },
-  "thisHelpsUsImproveEnte": "Dies hilft uns, Ente zu verbessern",
+  "thisHelpsUsImproveEnte": "Dies hilft uns, Filen zu verbessern",
   "@thisHelpsUsImproveEnte": {
     "description": "Subtitle under account deletion reason prompt"
   },
@@ -4853,7 +4853,7 @@
       }
     }
   },
-  "noEnteAccountWithThisEmail": "Kein Ente-Konto mit dieser E-Mail-Adresse.",
+  "noEnteAccountWithThisEmail": "Kein Filen-Konto mit dieser E-Mail-Adresse.",
   "shareALinkInline": "Teile einen Link.",
   "personAlreadyHasAccess": "Diese Person hat bereits Zugriff.",
   "removePersonTitle": "{name} entfernen?",
@@ -4889,5 +4889,5 @@
     }
   },
   "notEnoughStorageTitle": "Zu wenig Speicherplatz",
-  "notEnoughStorageBody": "Du hast nicht genug freien Speicherplatz auf Ente, um neue Fotos hinzuzufügen. Gib Speicherplatz frei oder führe ein Upgrade durch, um weitere hinzuzufügen."
+  "notEnoughStorageBody": "Du hast nicht genug freien Speicherplatz auf Filen, um neue Fotos hinzuzufügen. Gib Speicherplatz frei oder führe ein Upgrade durch, um weitere hinzuzufügen."
 }

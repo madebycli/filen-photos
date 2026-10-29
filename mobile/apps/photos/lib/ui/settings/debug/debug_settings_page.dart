@@ -1,13 +1,10 @@
 import "package:flutter/material.dart";
 import "package:hugeicons/hugeicons.dart";
-import "package:photos/core/event_bus.dart";
-import "package:photos/events/christmas_banner_event.dart";
 import "package:photos/service_locator.dart";
 import "package:photos/theme/ente_theme.dart";
 import "package:photos/ui/components/menu_item_widget/menu_item_widget_new.dart";
 import "package:photos/ui/components/settings/settings_grouped_card.dart";
 import "package:photos/ui/components/toggle_switch_widget.dart";
-import "package:photos/ui/home/christmas/christmas_utils.dart";
 import "package:photos/ui/notification/toast.dart";
 import "package:photos/utils/background_tasks.dart";
 
@@ -132,29 +129,10 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                               },
                             ),
                           ),
-                          if (isChristmasDateRange())
-                            MenuItemWidgetNew(
-                              title: "Christmas banner",
-                              leadingIconWidget: _buildIconWidget(
-                                context,
-                                HugeIcons.strokeRoundedSparkles,
-                              ),
-                              trailingWidget: ToggleSwitchWidget(
-                                value: () =>
-                                    localSettings.isChristmasBannerEnabled,
-                                onChanged: () async {
-                                  await localSettings.setChristmasBannerEnabled(
-                                    !localSettings.isChristmasBannerEnabled,
-                                  );
-                                  Bus.instance.fire(ChristmasBannerEvent());
-                                  setState(() {});
-                                },
-                              ),
-                            ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      SettingsGroupedCard(children: []),
+                      const SettingsGroupedCard(children: []),
                     ],
                   ),
                 ),

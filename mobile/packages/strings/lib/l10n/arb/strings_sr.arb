@@ -406,7 +406,7 @@
       }
     }
   },
-  "emailVerificationEnableWarning": "Да бисте избегли да се закључате са свог рачуна, обавезно чувајте копију 2ФА имејла ван Ente Auth пре него што омогућите имејл верификацију.",
+  "emailVerificationEnableWarning": "Да бисте избегли да се закључате са свог рачуна, обавезно чувајте копију 2ФА имејла ван Filen Auth пре него што омогућите имејл верификацију.",
   "emailYourLogs": "Имејлирајте извештаје",
   "@emailYourLogs": {
     "description": "Title for emailing logs dialog"
@@ -508,9 +508,9 @@
   "grantPermission": "Дозволите приступ",
   "greenery": "Зеленило",
   "happyBirthday": "Срећан рођендан! 🥳",
-  "hearUsWhereOptionalTitle": "Како сте чули о Ente? (опционо)",
+  "hearUsWhereOptionalTitle": "Како сте чули о Filen? (опционо)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "help": "Помоћ",
   "hidden": "Скривено",
@@ -548,7 +548,7 @@
   "importBitwardenGuide": "Употребите \"Извоз Сефа\" из Bitwarden и увезите нешифровану JSON датотеку.",
   "importCodeDelimiterInfo": "Кôдови се могу одвојити зарезом или новом линијом",
   "importCodes": "Увоз кôдова",
-  "importEnteEncGuide": "Одабрати шифровану извозну JSON датотеку од Ente",
+  "importEnteEncGuide": "Одабрати шифровану извозну JSON датотеку од Filen",
   "importEnterSetupKey": "Унети кључ за подешавање",
   "importFailureDesc": "Није могао да анализира изабрану датотеку.",
   "importFromGallery": "Увези из галерије",
@@ -574,7 +574,7 @@
     }
   },
   "importSuccessTitle": "Jeeee!",
-  "importTypeEnteEncrypted": "Ente шифрован извоз",
+  "importTypeEnteEncrypted": "Filen шифрован извоз",
   "incorrectCode": "Погрешан кôд",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -753,13 +753,13 @@
   "moveToAlbum": "Премести у албум",
   "movingFilesToAlbum": "Премештам фајлове у албум...",
   "name": "Име",
-  "networkConnectionRefusedErr": "Није могуће повезивање са Ente-ом, покушајте поново мало касније. Ако грешка настави, обратите се подршци.",
+  "networkConnectionRefusedErr": "Није могуће повезивање са Filen-ом, покушајте поново мало касније. Ако грешка настави, обратите се подршци.",
   "@networkConnectionRefusedErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to connection refused"
+    "description": "Error message shown when the app cannot connect to Filen due to connection refused"
   },
-  "networkHostLookUpErr": "Није могуће повезивање са Ente-ом, молимо вас да проверите мрежне поставке и контактирајте подршку ако грешка и даље постоји.",
+  "networkHostLookUpErr": "Није могуће повезивање са Filen-ом, молимо вас да проверите мрежне поставке и контактирајте подршку ако грешка и даље постоји.",
   "@networkHostLookUpErr": {
-    "description": "Error message shown when the app cannot connect to Ente due to network host lookup failure"
+    "description": "Error message shown when the app cannot connect to Filen due to network host lookup failure"
   },
   "never": "Никад",
   "newAlbum": "Нови албум",
@@ -1155,7 +1155,7 @@
   "showMoreFaces": "Прикажи још лица",
   "showPerson": "Покажи особу",
   "showQRAuthMessage": "Аутентификуј се за приказ QR кôда",
-  "sigInBackupReminder": "Ente ће аутоматски направити резервне кодове након пријављивања.\n\nИ даље препоручујемо извоз кодова као додатну резервну копију.",
+  "sigInBackupReminder": "Filen ће аутоматски направити резервне кодове након пријављивања.\n\nИ даље препоручујемо извоз кодова као додатну резервну копију.",
   "signInToBackup": "Пријавите се да бисте сачували кôдове",
   "signOutOtherBody": "Ако мислиш да неко може знати твоју лозинку, можеш приморати одјављивање све остале уређаје које користе твој налог.",
   "@signOutOtherBody": {

@@ -163,10 +163,10 @@ class _BackupItemCardState extends State<BackupItemCard> {
                     progressPercent: widget.item.progressPercent,
                     color: colorScheme.primary700,
                   ),
-                  BackupItemStatus.uploaded => const SizedBox(
+                  BackupItemStatus.uploaded => SizedBox(
                     width: 24,
                     height: 24,
-                    child: Icon(Icons.check, color: Color(0xFF00B33C)),
+                    child: Icon(Icons.check, color: colorScheme.primary700),
                   ),
                   BackupItemStatus.inQueue => SizedBox(
                     width: 24,

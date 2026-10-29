@@ -145,7 +145,7 @@ void main() {
           },
         );
 
-        await tester.tap(find.text('Delete from Ente'));
+        await tester.tap(find.text('Delete from Filen'));
         await tester.pumpAndSettle();
 
         expect(remoteDeleteCalls, 1);

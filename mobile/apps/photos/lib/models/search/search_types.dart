@@ -46,7 +46,6 @@ enum SectionType {
   face,
   ritual,
   magic,
-  wrapped,
   location,
   album,
   fileTypesAndExtension,
@@ -59,8 +58,6 @@ extension SectionTypeExtensions on SectionType {
         return context.strings.people;
       case SectionType.magic:
         return context.strings.discover;
-      case SectionType.wrapped:
-        return "Ente Rewind";
       case SectionType.location:
         return context.strings.locations;
       case SectionType.ritual:
@@ -78,8 +75,6 @@ extension SectionTypeExtensions on SectionType {
         return context.strings.searchPersonsEmptySection;
       case SectionType.magic:
         return context.strings.searchDiscoverEmptySection;
-      case SectionType.wrapped:
-        return "Check back soon for your 2025 highlights.";
       case SectionType.location:
         return context.strings.searchLocationEmptySection;
       case SectionType.ritual:
@@ -95,7 +90,6 @@ extension SectionTypeExtensions on SectionType {
     switch (this) {
       case SectionType.face:
       case SectionType.magic:
-      case SectionType.wrapped:
       case SectionType.ritual:
       case SectionType.fileTypesAndExtension:
         return false;
@@ -108,14 +102,12 @@ extension SectionTypeExtensions on SectionType {
   bool get sortByName =>
       this != SectionType.face &&
       this != SectionType.magic &&
-      this != SectionType.wrapped &&
       this != SectionType.ritual;
 
   bool get isEmptyCTAVisible {
     switch (this) {
       case SectionType.face:
       case SectionType.magic:
-      case SectionType.wrapped:
       case SectionType.ritual:
       case SectionType.fileTypesAndExtension:
         return false;
@@ -133,8 +125,6 @@ extension SectionTypeExtensions on SectionType {
       case SectionType.magic:
         // todo: later
         return "temp";
-      case SectionType.wrapped:
-        return "";
       case SectionType.location:
         return context.strings.addNew;
       case SectionType.ritual:
@@ -151,8 +141,6 @@ extension SectionTypeExtensions on SectionType {
       case SectionType.face:
         return Icons.adaptive.arrow_forward_outlined;
       case SectionType.magic:
-        return null;
-      case SectionType.wrapped:
         return null;
       case SectionType.location:
         return Icons.add_location_alt_outlined;
@@ -219,8 +207,6 @@ extension SectionTypeExtensions on SectionType {
             await showGenericErrorDialog(context: context, error: result);
           }
         };
-      case SectionType.wrapped:
-        return () async {};
       default:
         {
           return () async {};
@@ -246,8 +232,6 @@ extension SectionTypeExtensions on SectionType {
           context!,
           limit: limit,
         );
-      case SectionType.wrapped:
-        return Future.value(const <SearchResult>[]);
       case SectionType.location:
         return SearchService.instance.getAllLocationTags(limit);
       case SectionType.ritual:
@@ -268,8 +252,6 @@ extension SectionTypeExtensions on SectionType {
     switch (this) {
       case SectionType.location:
         return [Bus.instance.on<LocationTagUpdatedEvent>()];
-      case SectionType.wrapped:
-        return [];
       case SectionType.ritual:
         return [];
       case SectionType.album:
@@ -287,8 +269,6 @@ extension SectionTypeExtensions on SectionType {
         return [Bus.instance.on<LocationTagUpdatedEvent>()];
       case SectionType.magic:
         return [Bus.instance.on<MagicCacheUpdatedEvent>()];
-      case SectionType.wrapped:
-        return [];
       case SectionType.ritual:
         return [];
       default:

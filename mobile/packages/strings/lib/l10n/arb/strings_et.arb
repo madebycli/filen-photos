@@ -431,7 +431,7 @@
   "googlePlayId": "Google Play ID",
   "hearUsWhereOptionalTitle": "Kust sa Entest kuulsid? (kui tahad lisada)",
   "@hearUsWhereOptionalTitle": {
-    "description": "Title asking how user heard about Ente"
+    "description": "Title asking how user heard about Filen"
   },
   "help": "Abiinfo",
   "hidden": "Peidetud",
@@ -466,7 +466,7 @@
     }
   },
   "importSuccessTitle": "Jee!",
-  "importTypeEnteEncrypted": "Ente krüptitud ekspordina",
+  "importTypeEnteEncrypted": "Filen krüptitud ekspordina",
   "incorrectCode": "Vigane kood",
   "@incorrectCode": {
     "description": "Error message when code is incorrect"
@@ -811,7 +811,7 @@
   "shouldHideCode": "Peida koodid",
   "showLargeIcons": "Näita suuri ikoone",
   "showQRAuthMessage": "QR-koodi näitamiseks tuvasta end",
-  "sigInBackupReminder": "Peale sisselogimist varundab Ente koode automaatselt.\n\nTäiendava varukoopia mõttes soovitame, et ka ekspordid oma koode.",
+  "sigInBackupReminder": "Peale sisselogimist varundab Filen koode automaatselt.\n\nTäiendava varukoopia mõttes soovitame, et ka ekspordid oma koode.",
   "signInToBackup": "Oma koodide varindamiseks logi sisse",
   "signOutOtherBody": "Kui arvad, et sinu salasõna on võõrastele teada, siis sa võid sundkorras kõik oma muud seadmed välja logida.",
   "@signOutOtherBody": {
