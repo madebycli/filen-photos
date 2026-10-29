@@ -74,6 +74,32 @@ class FilenAssets {
     sha256: '67603cfda2e032ad77b5f8808af37789d590db664b26df8705d2bf8b3c553fc8',
   );
 
+  // Text recognition ("copy text from a photo"); the layout is the one the Rust OCR code reads.
+  static const ocrDetector = AssetSpec(
+    url: '$_models/det_fixed_v1.onnx',
+    relativePath: 'models/ppocrv5_det_fixed_v1/det.onnx',
+    size: 5548458,
+    sha256: 'f655f119225b579fa8c3cbf64f6bb7cf56a26c9dc211706a25234d70a543ec8c',
+  );
+  static const ocrClassifier = AssetSpec(
+    url: '$_models/cls_fixed_v1.onnx',
+    relativePath: 'models/ppocrv5_cls_fixed_v1/cls.onnx',
+    size: 590475,
+    sha256: '378d52a73263828d08d4dda37f1d0aac2e36cbd486fdc6351bf309d515610654',
+  );
+  static const ocrRecognizer = AssetSpec(
+    url: '$_models/rec_fixed_v1.onnx',
+    relativePath: 'models/ppocrv5_rec_fixed_v1/rec.onnx',
+    size: 17031601,
+    sha256: '6dda4c0891af5a70c5b0f618b62588df7f3140616d1c560be5ec6496747b54fd',
+  );
+  static const ocrDictionary = AssetSpec(
+    url: '$_models/PP-OCRv5/ppocrv5_dict.txt',
+    relativePath: 'models/ppocrv5_dict/ppocrv5_dict.txt',
+    size: 74012,
+    sha256: 'd1979e9f794c464c0d2e0b70a7fe14dd978e9dc644c0e71f14158cdf8342af1b',
+  );
+
   static const indexingModels = [faceDetection, faceEmbedding, clipImage];
   static const textModels = [clipText, clipVocab];
 
@@ -129,6 +155,28 @@ class FilenAssets {
       await ensure(spec, root, onProgress: onProgress);
     }
   }
+
+  /// The text recognition models (about 23 MB, fetched on first use). The detector alone is enough
+  /// to outline text; the rest is needed to read it.
+  static Future<void> seedOcr({required bool recognizer}) async {
+    if (recognizer ? _ocrFullyChecked : _ocrDetectorChecked) return;
+    final root = await modelsRoot();
+    var ok = true;
+    for (final spec in [
+      ocrDetector,
+      if (recognizer) ...[ocrClassifier, ocrRecognizer, ocrDictionary],
+    ]) {
+      ok = await ensure(spec, root) && ok;
+    }
+    // Only a complete, verified set is remembered; a failed fetch is tried again next time.
+    if (ok) {
+      _ocrDetectorChecked = true;
+      if (recognizer) _ocrFullyChecked = true;
+    }
+  }
+
+  static bool _ocrDetectorChecked = false;
+  static bool _ocrFullyChecked = false;
 
   static Future<void> seedLocation() async {
     final root = await locationRoot();

@@ -3,6 +3,7 @@ import "dart:ui";
 import "package:logging/logging.dart";
 import "package:path/path.dart" as p;
 import "package:path_provider/path_provider.dart";
+import "package:photos/filen/filen_assets.dart";
 import "package:photos/services/machine_learning/ocr/ocr_backend.dart";
 import "package:photos/services/machine_learning/ocr/ocr_models.dart";
 import "package:photos/services/machine_learning/webgpu_execution_policy.dart";
@@ -46,10 +47,12 @@ class RustOcrBackend implements OcrBackend {
   ) {
     return _engineLock.synchronized(() async {
       final assetsDir = await _getAssetsDirectory();
-      await _ensureEngine(
-        assetsDir,
-        includeRecognizer: components.contains(OcrModelComponent.recognizer),
+      final includeRecognizer = components.contains(
+        OcrModelComponent.recognizer,
       );
+      // Filen fork: fetch the models with the app's own downloader first (see FilenAssets).
+      await FilenAssets.seedOcr(recognizer: includeRecognizer);
+      await _ensureEngine(assetsDir, includeRecognizer: includeRecognizer);
       return ModelPreparationStatus(
         isReady: true,
         version: _modelVersion,
@@ -159,6 +162,7 @@ class RustOcrBackend implements OcrBackend {
         return engine;
       }
       final assetsDir = await _getAssetsDirectory();
+      await FilenAssets.seedOcr(recognizer: false); // Filen fork
       final detectorAvailable = await OcrEngine.isDetectorDownloaded(
         assetsDir: assetsDir,
       );
