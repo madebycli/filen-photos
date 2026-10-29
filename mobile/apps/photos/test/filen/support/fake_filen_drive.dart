@@ -36,6 +36,9 @@ class FakeFilenDrive {
   int stateBytesRead = 0;
   int stateBytesWritten = 0;
 
+  /// When set, listing a folder fails like a dropped connection.
+  bool failFolderListings = false;
+
   int count(String method) => calls.where((c) => c == method).length;
 
   void resetCounters() {
@@ -134,6 +137,9 @@ class FakeFilenDrive {
       case 'createDir':
         return _ensureDir(a['parentUuid']! as String, a['name']! as String);
       case 'listFolder':
+        if (failFolderListings) {
+          throw PlatformException(code: 'NETWORK', message: 'connection lost');
+        }
         return _folder(a['uuid']! as String);
       case 'listTree':
         final all = <String, Object?>{

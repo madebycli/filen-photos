@@ -77,7 +77,7 @@ class FilenThumbStore {
     final entry = _index[uuid];
     if (entry == null) return null;
     try {
-      return await _store.readById(entry.blob.id);
+      return await _store.readById(entry.blob.id, urgent: true);
     } catch (_) {
       return null;
     }

@@ -36,7 +36,8 @@ abstract class FilenBlobStore {
   /// request on the real drive, so use it instead of listing many sub-folders one by one.
   Future<Map<String, List<BlobInfo>>> listRecursive(String dir);
 
-  Future<Uint8List> readById(String id);
+  /// [urgent]: someone is waiting for it on screen (a preview); it goes ahead of background work.
+  Future<Uint8List> readById(String id, {bool urgent = false});
 
   Future<BlobInfo> write(String dir, String name, Uint8List data);
 
@@ -58,12 +59,16 @@ class FilenDriveBlobStore implements FilenBlobStore {
   final FilenSdk _sdk;
   final Map<String, Future<String>> _dirUuids = {};
   final List<Completer<void>> _waiting = [];
+  final List<Completer<void>> _waitingUrgent = [];
   int _slots;
 
-  Future<T> _limited<T>(Future<T> Function() action) async {
+  Future<T> _limited<T>(
+    Future<T> Function() action, {
+    bool urgent = false,
+  }) async {
     if (_slots <= 0) {
       final turn = Completer<void>();
-      _waiting.add(turn);
+      (urgent ? _waitingUrgent : _waiting).add(turn);
       await turn.future;
     } else {
       _slots--;
@@ -71,7 +76,10 @@ class FilenDriveBlobStore implements FilenBlobStore {
     try {
       return await action();
     } finally {
-      if (_waiting.isNotEmpty) {
+      // Whoever is waited for on screen is next, then the background work in order.
+      if (_waitingUrgent.isNotEmpty) {
+        _waitingUrgent.removeAt(0).complete();
+      } else if (_waiting.isNotEmpty) {
         _waiting.removeAt(0).complete();
       } else {
         _slots++;
@@ -147,7 +155,8 @@ class FilenDriveBlobStore implements FilenBlobStore {
   }
 
   @override
-  Future<Uint8List> readById(String id) => _limited(() => _sdk.readBytes(id));
+  Future<Uint8List> readById(String id, {bool urgent = false}) =>
+      _limited(() => _sdk.readBytes(id), urgent: urgent);
 
   @override
   Future<BlobInfo> write(String dir, String name, Uint8List data) async {
@@ -225,7 +234,7 @@ class MemoryBlobStore implements FilenBlobStore {
   }
 
   @override
-  Future<Uint8List> readById(String id) async {
+  Future<Uint8List> readById(String id, {bool urgent = false}) async {
     readCalls++;
     final loc = _byId[id];
     if (loc == null) throw const FilenException('NOT_FOUND', 'no such blob');

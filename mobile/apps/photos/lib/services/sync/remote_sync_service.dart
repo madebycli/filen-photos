@@ -21,6 +21,7 @@ import 'package:photos/events/sync_status_update_event.dart';
 import 'package:photos/filen/filen_battery.dart';
 import 'package:photos/filen/filen_settings.dart';
 import 'package:photos/filen/filen_state.dart';
+import 'package:photos/filen/filen_sync.dart';
 import 'package:photos/filen/filen_upload_progress.dart';
 import 'package:photos/main.dart' show isProcessBg;
 import 'package:photos/models/device_collection.dart';
@@ -78,6 +79,7 @@ class RemoteSyncService {
   RemoteSyncService._privateConstructor();
 
   void init(SharedPreferences preferences) {
+    FilenSyncService.requestResync = () => sync(silently: true).ignore();
     _prefs = preferences;
 
     _localPhotosUpdatedSubscription?.cancel();

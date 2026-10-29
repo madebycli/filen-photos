@@ -77,6 +77,17 @@ class FilenSyncService {
 
   Future<List<Collection>>? _fetching;
 
+  /// Asks for another sync (set by the sync service); used when the cloud state arrives late.
+  static void Function()? requestResync;
+
+  int _stateFailures = 0;
+
+  /// New Filen files are not put in the gallery while the cloud state is missing: the state says
+  /// which photo of this phone a Filen file is, and without it the file would show up next to its
+  /// own local copy until the upload links them. After a few failed attempts they are taken
+  /// anyway, so a damaged state cannot hide the library for good.
+  bool get _holdNewFiles => !_statePulled && _stateFailures < 3;
+
   /// How long a sync waits for the cloud state before it goes on without it.
   static const _statePullBudget = Duration(seconds: 20);
 
@@ -104,17 +115,24 @@ class FilenSyncService {
     // slow cloud state: after the budget the sync goes on with what is local and the pull
     // finishes in the background (the next sync uses it).
     final shards = {for (final f in tree.files) FilenMetaStore.shardOf(f.uuid)};
+    final pulling = _state.pull(metaShards: shards);
     try {
-      await _state.pull(metaShards: shards).timeout(_statePullBudget);
+      await pulling.timeout(_statePullBudget);
       _statePulled = true;
+      _stateFailures = 0;
     } on TimeoutException {
       _statePulled = false;
       _logger.warning(
         'Filen state still loading after ${_statePullBudget.inSeconds} s, '
-        'going on with what is local',
+        'new files wait for it',
+      );
+      // When it is there, one more sync picks up what was held back.
+      unawaited(
+        pulling.then((_) => requestResync?.call()).catchError((Object _) {}),
       );
     } catch (e, s) {
       _statePulled = false;
+      _stateFailures++;
       _logger.warning(
         'Could not read the Filen state folder, using what is local',
         e,
@@ -636,9 +654,14 @@ class FilenSyncService {
     final seen = <int>{};
     var queuedForUpload = 0;
     var linkedToLocal = 0;
+    var heldBack = 0;
     for (final f in candidates.values) {
       final id = filenUuidToId(f.uuid);
       final existing = existingRows[id];
+      if (existing == null && _holdNewFiles) {
+        heldBack++;
+        continue;
+      }
       final mapped = filenFileToEnteFile(
         f,
         collectionID: collectionID,
@@ -693,6 +716,7 @@ class FilenSyncService {
         '[Collection-$collectionID] ${candidates.length} files on Filen, '
         '${updated.length} new or changed, ${deleted.length} gone'
         '${linkedToLocal > 0 ? ', $linkedToLocal matched to photos of this device' : ''}'
+        '${heldBack > 0 ? ', $heldBack new files wait for the cloud state' : ''}'
         '${queuedForUpload > 0 ? ', $queuedForUpload metadata records queued for the cloud' : ''}',
       );
     }
