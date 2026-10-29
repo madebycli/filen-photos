@@ -35,6 +35,7 @@ const List<String> kFilenSyncedSettings = [
   'should_backup_over_mobile_data',
   'should_backup_videos',
   'filen.ml_consent',
+  'ml_debug.run_ml_during_interaction',
   'filen.map_enabled',
   'filen.accent_color',
 ];

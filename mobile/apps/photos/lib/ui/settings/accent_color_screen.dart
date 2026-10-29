@@ -22,7 +22,9 @@ class _AccentColorScreenState extends State<AccentColorScreen> {
     if (!mounted) return;
     setState(() => _selected = color);
     // Rebuild both themes so every screen picks the new color up.
-    AdaptiveTheme.of(context).setTheme(light: lightThemeData, dark: darkThemeData);
+    AdaptiveTheme.of(
+      context,
+    ).setTheme(light: lightThemeData, dark: darkThemeData);
   }
 
   @override

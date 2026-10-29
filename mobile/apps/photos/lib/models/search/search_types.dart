@@ -42,14 +42,7 @@ enum ResultType {
   cameraModel,
 }
 
-enum SectionType {
-  face,
-  ritual,
-  magic,
-  location,
-  album,
-  fileTypesAndExtension,
-}
+enum SectionType { face, ritual, magic, location, album, fileTypesAndExtension }
 
 extension SectionTypeExtensions on SectionType {
   String sectionTitle(BuildContext context) {

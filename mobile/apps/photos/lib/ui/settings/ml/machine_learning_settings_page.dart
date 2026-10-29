@@ -307,6 +307,25 @@ class _MachineLearningSettingsPageState
             },
           ),
         ),
+        const SizedBox(height: 8),
+        MenuComponent(
+          title: "Analyze while I use the app",
+          leading: const HugeIcon(
+            icon: HugeIcons.strokeRoundedFlash,
+            size: IconSizes.small,
+          ),
+          trailing: ToggleSwitchComponent.async(
+            value: () => localSettings.runMLDuringInteractionOverride,
+            onChanged: () async {
+              await computeController.setMLInteractionOverride(
+                turnOn: !localSettings.runMLDuringInteractionOverride,
+              );
+              if (mounted) {
+                setState(() {});
+              }
+            },
+          ),
+        ),
         const SizedBox(height: 12),
         MLModelDownloadService.instance.areModelsDownloaded(
                   onlyIndexingModels: true,

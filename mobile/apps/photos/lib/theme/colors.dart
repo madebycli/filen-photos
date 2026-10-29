@@ -155,8 +155,12 @@ class EnteColorScheme {
     final greenStroke_ = Color.lerp(tintBase, seed, isDark ? 0.30 : 0.40)!;
     final primary700_ = shade(0.9);
     final primary500_ = seed;
-    final primary400_ = hsl.withLightness((hsl.lightness * 1.08).clamp(0.0, 1.0)).toColor();
-    final primary300_ = hsl.withLightness((hsl.lightness * 1.18).clamp(0.0, 1.0)).toColor();
+    final primary400_ = hsl
+        .withLightness((hsl.lightness * 1.08).clamp(0.0, 1.0))
+        .toColor();
+    final primary300_ = hsl
+        .withLightness((hsl.lightness * 1.18).clamp(0.0, 1.0))
+        .toColor();
     return EnteColorScheme(
       backgroundColour,
       backgroundElevated,

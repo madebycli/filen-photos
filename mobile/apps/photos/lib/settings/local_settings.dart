@@ -372,7 +372,7 @@ class LocalSettings {
   }
 
   bool get runMLDuringInteractionOverride =>
-      _prefs.getBool(_kRunMLDuringInteractionOverride) ?? isLocalGalleryMode;
+      _prefs.getBool(_kRunMLDuringInteractionOverride) ?? true;
 
   Future<void> setRunMLDuringInteractionOverride(bool value) async {
     await _prefs.setBool(_kRunMLDuringInteractionOverride, value);
