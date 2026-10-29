@@ -334,10 +334,9 @@ class LocalSettings {
       ? enoughRamForLocalGalleryLocalIndexing
       : enoughRamForLocalIndexing;
 
-  bool get isMLLocalIndexingEnabled {
-    return _prefs.getBool(_mlLocalIndexingKey) ??
-        _defaultMLLocalIndexingEnabled;
-  }
+  /// Filen fork: there is no server that analyzes photos for us, so the device always does it.
+  /// (In Ente this switch let a user rely on analysis done by their other devices.)
+  bool get isMLLocalIndexingEnabled => true;
 
   bool get isSmartMemoriesEnabled =>
       _prefs.getBool(kCuratedMemoriesEnabled) ?? true;

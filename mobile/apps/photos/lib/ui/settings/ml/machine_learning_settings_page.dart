@@ -275,40 +275,6 @@ class _MachineLearningSettingsPageState
         ),
         const SizedBox(height: 8),
         MenuComponent(
-          title: context.strings.localIndexing,
-          leading: const HugeIcon(
-            icon: HugeIcons.strokeRoundedCpu,
-            size: IconSizes.small,
-          ),
-          trailing: ToggleSwitchComponent.async(
-            value: () => localSettings.isMLLocalIndexingEnabled,
-            onChanged: () async {
-              final oldMlEnabled =
-                  hasGrantedMLConsent && localSettings.isMLLocalIndexingEnabled;
-              final localIndexing = await localSettings.toggleLocalMLIndexing();
-              final newMlEnabled = hasGrantedMLConsent && localIndexing;
-              memoriesCacheService.queueUpdateCache();
-              Bus.instance.fire(NotificationEvent());
-              if (localIndexing) {
-                unawaited(MLService.instance.runAllML(force: true));
-              } else {
-                MLService.instance.stopActiveRun(MlStopReason.manual);
-                unawaited(
-                  MLIndexingIsolate.instance.cleanupLocalIndexingModels(),
-                );
-                if (oldMlEnabled && !newMlEnabled) {
-                  await memoriesCacheService.purgeMlOnlyMemoriesFromCache();
-                }
-              }
-
-              if (mounted) {
-                setState(() {});
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: 8),
-        MenuComponent(
           title: "Analyze while I use the app",
           leading: const HugeIcon(
             icon: HugeIcons.strokeRoundedFlash,
@@ -328,9 +294,8 @@ class _MachineLearningSettingsPageState
         ),
         const SizedBox(height: 12),
         MLModelDownloadService.instance.areModelsDownloaded(
-                  onlyIndexingModels: true,
-                ) ||
-                !localSettings.isMLLocalIndexingEnabled
+              onlyIndexingModels: true,
+            )
             ? MLStatusWidget(showDecryptionWarning: _mlDecryptionRecordsReady)
             : const ModelLoadingState(),
       ],

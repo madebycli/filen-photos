@@ -167,7 +167,7 @@ void main() {
         drive.thumbnailDelay = Duration.zero;
         expect(
           drive.thumbnailRequests,
-          lessThan(12),
+          lessThan(15),
           reason: 'only what is on screen (plus the few already running)',
         );
         expect(drive.originalDownloads, 0);

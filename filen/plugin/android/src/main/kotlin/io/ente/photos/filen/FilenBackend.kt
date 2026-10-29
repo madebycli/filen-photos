@@ -63,8 +63,10 @@ class FilenBackend {
 
     private fun unauth(): UnauthJsClient = UnauthJsClient.fromConfig(
         JsClientConfig(
-            concurrency = null,
-            rateLimitPerSec = null,
+            // Phone-friendly limits (SDK defaults are 16 chunks and 64 requests/s): the logs showed
+            // every request failing with ConnectionAborted after sustained bursts of 30-45 requests/s.
+            concurrency = 6u,
+            rateLimitPerSec = 16u,
             uploadBandwidthKilobytesPerSec = null,
             downloadBandwidthKilobytesPerSec = null,
             logLevel = null,

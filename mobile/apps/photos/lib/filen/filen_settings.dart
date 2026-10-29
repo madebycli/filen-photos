@@ -19,7 +19,6 @@ const List<String> kFilenSyncedSettings = [
   'people_sort_updated_ascending',
   'people_sort_photos_ascending',
   'people_sort_similarity_selected',
-  'ls.ml_local_indexing',
   'ls.curated_memories_enabled',
   'ls.on_this_day_notifications_enabled',
   'ls.birthday_notifications_enabled',

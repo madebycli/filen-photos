@@ -669,7 +669,8 @@ class FilenSyncService {
       if (mapped == null) {
         continue;
       }
-      mapped.collectionID = null;
+      // The trash table needs a collection id; Filen does not say which album a photo came from.
+      mapped.collectionID = -1;
       final trashedAt = f.modifiedMs * 1000;
       current[mapped.uploadedFileID!] = EnteTrashFile.from(
         mapped,

@@ -43,6 +43,19 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
   final Set<String> _selectedDevicePathIDs = <String>{};
   List<DeviceCollection>? _deviceCollections;
   Map<String, int>? _pathIDToItemCount;
+  final Map<String, String> _folderPaths = {};
+
+  static final RegExp _densityFolder = RegExp(r'^\d+(\.\d+)?x$');
+  static final RegExp _resourcePath = RegExp(
+    r'(^|/)(flutter_assets|assets|res|drawable[^/]*|mipmap[^/]*|Android/(data|obb)|node_modules|\.git)(/|$)',
+    caseSensitive: false,
+  );
+
+  static bool _looksLikeAppResources(String name, String? path) {
+    if (_densityFolder.hasMatch(name.trim())) return true;
+    return path != null && _resourcePath.hasMatch(path);
+  }
+
   late final bool _treatAsOnboarding;
 
   static const _maxThumbnailWidth = 224.0;
@@ -64,6 +77,20 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
     ) async {
       _pathIDToItemCount = await FilesDB.instance
           .getDevicePathIDToImportedFileCount();
+      // Filen fork: show where a folder lives, and leave out folders that only hold an app's own
+      // resources (icons, scaled images such as "2.0x") - nobody wants those backed up.
+      for (final c in files) {
+        try {
+          final asset = await c.thumbnail?.getAsset;
+          final path = asset?.relativePath;
+          if (path != null && path.isNotEmpty) {
+            _folderPaths[c.id] = path;
+          }
+        } catch (_) {}
+      }
+      files.removeWhere(
+        (c) => _looksLikeAppResources(c.name, _folderPaths[c.id]),
+      );
       if (!mounted) {
         return;
       }
@@ -411,6 +438,18 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
               style: TextStyles.mini.copyWith(color: colors.textLight),
             ),
           ),
+          if (_folderPaths[deviceCollection.id] != null)
+            SizedBox(
+              width: sideOfThumbnail,
+              child: Text(
+                _folderPaths[deviceCollection.id]!,
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyles.tiny.copyWith(color: colors.textLighter),
+              ),
+            ),
         ],
       ),
     );

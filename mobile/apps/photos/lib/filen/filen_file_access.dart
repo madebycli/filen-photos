@@ -178,4 +178,13 @@ class _Limiter {
   }
 }
 
-final _thumbnailLimiter = _Limiter(3);
+final _thumbnailLimiter = _Limiter(6);
+
+/// Keeps [data] as the preview of [file] in the state folder on Filen (used by other devices and
+/// after a reinstall).
+Future<void> storeFilenPreview(EnteFile file, Uint8List data) async {
+  final state = FilenState.instance;
+  await state.ensureInitialized();
+  await state.thumbs.ensureIndexed();
+  await state.thumbs.put(filenUuidOf(file), data);
+}

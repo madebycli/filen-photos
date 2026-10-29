@@ -340,6 +340,34 @@ Future<Uint8List?> _readCachedThumbnailIfPresent(
   }
 }
 
+/// Filen fork: a preview made from an original that was downloaded anyway (to open it, or for
+/// machine learning). It is kept on the phone and in the Filen state folder, so the grid and a
+/// second device never need to fetch that photo again just to draw a small preview.
+Future<void> storePreviewFromDownloadedOriginal(
+  EnteFile file,
+  File original,
+) async {
+  if (file.fileType != FileType.image || !isFilenFile(file)) return;
+  try {
+    final cachedFile = cachedThumbnailPath(file);
+    if (await cachedFile.exists()) return;
+    final bytes = await FlutterImageCompress.compressWithFile(
+      original.path,
+      minWidth: thumbnailLargeSize,
+      minHeight: thumbnailLargeSize,
+      quality: thumbnailQuality,
+      format: CompressFormat.webp,
+    );
+    if (bytes == null || bytes.isEmpty) return;
+    final data = await compressThumbnailToSizeLimit(bytes, maxAttempts: 1);
+    ThumbnailInMemoryLruCache.put(file, data);
+    await _writeCachedThumbnail(cachedFile, data);
+    await storeFilenPreview(file, data);
+  } catch (e, s) {
+    _logger.fine('Could not make a preview from the downloaded file', e, s);
+  }
+}
+
 Future<bool> _writeCachedThumbnail(
   File cachedThumbnail,
   Uint8List data, {

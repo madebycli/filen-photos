@@ -17,6 +17,7 @@ import 'package:photos/filen/filen_ids.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
+import 'package:photos/module/download/thumbnail.dart';
 
 final _logger = Logger("FileUtil");
 
@@ -229,6 +230,7 @@ Future<File?> _downloadAndCache(
       maxAge: const Duration(days: 365),
       fileExtension: fileExtension,
     );
+    await storePreviewFromDownloadedOriginal(file, outputFile);
     await outputFile.delete();
     return cachedFile;
   } catch (e) {

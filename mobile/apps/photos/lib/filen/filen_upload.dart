@@ -84,18 +84,27 @@ Future<EnteFile> filenUploadFile(
     final watch = Stopwatch()..start();
     final created = file.creationTime;
     final modified = file.modificationTime;
-    try {
-      remote = await FilenSdk.instance.uploadFile(
-        localPath: source.path,
-        parentUuid: parentUuid,
-        name: freeFilenName(name, {for (final f in inFolder) f.name}),
-        createdMs: created == null ? null : created ~/ 1000,
-        modifiedMs: modified == null ? null : modified ~/ 1000,
-      );
-      uploadedNow = true;
-    } on FilenException catch (e) {
-      if (e.code == 'STORAGE_FULL') throw StorageLimitExceededError();
-      rethrow;
+    // A dropped connection is retried a few times before the file is given up (the next sync
+    // tries again anyway).
+    for (var attempt = 1; ; attempt++) {
+      try {
+        remote = await FilenSdk.instance.uploadFile(
+          localPath: source.path,
+          parentUuid: parentUuid,
+          name: freeFilenName(name, {for (final f in inFolder) f.name}),
+          createdMs: created == null ? null : created ~/ 1000,
+          modifiedMs: modified == null ? null : modified ~/ 1000,
+        );
+        uploadedNow = true;
+        break;
+      } on FilenException catch (e) {
+        if (e.code == 'STORAGE_FULL') throw StorageLimitExceededError();
+        if (e.code != 'NETWORK' || attempt >= 3) rethrow;
+        _logger.warning(
+          'Upload of ${file.tag} hit a network error, retry $attempt of 2',
+        );
+        await Future<void>.delayed(Duration(seconds: 2 * attempt));
+      }
     }
     sync.noteUploaded(remote);
     _logger.info('Uploaded ${file.tag} in ${watch.elapsedMilliseconds} ms');
