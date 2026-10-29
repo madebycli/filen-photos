@@ -8,13 +8,6 @@
             android:name="io.sentry.auto-init"
             android:value="false"
             tools:replace="android:value"/>
-
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER" tools:node="remove"/>
-            </intent-filter>
-        </activity>
     </application>
 
     <uses-permission android:name="com.android.vending.BILLING"  tools:node="remove"/>
