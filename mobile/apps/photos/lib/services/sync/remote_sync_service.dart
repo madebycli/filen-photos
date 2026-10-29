@@ -18,6 +18,7 @@ import 'package:photos/events/files_updated_event.dart';
 import 'package:photos/events/force_reload_home_gallery_event.dart';
 import 'package:photos/events/local_photos_updated_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
+import 'package:photos/filen/filen_capture_date.dart';
 import 'package:photos/filen/filen_settings.dart';
 import 'package:photos/filen/filen_state.dart';
 import 'package:photos/main.dart' show isProcessBg;
@@ -140,6 +141,8 @@ class RemoteSyncService {
       }
       // Write what was queued (album membership, metadata edits) before the sync ends.
       await FilenState.instance.flush();
+      // Filen fork: photos copied from a computer are filed by their EXIF date, in the background.
+      FilenCaptureDateScan.instance.run().ignore();
       Bus.instance.fire(SyncStatusUpdate(SyncStatus.completedBackup));
     } catch (e, s) {
       _logger.severe("Filen sync failed", e, s);
