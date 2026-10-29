@@ -57,6 +57,8 @@ as revisioned files so two devices never overwrite each other:
 - Permanent deletion of user photos happens only from the trash page after confirmation; "empty trash" only deletes
   the photos/videos shown there.
 - Edits of already uploaded photos are not re-uploaded (no in-place update yet).
+- The library lives in the fixed Filen folder `Filen Photos`; choosing another cloud folder is not planned.
+- Background backup is Ente's WorkManager task; there is no on/off switch for it (not planned).
 - armeabi-v7a is not supported (Filen builds arm64-v8a/x86_64 only).
 - Some Ente wording remains in translated strings of the shared `strings` package.
 
