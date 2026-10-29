@@ -54,6 +54,10 @@ class RevDocs {
     return revs.isEmpty ? null : revs.first;
   }
 
+  /// Reads a revision found by an earlier listing, without listing the folder again.
+  Future<Map<String, dynamic>> readRevision(DocRevision rev) async =>
+      _decode(await store.readById(rev.file.id));
+
   Future<Map<String, dynamic>?> read(String dir, String base) async {
     final rev = await latest(dir, base);
     if (rev == null) return null;

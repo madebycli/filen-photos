@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:filen_sdk/filen_sdk.dart';
@@ -76,6 +77,9 @@ class FilenSyncService {
 
   Future<List<Collection>>? _fetching;
 
+  /// How long a sync waits for the cloud state before it goes on without it.
+  static const _statePullBudget = Duration(seconds: 20);
+
   /// Collections of the library: root (as Uncategorized), folders and virtual albums.
   /// Concurrent callers share one listing.
   Future<List<Collection>> fetchCollections() {
@@ -88,17 +92,6 @@ class FilenSyncService {
     final watch = Stopwatch()..start();
     final rootUuid = await FilenAccount.instance.photosRootUuid();
     await _state.ensureInitialized();
-    try {
-      await _state.pull();
-      _statePulled = true;
-    } catch (e, s) {
-      _statePulled = false;
-      _logger.warning(
-        'Could not read the Filen state folder, using what is local',
-        e,
-        s,
-      );
-    }
     final tree = await FilenSdk.instance.listTree(
       rootUuid,
       skipDirNames: const [kFilenStateDirName],
@@ -107,6 +100,27 @@ class FilenSyncService {
       'Filen listing: ${tree.dirs.length} folders, ${tree.files.length} files '
       'in ${watch.elapsedMilliseconds} ms',
     );
+    // Only the metadata shards of files that exist are needed, and the start must not wait for a
+    // slow cloud state: after the budget the sync goes on with what is local and the pull
+    // finishes in the background (the next sync uses it).
+    final shards = {for (final f in tree.files) FilenMetaStore.shardOf(f.uuid)};
+    try {
+      await _state.pull(metaShards: shards).timeout(_statePullBudget);
+      _statePulled = true;
+    } on TimeoutException {
+      _statePulled = false;
+      _logger.warning(
+        'Filen state still loading after ${_statePullBudget.inSeconds} s, '
+        'going on with what is local',
+      );
+    } catch (e, s) {
+      _statePulled = false;
+      _logger.warning(
+        'Could not read the Filen state folder, using what is local',
+        e,
+        s,
+      );
+    }
     _tree = tree;
     _pendingLocals = null;
     _rootUuid = rootUuid;

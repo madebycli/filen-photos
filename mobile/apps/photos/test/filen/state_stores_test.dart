@@ -131,6 +131,71 @@ void main() {
       },
     );
 
+    test('only the shards of files that exist are read', () async {
+      final store = MemoryBlobStore();
+      final writer = FilenMetaStore(RevDocs(store, writerId: 'a'));
+      writer.queue(_uuidA, const FileMetaEntry(mmd: '{}', mv: 1)); // shard 3f
+      writer.queue(_uuidC, const FileMetaEntry(mmd: '{}', mv: 1)); // shard a0
+      await writer.flush();
+
+      final reader = FilenMetaStore(RevDocs(store, writerId: 'b'));
+      await reader.pull(onlyShards: {'a0'});
+      expect(reader.remote(_uuidC), isNotNull);
+      expect(reader.remote(_uuidA), isNull);
+      expect(store.readCalls, 1);
+
+      // An empty library needs no shard at all.
+      final nothing = FilenMetaStore(RevDocs(store, writerId: 'c'));
+      final reads = store.readCalls;
+      await nothing.pull(onlyShards: {});
+      expect(store.readCalls, reads);
+    });
+
+    test('a restart with the disk cache reads only what changed', () async {
+      final store = MemoryBlobStore();
+      final cache = _MemoryMetaCache();
+      final first = FilenMetaStore(RevDocs(store, writerId: 'a'), cache: cache);
+      first.queue(_uuidA, const FileMetaEntry(mmd: '{"a":1}', mv: 1));
+      first.queue(_uuidC, const FileMetaEntry(mmd: '{"c":1}', mv: 1));
+      await first.flush();
+      await first.pull();
+
+      // The app starts again: nothing in memory, the cache on disk.
+      final reads = store.readCalls;
+      final second = FilenMetaStore(
+        RevDocs(store, writerId: 'a'),
+        cache: cache,
+      );
+      await second.pull();
+      expect(store.readCalls, reads, reason: 'nothing changed in the cloud');
+      expect(second.remote(_uuidA)!.mmd, '{"a":1}');
+      expect(second.remote(_uuidC)!.mmd, '{"c":1}');
+
+      // Another device changes one shard: only that one is read again.
+      final other = FilenMetaStore(RevDocs(store, writerId: 'b'));
+      other.queue(_uuidA, const FileMetaEntry(mmd: '{"a":2}', mv: 2));
+      await other.flush();
+      final before = store.readCalls;
+      final third = FilenMetaStore(RevDocs(store, writerId: 'a'), cache: cache);
+      await third.pull();
+      expect(store.readCalls - before, 1);
+      expect(third.remote(_uuidA)!.mmd, '{"a":2}');
+      expect(third.remote(_uuidC)!.mmd, '{"c":1}');
+    });
+
+    test('a broken cache is ignored and everything is read', () async {
+      final store = MemoryBlobStore();
+      final writer = FilenMetaStore(RevDocs(store, writerId: 'a'));
+      writer.queue(_uuidA, const FileMetaEntry(mmd: '{}', mv: 1));
+      await writer.flush();
+      final reader = FilenMetaStore(
+        RevDocs(store, writerId: 'b'),
+        cache: _MemoryMetaCache(broken: true),
+      );
+      await reader.pull();
+      expect(reader.remote(_uuidA), isNotNull);
+    });
+
     test('entries the cloud already has are not written again', () async {
       final store = MemoryBlobStore();
       final a = FilenMetaStore(RevDocs(store, writerId: 'a'));
@@ -351,4 +416,22 @@ void main() {
       expect(c.hasPending, isFalse);
     });
   });
+}
+
+class _MemoryMetaCache implements MetaCache {
+  _MemoryMetaCache({this.broken = false});
+  final bool broken;
+  MetaSnapshot? _snapshot;
+
+  @override
+  Future<MetaSnapshot?> load() async {
+    if (broken) throw const FormatException('damaged');
+    return _snapshot;
+  }
+
+  @override
+  Future<void> save(MetaSnapshot snapshot) async => _snapshot = snapshot;
+
+  @override
+  Future<void> clear() async => _snapshot = null;
 }

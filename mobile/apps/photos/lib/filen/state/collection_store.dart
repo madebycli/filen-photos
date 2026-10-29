@@ -167,40 +167,37 @@ class FilenCollectionStore {
     final indexFiles = await _docs.store.list(indexDir);
     final rev = RevDocs.revisionsOf(indexBase, indexFiles);
     if (rev.isNotEmpty && rev.first.tag != _indexTag) {
-      final doc = await _docs.read(indexDir, indexBase);
-      if (doc != null) {
-        _collections.clear();
-        _folderMeta.clear();
-        final cols = doc['collections'];
-        if (cols is Map<String, dynamic>) {
-          for (final e in cols.entries) {
-            if (e.value is Map<String, dynamic>) {
-              _collections[e.key] = VirtualCollection.fromJson(
-                e.key,
-                e.value as Map<String, dynamic>,
-              );
-            }
+      final doc = await _docs.readRevision(rev.first);
+      _collections.clear();
+      _folderMeta.clear();
+      final cols = doc['collections'];
+      if (cols is Map<String, dynamic>) {
+        for (final e in cols.entries) {
+          if (e.value is Map<String, dynamic>) {
+            _collections[e.key] = VirtualCollection.fromJson(
+              e.key,
+              e.value as Map<String, dynamic>,
+            );
           }
         }
-        final folders = doc['folders'];
-        if (folders is Map<String, dynamic>) {
-          for (final e in folders.entries) {
-            if (e.value is Map<String, dynamic>) {
-              _folderMeta[e.key] = CollectionMeta.fromJson(
-                e.value as Map<String, dynamic>,
-              );
-            }
-          }
-        }
-        _indexTag = rev.first.tag;
       }
+      final folders = doc['folders'];
+      if (folders is Map<String, dynamic>) {
+        for (final e in folders.entries) {
+          if (e.value is Map<String, dynamic>) {
+            _folderMeta[e.key] = CollectionMeta.fromJson(
+              e.value as Map<String, dynamic>,
+            );
+          }
+        }
+      }
+      _indexTag = rev.first.tag;
     }
     final memberFiles = await _docs.store.list(membersDir);
     for (final base in RevDocs.basesOf(memberFiles)) {
       final latest = RevDocs.revisionsOf(base, memberFiles).first;
       if (_memberTags[base] == latest.tag) continue;
-      final doc = await _docs.read(membersDir, base);
-      if (doc == null) continue;
+      final doc = await _docs.readRevision(latest);
       final files = doc['files'];
       _members[base] = files is List
           ? {for (final f in files) f.toString()}

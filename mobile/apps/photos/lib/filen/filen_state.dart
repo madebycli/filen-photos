@@ -6,6 +6,7 @@ import 'package:photos/filen/filen_account.dart';
 import 'package:photos/filen/state/blob_store.dart';
 import 'package:photos/filen/state/collection_store.dart';
 import 'package:photos/filen/state/entity_store.dart';
+import 'package:photos/filen/state/meta_disk_cache.dart';
 import 'package:photos/filen/state/meta_store.dart';
 import 'package:photos/filen/state/ml_store.dart';
 import 'package:photos/filen/state/rev_doc.dart';
@@ -40,6 +41,7 @@ class FilenState {
   late FilenDriveBlobStore blobs;
   late RevDocs docs;
   late FilenMetaStore meta;
+  MetaCache? _metaCache;
   late FilenCollectionStore collections;
   late FilenEntityStore entities;
   late FilenMlStore ml;
@@ -66,7 +68,8 @@ class FilenState {
       libraryRootUuid: FilenAccount.instance.photosRootUuid,
     );
     docs = RevDocs(blobs, writerId: writer);
-    meta = FilenMetaStore(docs);
+    _metaCache = MetaDiskCache(await FilenAccount.instance.photosRootUuid());
+    meta = FilenMetaStore(docs, cache: _metaCache);
     collections = FilenCollectionStore(docs, _PrefsStorage(prefs));
     entities = FilenEntityStore(
       docs,
@@ -77,11 +80,17 @@ class FilenState {
     _logger.info('Filen state ready (writer $writer)');
   }
 
-  /// Downloads what changed in the cloud state since the last call.
-  Future<void> pull() async {
+  Future<void>? _pulling;
+
+  /// Downloads what changed in the cloud state since the last call. Callers that arrive while a
+  /// pull runs share it. [metaShards]: only the metadata shards that hold files of the library.
+  Future<void> pull({Set<String>? metaShards}) =>
+      _pulling ??= _pull(metaShards).whenComplete(() => _pulling = null);
+
+  Future<void> _pull(Set<String>? metaShards) async {
     await ensureInitialized();
     final watch = Stopwatch()..start();
-    await Future.wait([meta.pull(), collections.pull()]);
+    await Future.wait([meta.pull(onlyShards: metaShards), collections.pull()]);
     _logger.info('Filen state pulled in ${watch.elapsedMilliseconds} ms');
   }
 
@@ -96,6 +105,9 @@ class FilenState {
     if (_init != null) {
       blobs.reset();
     }
+    _metaCache?.clear().ignore();
+    _metaCache = null;
+    _pulling = null;
     _init = null;
   }
 }

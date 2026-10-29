@@ -84,10 +84,30 @@ class FileMetaEntry {
   int get hashCode => Object.hash(mmd, mv, pub, pv, _eq.hash(base ?? const {}));
 }
 
+/// What a pull knew when it ended: the revision of every shard that was read and the entries.
+class MetaSnapshot {
+  const MetaSnapshot(this.tags, this.entries);
+  final Map<String, String> tags;
+  final Map<String, FileMetaEntry> entries;
+}
+
+/// Keeps the pulled shards on the phone, so the next start reads only what changed in the cloud.
+abstract interface class MetaCache {
+  Future<MetaSnapshot?> load();
+  Future<void> save(MetaSnapshot snapshot);
+  Future<void> clear();
+}
+
 /// Cloud copy of the per-file magic metadata, sharded by the first two hex digits of the Filen file
 /// uuid (at most 256 small documents), with a debounced write-behind queue.
 class FilenMetaStore {
-  FilenMetaStore(this._docs, {this.flushDelay = const Duration(seconds: 4)});
+  FilenMetaStore(
+    this._docs, {
+    this.flushDelay = const Duration(seconds: 4),
+    MetaCache? cache,
+  }) : _cache = cache;
+
+  final MetaCache? _cache;
 
   static const String dir = 'meta';
   static final _logger = Logger('FilenMetaStore');
@@ -117,23 +137,71 @@ class FilenMetaStore {
     return cloud == null ? queued : cloud.mergedWith(queued);
   }
 
-  /// Downloads the shards that changed since the last call. One listing plus one read per changed
-  /// shard, so calling it on every sync is cheap.
-  Future<void> pull() async {
+  /// Downloads the shards that changed since the last call, several at a time. One listing plus
+  /// one read per changed shard; with a [cache] the shards that did not change since the last
+  /// start are not read at all. [onlyShards] limits the work to the shards that hold files of the
+  /// library right now (an empty library needs none).
+  Future<void> pull({Set<String>? onlyShards}) async {
+    await _restoreCache();
     final files = await _docs.store.list(dir);
+    final changed = <String, DocRevision>{};
     for (final base in RevDocs.basesOf(files)) {
+      if (onlyShards != null && !onlyShards.contains(base)) continue;
       final rev = RevDocs.revisionsOf(base, files).first;
       if (_mergedTags[base] == rev.tag) continue;
-      final doc = await _docs.read(dir, base);
-      if (doc == null) continue;
-      for (final e in doc.entries) {
-        final value = e.value;
-        if (value is! Map<String, dynamic>) continue;
-        final incoming = FileMetaEntry.fromJson(value);
+      changed[base] = rev;
+    }
+    if (changed.isEmpty) return;
+    await Future.wait([
+      for (final e in changed.entries)
+        () async {
+          final doc = await _docs.readRevision(e.value);
+          for (final entry in doc.entries) {
+            final value = entry.value;
+            if (value is! Map<String, dynamic>) continue;
+            final incoming = FileMetaEntry.fromJson(value);
+            final known = _remote[entry.key];
+            _remote[entry.key] = known == null
+                ? incoming
+                : known.mergedWith(incoming);
+          }
+          _mergedTags[e.key] = e.value.tag;
+        }(),
+    ]);
+    await _saveCache();
+  }
+
+  bool _cacheRestored = false;
+
+  Future<void> _restoreCache() async {
+    final cache = _cache;
+    if (cache == null || _cacheRestored) return;
+    _cacheRestored = true;
+    try {
+      final snapshot = await cache.load();
+      if (snapshot == null) return;
+      _mergedTags.addAll(snapshot.tags);
+      for (final e in snapshot.entries.entries) {
         final known = _remote[e.key];
-        _remote[e.key] = known == null ? incoming : known.mergedWith(incoming);
+        _remote[e.key] = known == null ? e.value : known.mergedWith(e.value);
       }
-      _mergedTags[base] = rev.tag;
+    } catch (e, s) {
+      _logger.warning(
+        'Could not read the metadata cache, reading it all',
+        e,
+        s,
+      );
+      _mergedTags.clear();
+    }
+  }
+
+  Future<void> _saveCache() async {
+    final cache = _cache;
+    if (cache == null) return;
+    try {
+      await cache.save(MetaSnapshot(Map.of(_mergedTags), Map.of(_remote)));
+    } catch (e, s) {
+      _logger.warning('Could not save the metadata cache', e, s);
     }
   }
 
