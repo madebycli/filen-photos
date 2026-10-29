@@ -8,7 +8,7 @@ import 'package:photos/models/collection/collection.dart';
 import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
 
-FilenFile _file({
+FilenFile _mediaFile({
   String uuid = '2c1f6f4e-8f0a-4c7d-9a1e-5d3b7e9a0c11',
   String parent = '11111111-2222-4333-8444-555555555555',
   String name = 'IMG_0001.jpg',
@@ -80,7 +80,7 @@ void main() {
 
   group('filenFileToEnteFile', () {
     test('maps metadata into Ente units and tags the file as Filen', () {
-      final f = _file();
+      final f = _mediaFile();
       final e = filenFileToEnteFile(f, collectionID: 7, ownerID: 42)!;
       expect(e.uploadedFileID, filenUuidToId(f.uuid));
       expect(e.collectionID, 7);
@@ -101,7 +101,7 @@ void main() {
       'falls back to the modification time when no creation time exists',
       () {
         final e = filenFileToEnteFile(
-          _file(created: null),
+          _mediaFile(created: null),
           collectionID: 1,
           ownerID: 1,
         )!;
@@ -111,7 +111,7 @@ void main() {
 
     test('keeps the row identity of an already synced file', () {
       final e = filenFileToEnteFile(
-        _file(),
+        _mediaFile(),
         collectionID: 1,
         ownerID: 1,
         existingGeneratedID: 99,
@@ -122,7 +122,7 @@ void main() {
     test('skips non-media files', () {
       expect(
         filenFileToEnteFile(
-          _file(name: 'a.pdf', mime: 'application/pdf'),
+          _mediaFile(name: 'a.pdf', mime: 'application/pdf'),
           collectionID: 1,
           ownerID: 1,
         ),
@@ -140,9 +140,10 @@ void main() {
     test('library root is Uncategorized, sub folders are albums', () {
       const root = '11111111-2222-4333-8444-555555555555';
       const sub = '99999999-2222-4333-8444-555555555555';
-      const tree = FilenTree([
-        FilenDir(uuid: sub, parentUuid: root, name: 'Holiday'),
-      ], []);
+      final tree = FilenTree(
+        const [FilenDir(uuid: sub, parentUuid: root, name: 'Holiday')],
+        [_plainFile('a.jpg', sub)],
+      );
       final cols = collectionsFromTree(
         tree,
         rootUuid: root,
@@ -157,6 +158,37 @@ void main() {
       expect(cols[1].displayName, 'Holiday');
       expect(cols[1].updationTime, 123);
       expect(cols[1].isOwner(5), isTrue);
+    });
+
+    test('folders without photos or videos are not albums', () {
+      const root = '11111111-2222-4333-8444-555555555555';
+      const photos = '99999999-2222-4333-8444-555555555555';
+      const metadata = '88888888-2222-4333-8444-555555555555';
+      const onlySubfolders = '77777777-2222-4333-8444-555555555555';
+      const fresh = '66666666-2222-4333-8444-555555555555';
+      final tree = FilenTree(
+        const [
+          FilenDir(uuid: photos, parentUuid: root, name: 'Holiday'),
+          FilenDir(uuid: metadata, parentUuid: root, name: 'metadata'),
+          FilenDir(uuid: onlySubfolders, parentUuid: root, name: 'Trips'),
+          FilenDir(uuid: fresh, parentUuid: root, name: 'Camera'),
+        ],
+        [_plainFile('a.jpg', photos), _plainFile('index.json', metadata)],
+      );
+      final names = [
+        for (final c in collectionsFromTree(
+          tree,
+          rootUuid: root,
+          owner: User(id: 5, email: 'a@b.c'),
+          updationTime: 1,
+          keepEmpty: {fresh},
+        ))
+          c.displayName,
+      ];
+      expect(names, contains('Holiday'));
+      expect(names, contains('Camera'), reason: 'chosen by the app for backup');
+      expect(names, isNot(contains('metadata')));
+      expect(names, isNot(contains('Trips')));
     });
 
     test('folders whose name could not be decrypted are left out', () {
@@ -177,3 +209,15 @@ void main() {
     });
   });
 }
+
+FilenFile _plainFile(String name, String parent) => FilenFile(
+  uuid:
+      '00000000-0000-4000-8000-${name.hashCode.abs().toString().padLeft(12, '0').substring(0, 12)}',
+  parentUuid: parent,
+  name: name,
+  mime: name.endsWith('.jpg') ? 'image/jpeg' : 'application/json',
+  size: 1,
+  createdMs: 1,
+  modifiedMs: 1,
+  canMakeThumbnail: false,
+);

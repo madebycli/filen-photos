@@ -28,6 +28,7 @@ import 'package:photos/models/file/trash_file.dart';
 import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/sync/diff_fetcher.dart';
 import 'package:photos/services/sync/trash_sync_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 /// Filen side of Ente's collection/diff sync and of album operations.
@@ -113,11 +114,13 @@ class FilenSyncService {
     final owner = _owner;
     // Every sync must re-diff every collection: Filen folders carry no change counter.
     final now = DateTime.now().microsecondsSinceEpoch;
+    final prefs = await SharedPreferences.getInstance();
     final folders = collectionsFromTree(
       tree,
       rootUuid: rootUuid,
       owner: owner,
       updationTime: now,
+      keepEmpty: (prefs.getStringList(_appFoldersKey) ?? const []).toSet(),
     );
     if (_statePulled) {
       for (final c in folders) {
@@ -149,6 +152,18 @@ class FilenSyncService {
           if (_statePulled || _isFolder(c)) filenDeletedCollection(c, now),
     ];
     return [...folders, ...virtual, ...vanished];
+  }
+
+  /// Folders the app created or picked itself (for a device folder to back up). They show up as
+  /// albums even while they hold no photo yet; other folders without photos are not albums.
+  static const _appFoldersKey = 'filen_app_folders';
+
+  Future<void> _rememberAppFolder(String uuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    final known = prefs.getStringList(_appFoldersKey) ?? <String>[];
+    if (!known.contains(uuid)) {
+      await prefs.setStringList(_appFoldersKey, [...known, uuid]);
+    }
   }
 
   bool _isFolder(Collection c) {
@@ -213,6 +228,7 @@ class FilenSyncService {
         FilenDir(uuid: uuid, parentUuid: rootUuid, name: safeName),
       ], tree.files);
     }
+    await _rememberAppFolder(uuid);
     final collection = filenDirToCollection(
       uuid: uuid,
       name: safeName,
@@ -799,7 +815,14 @@ List<Collection> collectionsFromTree(
   required String rootUuid,
   required User owner,
   required int updationTime,
+  Set<String> keepEmpty = const {},
 }) {
+  // Only folders that hold photos or videos are albums; the rest of a drive tree (folders for
+  // metadata, app files, or only sub-folders) is not shown.
+  final withMedia = {
+    for (final f in tree.files)
+      if (filenFileType(f.mime, f.name) != null) f.parentUuid,
+  };
   return [
     filenDirToCollection(
       uuid: rootUuid,
@@ -809,7 +832,9 @@ List<Collection> collectionsFromTree(
       updationTime: updationTime,
     ),
     for (final d in tree.dirs)
-      if (d.name != null && d.name != kFilenStateDirName)
+      if (d.name != null &&
+          d.name != kFilenStateDirName &&
+          (withMedia.contains(d.uuid) || keepEmpty.contains(d.uuid)))
         filenDirToCollection(
           uuid: d.uuid,
           name: d.name!,

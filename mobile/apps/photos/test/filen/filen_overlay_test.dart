@@ -215,11 +215,25 @@ void main() {
 
   group('collections from the tree', () {
     test('the state folder never becomes an album', () {
-      const tree = FilenTree([
-        FilenDir(uuid: _dirA, parentUuid: _root, name: 'Trip'),
-        FilenDir(uuid: _dirB, parentUuid: _root, name: kFilenStateDirName),
-        FilenDir(uuid: _dirC, parentUuid: _root, name: null),
-      ], []);
+      final tree = FilenTree(
+        const [
+          FilenDir(uuid: _dirA, parentUuid: _root, name: 'Trip'),
+          FilenDir(uuid: _dirB, parentUuid: _root, name: kFilenStateDirName),
+          FilenDir(uuid: _dirC, parentUuid: _root, name: null),
+        ],
+        const [
+          FilenFile(
+            uuid: '00000000-0000-4000-8000-0000000000aa',
+            parentUuid: _dirA,
+            name: 'a.jpg',
+            mime: 'image/jpeg',
+            size: 1,
+            createdMs: 1,
+            modifiedMs: 1,
+            canMakeThumbnail: true,
+          ),
+        ],
+      );
       final cols = collectionsFromTree(
         tree,
         rootUuid: _root,
