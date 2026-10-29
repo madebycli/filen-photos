@@ -61,7 +61,7 @@ Future<void> correctCaptureDateFromOriginal(
 ) async {
   try {
     if (!_isPhoto(file) || file.uploadedFileID == null) return;
-    final exif = await tryExifFromFile(original);
+    final exif = await _readHeadOf(original);
     if (exif == null) return;
     final update = await captureDateUpdate(file, exif);
     if (update == null) return;
@@ -70,6 +70,17 @@ Future<void> correctCaptureDateFromOriginal(
     _reloadGallerySoon();
   } catch (e, s) {
     _logger.warning('Could not read the capture date of ${file.tag}', e, s);
+  }
+}
+
+Future<Map<String, IfdTag>?> _readHeadOf(File original) async {
+  final raf = await original.open();
+  try {
+    final head = await raf.read(FilenCaptureDateScan._headBytes);
+    final exif = await readExifFromBytes(head);
+    return exif.tags.isEmpty ? null : exif.tags;
+  } finally {
+    await raf.close();
   }
 }
 
