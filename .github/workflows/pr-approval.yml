@@ -1,9 +1,11 @@
 name: PR approval
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    pull_request_target:
-        branches: [main]
-        types: [opened, synchronize, reopened, ready_for_review]
+    # pull_request_target:
+    #     branches: [main]
+    #     types: [opened, synchronize, reopened, ready_for_review]
+    workflow_dispatch:
 
 permissions: {}
 

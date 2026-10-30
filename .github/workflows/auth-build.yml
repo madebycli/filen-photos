@@ -2,14 +2,15 @@ name: "Build (Auth)"
 
 # See .github/docs/app-release.md
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches:
-            - "release/auth-v*"
+    # push:
+    #     branches:
+    #         - "release/auth-v*"
     workflow_dispatch:
-    schedule:
-        # Weekdays at ~3:45 AM IST
-        - cron: "15 22 * * 0-4"
+    # schedule:
+    #     # Weekdays at ~3:45 AM IST
+    #     - cron: "15 22 * * 0-4"
 
 permissions:
     contents: write

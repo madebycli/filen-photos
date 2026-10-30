@@ -2,14 +2,15 @@ name: "Build (Locker)"
 
 # See .github/docs/app-release.md
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches:
-            - "release/locker-v*"
+    # push:
+    #     branches:
+    #         - "release/locker-v*"
     workflow_dispatch:
-    schedule:
-        # Weekdays at ~4:45 AM IST
-        - cron: "15 23 * * 0-4"
+    # schedule:
+    #     # Weekdays at ~4:45 AM IST
+    #     - cron: "15 23 * * 0-4"
 
 permissions:
     contents: write

@@ -1,12 +1,14 @@
 name: "Push sources to Crowdin (Mobile)"
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches: [main]
-        paths:
-            - ".github/workflows/mobile-crowdin-push-sources.yml"
-            - "mobile/packages/strings/crowdin.yml"
-            - "mobile/packages/strings/lib/l10n/arb/strings_en.arb"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         - ".github/workflows/mobile-crowdin-push-sources.yml"
+    #         - "mobile/packages/strings/crowdin.yml"
+    #         - "mobile/packages/strings/lib/l10n/arb/strings_en.arb"
+    workflow_dispatch:
 
 concurrency:
     group: ${{ github.workflow }}

@@ -3,10 +3,11 @@ name: "Warm caches"
 # PR workflows cannot save caches that other PRs can restore.
 # This main-only workflow primes shared caches; consumers use save-if: false.
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    schedule:
-        - cron: "17 18 * * *"
-    # Dispatch only on main or caches will be saved against the wrong ref.
+    # schedule:
+    #     - cron: "17 18 * * *"
+    # # Dispatch only on main or caches will be saved against the wrong ref.
     workflow_dispatch:
 
 permissions:
