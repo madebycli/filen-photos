@@ -64,11 +64,12 @@ as revisioned files so two devices never overwrite each other:
 
 ## Updating and releasing
 
-- **Filen SDK (automatic, weekly)**: `filen-sdk-update.yml` bumps the submodule to the newest `filen-js@X.Y.Z` release
+- **Filen SDK (weekly; currently switched off, run it by hand or restore its `schedule:`)**: `filen-sdk-update.yml` bumps the submodule to the newest `filen-js@X.Y.Z` release
   on a branch, runs `filen-android.yml` (analyze, unit tests, signed arm64 APK) and, only if that passes,
   fast-forwards `main` and publishes a GitHub **pre-release** with the APK. If anything fails nothing is merged and a
   draft PR is left. Set the repository variable `FILEN_AUTO_MERGE=false` to always get a draft PR instead.
-  GitHub Actions must be enabled in the fork for this to run; it has not been run yet.
+  All workflows are manual-only for now (their triggers are commented out); the weekly run starts again when the
+  `schedule:` block of `filen-sdk-update.yml` is uncommented.
 - **Signing**: set the secrets `FILEN_PHOTOS_KEYSTORE_B64`, `FILEN_PHOTOS_KEY_ALIAS`, `FILEN_PHOTOS_KEY_PASSWORD`,
   `FILEN_PHOTOS_STORE_PASSWORD`; without them CI signs with a throw-away key (APKs then cannot update each other).
 - **Ente UI (manual)**: `git remote add upstream https://github.com/ente/ente && git merge upstream/main`;

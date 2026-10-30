@@ -40,4 +40,4 @@ Host-side Filen tooling needs `RUSTFLAGS=-Zhigher-ranked-assumptions` if the `wi
 - Filen-only services: `collections_service.dart`, `diff_fetcher.dart`, `module/download/{file,thumbnail}.dart`,
   `remote_sync_service.dart`, `entity_service.dart`, `filedata_service.dart`, `file_magic_service.dart`,
   `trash_sync_service.dart`; cloud state (meta, albums, people, ML, thumbs, settings) in `lib/filen/state/`.
-- Updates: `.github/workflows/filen-sdk-update.yml` = weekly verified Filen SDK bump + pre-release; merge `ente/ente` upstream by hand.
+- Updates: `.github/workflows/filen-sdk-update.yml` = verified Filen SDK bump + pre-release (weekly schedule currently commented out, all workflows are manual-only); merge `ente/ente` upstream by hand.
