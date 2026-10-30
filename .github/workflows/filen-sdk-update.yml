@@ -8,9 +8,10 @@ name: "Filen SDK auto-release"
 # Repository variable FILEN_AUTO_MERGE=false turns the automatic merge + release off (draft PR only).
 # Ente upstream is never merged automatically.
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    schedule:
-        - cron: "17 4 * * 1"
+    # schedule:
+    #     - cron: "17 4 * * 1"
     workflow_dispatch:
 
 permissions:

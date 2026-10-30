@@ -3,20 +3,21 @@ name: "Filen Android"
 # Android-only checks and test builds of the Filen-backed photos app.
 # Never publishes a production release: the optional release is a pre-release test APK.
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches: [main]
-        paths:
-            - "filen/**"
-            - "mobile/apps/photos/**"
-            - "mobile/packages/**"
-            - ".github/workflows/filen-android.yml"
-    pull_request:
-        paths:
-            - "filen/**"
-            - "mobile/apps/photos/**"
-            - "mobile/packages/**"
-            - ".github/workflows/filen-android.yml"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         - "filen/**"
+    #         - "mobile/apps/photos/**"
+    #         - "mobile/packages/**"
+    #         - ".github/workflows/filen-android.yml"
+    # pull_request:
+    #     paths:
+    #         - "filen/**"
+    #         - "mobile/apps/photos/**"
+    #         - "mobile/packages/**"
+    #         - ".github/workflows/filen-android.yml"
     workflow_dispatch:
         inputs:
             build_apk:

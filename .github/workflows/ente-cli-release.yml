@@ -1,10 +1,11 @@
 name: Release Ente CLI
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
     workflow_dispatch:
-    schedule:
-        # Wednesdays at ~2:45 PM IST
-        - cron: "15 9 * * 3"
+    # schedule:
+    #     # Wednesdays at ~2:45 PM IST
+    #     - cron: "15 9 * * 3"
 
 permissions:
     contents: read

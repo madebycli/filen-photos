@@ -1,10 +1,11 @@
 name: "Deploy (help.ente.io redirect)"
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches: [main]
-        paths:
-            - "infra/services/help-redir/**"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         - "infra/services/help-redir/**"
     workflow_dispatch:
 
 permissions:

@@ -1,9 +1,10 @@
 name: "Build (Cast)"
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches:
-            - "release/cast-v*"
+    # push:
+    #     branches:
+    #         - "release/cast-v*"
     workflow_dispatch:
 
 permissions:

@@ -2,14 +2,15 @@ name: "Build (Photos desktop)"
 
 # See .github/docs/app-release.md
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches:
-            - "release/photos-desktop-v*"
+    # push:
+    #     branches:
+    #         - "release/photos-desktop-v*"
     workflow_dispatch:
-    schedule:
-        # Weekdays at ~6:45 AM IST
-        - cron: "15 1 * * 1-5"
+    # schedule:
+    #     # Weekdays at ~6:45 AM IST
+    #     - cron: "15 1 * * 1-5"
 
 permissions:
     contents: read

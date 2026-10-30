@@ -1,8 +1,10 @@
 name: Change approval
 
 # Guardrail for accidental policy changes; this workflow remains PR-editable.
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-  pull_request:
+  # pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

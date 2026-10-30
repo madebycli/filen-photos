@@ -1,9 +1,10 @@
 name: "Publish GHCR (Server)"
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    schedule:
-        # Monthly on the 15th at ~10:30 AM IST
-        - cron: '0 5 15 * *'
+    # schedule:
+    #     # Monthly on the 15th at ~10:30 AM IST
+    #     - cron: '0 5 15 * *'
     workflow_dispatch:
 
 permissions:

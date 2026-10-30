@@ -2,14 +2,15 @@ name: "Build (Ensu)"
 
 # See .github/docs/app-release.md
 
+# Filen fork: no automatic triggers; run it by hand ("Run workflow"). The original triggers are commented out below.
 on:
-    push:
-        branches:
-            - "release/ensu-v*"
+    # push:
+    #     branches:
+    #         - "release/ensu-v*"
     workflow_dispatch:
-    schedule:
-        # Weekdays at ~5:45 AM IST
-        - cron: "15 0 * * 1-5"
+    # schedule:
+    #     # Weekdays at ~5:45 AM IST
+    #     - cron: "15 0 * * 1-5"
 
 env:
     NDK_VERSION: "27.3.13750724"
